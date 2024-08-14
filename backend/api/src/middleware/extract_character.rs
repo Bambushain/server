@@ -1,5 +1,5 @@
+use actix_web::middleware::Next;
 use actix_web::{body, dev, web, Error, HttpMessage};
-use actix_web_lab::middleware::Next;
 
 use bamboo_common::backend::dbal;
 use bamboo_common::backend::response::*;
@@ -33,7 +33,7 @@ pub(crate) async fn extract_character(
 
 macro_rules! character {
     () => {
-        actix_web_lab::middleware::from_fn(crate::middleware::extract_character::extract_character)
+        actix_web::middleware::from_fn(crate::middleware::extract_character::extract_character)
     };
 }
 

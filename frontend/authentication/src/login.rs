@@ -1,0 +1,95 @@
+use leptos::*;
+use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ssr")]
+pub mod ssr {
+    use bamboo_common::backend::database::get_database;
+    use leptos::server_fn::ServerFnError;
+    use sea_orm::DatabaseConnection;
+
+    pub async fn db() -> Result<DatabaseConnection, ServerFnError> {
+        get_database().await.map_err(|err| ServerFnError::new(err))
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct LoginResult {
+    pub requires_two_factor: bool,
+    pub login_success: bool,
+}
+
+#[server(LoginAction, "/authentication/login")]
+pub async fn login(
+    email: String,
+    password: String,
+    two_factor_code: Option<String>,
+) -> Result<LoginResult, ServerFnError> {
+    use actix_web::cookie::Cookie;
+    use actix_web::http::header;
+    use actix_web::http::header::HeaderValue;
+    use bamboo_common::backend::actix::cookie;
+    use bamboo_common::backend::dbal;
+    use bamboo_common::core::error::BambooError;
+    use leptos_actix::ResponseOptions;
+
+    let db = ssr::db().await?;
+
+    let res = dbal::validate_auth(email.clone(), password, two_factor_code, &db)
+        .await
+        .map_err(|err| ServerFnError::new(err))?;
+
+    if !res.requires_two_factor_code {
+        let response = expect_context::<ResponseOptions>();
+
+        let token = dbal::create_token(email, &db).await.map_err(|err| {
+            log::error!("Failed to login {err}");
+            BambooError::unauthorized("user", "Login data is invalid")
+        })?;
+
+        let cookie = Cookie::build(cookie::BAMBOO_AUTH_COOKIE, token.token.clone())
+            .path("/")
+            .http_only(true)
+            .finish();
+        if let Ok(cookie) = HeaderValue::from_str(&cookie.to_string()) {
+            response.insert_header(header::SET_COOKIE, cookie);
+        }
+
+        Ok(LoginResult {
+            requires_two_factor: false,
+            login_success: true,
+        })
+    } else {
+        Ok(LoginResult {
+            requires_two_factor: true,
+            login_success: false,
+        })
+    }
+}
+
+#[server(ForgotPasswordAction, "/authentication/forgot-password")]
+pub async fn forgot_password(email: String) -> Result<(), ServerFnError> {
+    use bamboo_common::backend::mailing::enqueue_forgot_password_mail;
+
+    enqueue_forgot_password_mail(email, &ssr::db().await?).await;
+
+    Ok(())
+}
+
+#[server(ResetPasswordAction, "/authentication/forgot-password")]
+pub async fn reset_password(
+    email: String,
+    token: String,
+    password: String,
+) -> Result<bool, ServerFnError> {
+    use bamboo_common::backend::dbal;
+
+    dbal::reset_password_by_token(
+        email.clone(),
+        token.clone(),
+        password.clone(),
+        &ssr::db().await?,
+    )
+    .await
+    .map(|_| true)
+    .map_err(|err| ServerFnError::new(err))
+}

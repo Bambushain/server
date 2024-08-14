@@ -1,6 +1,6 @@
 use crate::path;
+use actix_web::middleware::Next;
 use actix_web::{body, dev, web, Error};
-use actix_web_lab::middleware::Next;
 use bamboo_common::backend::actix::{cookie, header, middleware};
 use bamboo_common::backend::dbal;
 use bamboo_common::backend::services::DbConnection;
@@ -35,7 +35,7 @@ pub(crate) async fn check_grove_mod(
 
 macro_rules! grove_mod {
     () => {
-        actix_web_lab::middleware::from_fn(crate::middleware::check_grove_mod::check_grove_mod)
+        actix_web::middleware::from_fn(crate::middleware::check_grove_mod::check_grove_mod)
     };
 }
 

@@ -1,51 +1,27 @@
-use std::str::FromStr;
+use leptos::*;
+use leptos_meta::*;
+use leptos_router::*;
 
-use crate::base::routing::AppRoute;
-use crate::base::storage::get_log_level;
-use crate::sections::layout::switch;
-use bamboo_frontend_pandas_base::controls::BambooDialogsProvider;
-use log::Level;
-use yew::prelude::*;
-use yew_cosmo::prelude::CosmoPageLayout;
-use yew_router::prelude::*;
+#[component]
+pub fn App() -> impl IntoView {
+    // Provides context that manages stylesheets, titles, meta tags, etc.
+    provide_meta_context();
 
-fn format_title(s: AttrValue) -> AttrValue {
-    if s.is_empty() {
-        AttrValue::from("Bambushain")
-    } else {
-        AttrValue::from(format!("Bambushain – {s}"))
+    view! {
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css"/>
+
+        // sets the document title
+        <Title text="Welcome to Leptos"/>
+
+        // content for this welcome page
+        <Router>
+            <main>
+                <Routes>
+                    <Route path="/pandas" view=HomePage/>
+                </Routes>
+            </main>
+        </Router>
     }
-}
-
-#[function_component(App)]
-pub fn app() -> Html {
-    html!(
-        <CosmoPageLayout
-            primary_color="#598C79"
-            primary_color_dark="#598C79"
-            default_title="Bambushain"
-            format_title={format_title}
-        >
-            <BambooDialogsProvider>
-                <BrowserRouter>
-                    <Switch<AppRoute> render={switch} />
-                </BrowserRouter>
-            </BambooDialogsProvider>
-        </CosmoPageLayout>
-    )
-}
-
-pub fn start_ui() {
-    console_log::init_with_level(
-        Level::from_str(get_log_level().unwrap_or(Level::Warn.to_string()).as_str())
-            .unwrap_or(Level::Warn),
-    )
-    .expect("error initializing log");
-
-    yew::Renderer::<App>::with_root(
-        gloo_utils::document()
-            .get_element_by_id("bamboo_root")
-            .unwrap(),
-    )
-    .render();
 }

@@ -1,5 +1,5 @@
+use actix_web::middleware::Next;
 use actix_web::{body, dev, web, Error, HttpMessage};
-use actix_web_lab::middleware::Next;
 
 use bamboo_common_backend_services::DbConnection;
 use bamboo_common_core::entities::*;
@@ -38,9 +38,7 @@ pub async fn authenticate_user(
 #[macro_export]
 macro_rules! authenticate {
     () => {
-        actix_web_lab::middleware::from_fn(
-            bamboo_common::backend::actix::middleware::authenticate_user,
-        )
+        actix_web::middleware::from_fn(bamboo_common::backend::actix::middleware::authenticate_user)
     };
 }
 
