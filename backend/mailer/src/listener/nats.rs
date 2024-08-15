@@ -5,13 +5,16 @@ use bamboo_common::backend::mailing::Mail;
 use bamboo_common::backend::mq::{get_once_stream, FromMessage, NotificationError, Queue};
 use bamboo_common::backend::services::EnvironmentService;
 use futures_util::StreamExt;
+use std::time::Duration;
 
 pub async fn start_listening() -> Result<(), NotificationError> {
     log::info!("Start listening to new mails on nats");
     let consumer = get_once_stream()
         .await?
         .get_or_create_consumer(
-            "mailing",
+            std::env::var("NAME")
+                .unwrap_or("mailing-0".to_string())
+                .as_str(),
             pull::Config {
                 filter_subject: Queue::Mails.to_subject().to_string(),
                 ..Default::default()
@@ -46,5 +49,7 @@ pub async fn start_listening() -> Result<(), NotificationError> {
                 log::error!("Failed to receive message {err}")
             }
         }
+
+        tokio::time::sleep(Duration::from_millis(1)).await
     }
 }
