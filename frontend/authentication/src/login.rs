@@ -1,17 +1,6 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "ssr")]
-pub mod ssr {
-    use bamboo_common::backend::database::get_database;
-    use leptos::server_fn::ServerFnError;
-    use sea_orm::DatabaseConnection;
-
-    pub async fn db() -> Result<DatabaseConnection, ServerFnError> {
-        get_database().await.map_err(|err| ServerFnError::new(err))
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LoginResult {
     pub requires_two_factor: bool,
@@ -29,10 +18,11 @@ pub async fn login(
     use actix_web::http::header::HeaderValue;
     use bamboo_common::backend::actix::cookie;
     use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::error::BambooError;
-    use leptos_actix::ResponseOptions;
+    use leptos_actix::{extract, ResponseOptions};
 
-    let db = ssr::db().await?;
+    let db: DbConnection = extract().await?;
 
     let res = dbal::validate_auth(email.clone(), password, two_factor_code, &db)
         .await
@@ -69,8 +59,12 @@ pub async fn login(
 #[server(ForgotPasswordAction, "/authentication/forgot-password")]
 pub async fn forgot_password(email: String) -> Result<(), ServerFnError> {
     use bamboo_common::backend::mailing::enqueue_forgot_password_mail;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
 
-    enqueue_forgot_password_mail(email, &ssr::db().await?).await;
+    let db: DbConnection = extract().await?;
+
+    enqueue_forgot_password_mail(email, &db).await;
 
     Ok(())
 }
@@ -82,14 +76,13 @@ pub async fn reset_password(
     password: String,
 ) -> Result<bool, ServerFnError> {
     use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
 
-    dbal::reset_password_by_token(
-        email.clone(),
-        token.clone(),
-        password.clone(),
-        &ssr::db().await?,
-    )
-    .await
-    .map(|_| true)
-    .map_err(|err| ServerFnError::new(err))
+    let db: DbConnection = extract().await?;
+
+    dbal::reset_password_by_token(email.clone(), token.clone(), password.clone(), &db)
+        .await
+        .map(|_| true)
+        .map_err(|err| ServerFnError::new(err))
 }

@@ -1,3 +1,6 @@
+use bamboo_common::backend::database::get_database;
+use bamboo_common::backend::services::DbConnection;
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -15,6 +18,8 @@ async fn main() -> std::io::Result<()> {
     let routes = generate_route_list(App);
     log::info!("listening on http://{addr}");
 
+    let db = DbConnection::new(get_database().await.map_err(std::io::Error::other)?);
+
     HttpServer::new(move || {
         let mut leptos_options = conf.leptos_options.clone();
         let site_root = &leptos_options.site_root;
@@ -28,6 +33,7 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/authentication/assets", site_root))
             .leptos_routes(leptos_options.to_owned(), routes.to_owned(), App)
             .app_data(web::Data::new(leptos_options.to_owned()))
+            .app_data(db.clone())
             .wrap(middleware::Compress::default())
     })
         .bind(&addr)?
