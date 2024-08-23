@@ -1,5 +1,9 @@
 pub mod app;
-mod authentication;
+mod bamboo;
+mod components;
+pub mod api;
+#[cfg(feature = "ssr")]
+pub mod authentication;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

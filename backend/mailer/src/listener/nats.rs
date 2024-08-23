@@ -1,11 +1,11 @@
 use crate::mailer;
 use async_nats::jetstream::consumer::pull;
 use async_nats::subject::ToSubject;
-use bamboo_common::backend::mailing::Mail;
-use bamboo_common::backend::mq::{get_once_stream, FromMessage, NotificationError, Queue};
+use bamboo_common::backend::mq::{get_once_stream, Queue};
 use bamboo_common::backend::services::EnvironmentService;
-use futures_util::StreamExt;
+use bamboo_common::core::queueing::{FromMessage, Mail, NotificationError};
 use std::time::Duration;
+use futures_util::StreamExt;
 
 pub async fn start_listening() -> Result<(), NotificationError> {
     log::info!("Start listening to new mails on nats");

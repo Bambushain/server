@@ -6,7 +6,7 @@ use bamboo_common::core::error::*;
 use maud::{html, PreEscaped};
 
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
-use bamboo_common::backend::mailing::Mail;
+use bamboo_common::core::queueing::Mail;
 
 #[post("/api/support", wrap = "authenticate!()")]
 pub async fn send_support_request(

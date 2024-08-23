@@ -10,7 +10,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <Stylesheet id="leptos" href="/authentication/pkg/frontend-authentication.css"/>
-        <Title text="Anmelden – Bambushain"/>
+        <Title formatter=|text| format!("{text} – Bambushain") />
         <Link href="/authentication/assets/favicon.svg" rel="icon" type_="image/svg+xml" />
         <Link href="/authentication/assets/favicon.png" rel="icon" type_="image/png" />
 
@@ -66,6 +66,7 @@ fn Login() -> impl IntoView {
     });
 
     view! {
+        <Title text="Anmelden" />
         <div class="auth-container">
             <div class="auth-box">
                 <h1>Anmelden</h1>
@@ -107,6 +108,7 @@ fn ForgotPassword() -> impl IntoView {
     let sent = move || value.get().is_some();
 
     view! {
+        <Title text="Passwort vergessen" />
         <div class="auth-container">
             <div class="auth-box">
                 <h1>Passwort vergessen</h1>
@@ -175,6 +177,7 @@ fn ResetPassword() -> impl IntoView {
     });
 
     view! {
+        <Title text="Passwort zurücksetzen" />
         <div class="auth-container">
             <div class="auth-box">
                 <h1>Passwort zurücksetzen</h1>

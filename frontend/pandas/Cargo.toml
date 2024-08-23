@@ -8,26 +8,52 @@ license.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bamboo-common = { path = "../../common" }
+
 actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true, features = ["macros"] }
+codee = { workspace = true }
 console_error_panic_hook = { workspace = true }
+console_log = { workspace = true }
+chrono = { workspace = true }
+date-range = { workspace = true }
+either = { workspace = true }
 http = { workspace = true, optional = true }
+icondata_lu = { workspace = true }
 leptos = { workspace = true }
-leptos_meta = { workspace = true }
 leptos_actix = { workspace = true, optional = true }
+leptos-cosmo = { workspace = true }
+leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
+leptos-use = { workspace = true }
+log = { workspace = true }
 wasm-bindgen = { workspace = true }
 
 [features]
-csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
-hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+csr = [
+    "leptos/csr",
+    "leptos-cosmo/csr",
+    "leptos_meta/csr",
+    "leptos_router/csr",
+    "bamboo-common/frontend"
+]
+hydrate = [
+    "leptos/hydrate",
+    "leptos-cosmo/csr",
+    "leptos_meta/hydrate",
+    "leptos_router/hydrate",
+    "bamboo-common/frontend"
+]
 ssr = [
     "dep:actix-files",
     "dep:actix-web",
     "dep:leptos_actix",
     "leptos/ssr",
+    "leptos-cosmo/ssr",
+    "leptos-cosmo/with-icons",
     "leptos_meta/ssr",
     "leptos_router/ssr",
+    "bamboo-common/backend"
 ]
 
 [package.metadata.leptos]

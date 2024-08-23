@@ -1,4 +1,3 @@
-use bamboo_common_backend_mq::impl_nats;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
@@ -50,4 +49,5 @@ impl Mail {
     }
 }
 
-impl_nats!(Mail);
+#[cfg(feature = "backend")]
+crate::impl_nats!(Mail);

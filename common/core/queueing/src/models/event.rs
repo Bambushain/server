@@ -1,5 +1,4 @@
-use bamboo_common_backend_mq::impl_nats;
-use bamboo_common_core::entities::*;
+use bamboo_common_core_entities::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -12,4 +11,5 @@ pub enum EventAction {
     Deleted(GroveEvent),
 }
 
-impl_nats!(EventAction);
+#[cfg(feature = "backend")]
+crate::impl_nats!(EventAction);

@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 
-use gloo_net::http::{Method, Request, RequestBuilder, Response};
+use gloo::net::http::{Method, Request, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 

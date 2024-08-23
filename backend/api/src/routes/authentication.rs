@@ -1,15 +1,12 @@
-use actix_web::cookie::Cookie;
 use actix_web::{delete, post, web, HttpResponse};
-use bamboo_common::backend::actix::cookie;
 use bamboo_common::backend::dbal;
 use bamboo_common::backend::response::*;
 use bamboo_common::backend::services::DbConnection;
 use bamboo_common::core::entities::*;
 use bamboo_common::core::error::*;
-use maud::html;
 
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
-use bamboo_common::backend::mailing::{enqueue_forgot_password_mail, enqueue_mail, Mail};
+use bamboo_common::backend::mailing::enqueue_forgot_password_mail;
 
 #[post("/api/login")]
 pub async fn login(body: Option<web::Json<Login>>, db: DbConnection) -> BambooApiResponseResult {

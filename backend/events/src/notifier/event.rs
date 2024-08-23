@@ -3,16 +3,16 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use actix_web::rt::time::interval;
-use actix_web::Responder;
 use actix_web_lab::sse;
-use futures_util::StreamExt;
+use actix_web_lab::util::InfallibleStream;
 use parking_lot::Mutex;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::Sender;
 
-use bamboo_common::backend::notification::EventAction;
 use bamboo_common::core::entities::{Grove, GroveEvent, User};
+use bamboo_common::core::queueing::EventAction;
 use serde::{Deserialize, Serialize};
+use tokio_stream::wrappers::ReceiverStream;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 enum EventType {
@@ -110,41 +110,41 @@ impl EventBroadcaster {
         self.inner.lock().clients = ok_clients;
     }
 
-    pub async fn new_client(&self, user: User) -> impl Responder {
+    pub async fn new_client(
+        &self,
+        user: User,
+    ) -> sse::Sse<InfallibleStream<ReceiverStream<sse::Event>>> {
         log::debug!("Open channel using tokio");
         let (tx, rx) = tokio::sync::mpsc::channel::<sse::Event>(10);
 
         log::debug!("Send connected message");
         if let Err(err) = Self::send_comment(tx.clone(), Comment::Connected).await {
-            log::error!("Failed to send message {err}")
+            log::error!("Failed to send connect comment {err}")
         }
         self.inner.lock().clients.push((tx, user));
 
-        sse::Sse::from_infallible_receiver(rx).with_keep_alive(Duration::from_secs(60))
+        sse::Sse::from_infallible_receiver(rx)
     }
 
     pub async fn send_event(&self, evt: EventAction, groves: Vec<Grove>) {
         let clients = self.inner.lock().clients.clone();
         log::debug!("Has {} clients registered", clients.len());
-        futures::stream::iter(clients)
-            .map(|(client, user)| {
-                tokio::spawn(Self::send_message(
-                    client,
-                    user,
-                    evt.clone(),
-                    groves.clone(),
-                ))
-            })
-            .collect::<Vec<_>>()
-            .await;
+        let send_futures = clients.iter().filter_map(|(client, user)| {
+            if Self::check_for_grove(user.clone(), evt.clone(), groves.clone()) {
+                Some(client.send(Event::from_event_action(evt.clone()).into()))
+            } else {
+                None
+            }
+        });
+        let res = futures_util::future::join_all(send_futures).await;
+        for res in res {
+            if let Err(err) = res {
+                log::error!("Failed to send message {err}")
+            }
+        }
     }
 
-    async fn send_message(
-        client: Sender<sse::Event>,
-        user: User,
-        evt: EventAction,
-        groves: Vec<Grove>,
-    ) {
+    fn check_for_grove(user: User, evt: EventAction, groves: Vec<Grove>) -> bool {
         let event = match evt.clone() {
             EventAction::Created(event) => event,
             EventAction::Updated(event) => event,
@@ -157,15 +157,8 @@ impl EventBroadcaster {
             && groves
                 .iter()
                 .any(|g| g.id == event.grove.clone().map(|g| g.id).unwrap_or(-1));
-        if is_private_event_of_current_user || is_in_same_grove {
-            log::debug!("Send event data");
-            if let Err(err) = client
-                .send(Event::from_event_action(evt.clone()).into())
-                .await
-            {
-                log::error!("Failed to send message {err}");
-            }
-        }
+
+        is_private_event_of_current_user || is_in_same_grove
     }
 
     async fn send_comment(
