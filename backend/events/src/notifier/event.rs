@@ -10,26 +10,10 @@ use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::Sender;
 
 use bamboo_common::core::entities::{Grove, GroveEvent, User};
-use bamboo_common::core::queueing::EventAction;
+use bamboo_common::core::queueing::{EventAction, EventType};
 use serde::{Deserialize, Serialize};
 use tokio_stream::wrappers::ReceiverStream;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-enum EventType {
-    Created,
-    Updated,
-    Deleted,
-}
-
-impl Display for EventType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        f.write_str(match self {
-            Self::Created => "created",
-            Self::Updated => "updated",
-            Self::Deleted => "deleted",
-        })
-    }
-}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct Event {

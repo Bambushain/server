@@ -5,15 +5,11 @@ use leptos::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
 use leptos_router::*;
-use log::Level;
 
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
-
-    #[cfg(not(feature = "ssr"))]
-    console_log::init_with_level(Level::Info).expect("error initializing log");
 
     let current_user = create_rw_signal(User::default());
 

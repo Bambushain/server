@@ -1,7 +1,8 @@
 use crate::api::{
     get_all_groves, get_events, CreateEventAction, DeleteEventAction, UpdateEventAction,
 };
-use bamboo_common::core::entities::{Grove, GroveEvent};
+use bamboo_common::core::entities::{Grove, GroveEvent, User};
+use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
 use chrono::{Days, Months};
 use date_range::DateRange;
@@ -9,6 +10,8 @@ use leptos::*;
 use leptos_cosmo::icons::Icon;
 use leptos_cosmo::prelude::*;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use strum::IntoEnumIterator;
 
 enum ColorYiqResult {
     Light,
@@ -50,19 +53,27 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
 
     let color = Color::from_hex(event.color.as_str()).unwrap_or(Color::default());
 
+    let me = expect_context::<RwSignal<User>>();
+
     view! {
         <div
             class="pandas-calendar__event"
             style=format!("--event-background-color: {}; --event-shadow-color: {}; --event-text-color: {};", color.fade(0.8).hsla().clone(), color.fade(0.9).hsla().clone(), color_yiq(event.color.clone()))
         >
             { event.title.clone() }
-            <Icon
-                icon={icondata_lu::LuPencil}
-                width="1rem"
-                height="1rem"
-                class="pandas-calendar__event-edit"
-                on:click=move |_| edit_event_open.set(true)
-            />
+            <Show when={
+                let event = event.clone();
+
+                move || me.get().id == event.user.clone().map(|user| user.id).unwrap_or(-1)
+            }>
+                <Icon
+                    icon={icondata_lu::LuPencil}
+                    width="1rem"
+                    height="1rem"
+                    class="pandas-calendar__event-edit"
+                    on:click=move |_| edit_event_open.set(true)
+                />
+            </Show>
             <div class="pandas-calendar__event-description">
                 <hgroup class="pandas-calendar__event-header">
                     <h3>{event.title.clone()}</h3>
@@ -413,23 +424,19 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
         create_memo(move |_| {
             let date = date.get();
 
-            let first_day_offset = if first_day.get().weekday() == Weekday::Mon {
-                0
+            let first_day_offset = if first_day.get().weekday() == Weekday::Sun {
+                5
             } else {
-                first_day.get().weekday() as i64 - 1
-            } as u64;
-
-            let total_days = first_day_offset + date.day() as u64;
-            let days_of_next_month = if first_day_offset == 0 {
-                40 - total_days + 1
-            } else {
-                40 - total_days
+                first_day.get().weekday() as i8 - 1
             };
 
-            let first_day_of_next_month =
-                first_day.get().checked_add_months(Months::new(1)).unwrap();
-            first_day_of_next_month
-                .checked_add_days(Days::new(days_of_next_month))
+            let days_of_next_month = 40 - first_day_offset - date.day() as i8;
+
+            first_day
+                .get()
+                .checked_add_months(Months::new(1))
+                .unwrap()
+                .checked_add_days(Days::new(days_of_next_month as u64))
                 .unwrap()
         })
     };
@@ -441,7 +448,8 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
         grove_id,
     });
 
-    let events = create_resource(
+    let events = create_rw_signal(Vec::<GroveEvent>::default());
+    let events_resource = create_resource(
         move || load_event_data,
         |load_event_data| async move {
             get_events(
@@ -458,7 +466,7 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
 
         move |_| {
             date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
-            events.refetch()
+            events_resource.refetch()
         }
     };
     let next = {
@@ -466,32 +474,62 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
 
         move |_| {
             date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
-            events.refetch()
+            events_resource.refetch()
         }
     };
 
-    #[cfg(not(feature = "ssr"))]
-    let leptos_use::UseEventSourceReturn {
-        ready_state,
-        event,
-        data,
-        ..
-    } = leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
-        "/sse/event",
-        leptos_use::UseEventSourceOptions::default().named_events(["created".to_string(), "updated".to_string(), "deleted".to_string()]),
-    );
-    #[cfg(not(feature = "ssr"))]
-    create_effect(move |_| {
-        let event = event.get();
-        let data = data.get();
-        events.refetch();
-    });
+    #[cfg(any(feature = "csr", feature = "hydrate"))]
+    {
+        let leptos_use::UseEventSourceReturn { event, data, .. } =
+            leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
+                "/sse/event",
+                leptos_use::UseEventSourceOptions::default().named_events(
+                    EventType::iter()
+                        .map(|val| val.to_string())
+                        .collect::<Vec<_>>(),
+                ),
+            );
+        let events = events.clone();
+        let _ = watch(
+            move || data.get(),
+            move |data, _, _| {
+                if let Some(data) = data {
+                    events.update(|events| {
+                        if let Some(event) = event.get() {
+                            let event_type = EventType::from_str(event.type_().as_str());
+                            logging::log!("{data:#?}");
+                            match event_type {
+                                Ok(EventType::Created) => events.push(data.to_owned()),
+                                Ok(EventType::Updated) => {
+                                    if let Some(evt) =
+                                        events.iter_mut().find(|evt| evt.id == data.id)
+                                    {
+                                        *evt = data.to_owned();
+                                    }
+                                }
+                                Ok(EventType::Deleted) => events.retain(|evt| evt.id != data.id),
+                                _ => {}
+                            }
+                        }
+                    });
+                }
+            },
+            false,
+        );
+    }
 
     create_effect(move |_| {
         groves.refetch();
     });
 
     view! {
+        <Transition>
+            {move || {
+                create_effect(move |_| {
+                    events_resource.map(move |evts| events.set(evts.clone().unwrap_or(Default::default())));
+                });
+            }}
+        </Transition>
         <div class="pandas-calendar">
             <div class="pandas-calendar__header">
                 <span class="pandas-calendar__action is--prev">
@@ -518,38 +556,31 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                         }
                     })
                 }}
-                {move || {
-                    events.get().map(|events| {
-                        if let Ok(events) = events {
-                            let events_for_day = {
-                                let events = events.clone();
+                {move || DateRange::new(calendar_start_date.get(), calendar_end_date.get()).unwrap().into_iter().map(|day| {
+                    let events_for_day = {
+                        let events = events.clone();
 
-                                move |day: NaiveDate| {
-                                    events
-                                        .iter()
-                                        .filter(move |event| event.start_date <= day && event.end_date >= day)
-                                        .cloned()
-                                        .collect::<Vec<_>>()
-                                }
-                            };
-
-                            Some(view! {
-                                {move || DateRange::new(calendar_start_date.get(), calendar_end_date.get()).unwrap().into_iter().map(|day| view! {
-                                    <Day
-                                        grove_id={grove_id}
-                                        events={events_for_day(day.clone())}
-                                        day={day.day()}
-                                        month={day.month()}
-                                        year={day.year()}
-                                        selected_month={current_month.get()}
-                                    />
-                                }).collect::<Vec<_>>()}
-                            })
-                        } else {
-                            None
+                        move |day: NaiveDate| {
+                            events
+                                .get()
+                                .iter()
+                                .filter(move |event| event.start_date <= day && event.end_date >= day)
+                                .cloned()
+                                .collect::<Vec<_>>()
                         }
-                    })
-                }}
+                    };
+
+                    view! {
+                        <Day
+                            grove_id={grove_id}
+                            events={events_for_day(day.clone())}
+                            day={day.day()}
+                            month={day.month()}
+                            year={day.year()}
+                            selected_month={current_month.get()}
+                        />
+                    }
+                }).collect::<Vec<_>>()}
                 </Transition>
             </div>
         </div>
