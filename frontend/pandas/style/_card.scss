@@ -1,8 +1,10 @@
-.panda-card {
+.pandas-card {
   display: flex;
   flex-flow: column;
   background: var(--modal-backdrop);
   backdrop-filter: var(--modal-container-backdrop-filter);
+  box-shadow: rgb(var(--black-base) var(--black-base) var(--black-base) / 0.3) 2px 2px 4px 0;
+  border-radius: var(--border-radius);
 
   button {
     border-top-left-radius: 0 !important;
@@ -36,6 +38,7 @@
 
   &__prepend {
     grid-column: prepend;
+    display: flex;
 
     img {
       object-fit: cover;
@@ -50,5 +53,6 @@
     flex-flow: row wrap;
     gap: 1rem;
     justify-content: flex-start;
+    align-content: flex-start;
   }
 }

@@ -1,9 +1,10 @@
-pub mod app;
-mod bamboo;
-mod components;
 pub mod api;
+pub mod app;
 #[cfg(feature = "ssr")]
 pub mod authentication;
+mod bamboo;
+mod components;
+mod groves;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

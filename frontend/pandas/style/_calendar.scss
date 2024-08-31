@@ -207,6 +207,6 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: auto repeat(6, 1fr);
-    height: calc(var(--page-height) - var(--title-font-size) - 4.5rem);
+    height: calc(var(--page-height) - var(--title-font-size) - 1.75rem);
   }
 }

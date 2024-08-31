@@ -1,6 +1,6 @@
-use crate::api::get_current_user;
-use crate::bamboo;
-use bamboo_common::core::entities::User;
+use crate::api::{get_all_groves, get_current_user};
+use crate::{bamboo, groves};
+use bamboo_common::core::entities::{Grove, User};
 use leptos::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
@@ -12,6 +12,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     let current_user = create_rw_signal(User::default());
+    let groves_signal = create_rw_signal(Vec::<Grove>::new());
 
     let load_current_user =
         create_blocking_resource(|| {}, |_| async move { get_current_user().await });
@@ -19,6 +20,13 @@ pub fn App() -> impl IntoView {
     create_effect(move |_| load_current_user.refetch());
 
     provide_context(current_user);
+    provide_context(groves_signal);
+
+    let load_groves = create_blocking_resource(|| {}, |_| async move { get_all_groves().await });
+
+    create_effect(move |_| {
+        load_groves.refetch();
+    });
 
     view! {
         // injects a stylesheet into the document <head>
@@ -41,6 +49,13 @@ pub fn App() -> impl IntoView {
             <Router>
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
                 <Transition>
+                    {move || {
+                        load_groves.get().map(|groves| {
+                            if let Ok(groves) = groves {
+                                groves_signal.set(groves.to_owned());
+                            }
+                        })
+                    }}
                     {move || {
                         load_current_user.get().map(|user| {
                             if let Ok(user) = user {
@@ -68,12 +83,38 @@ pub fn App() -> impl IntoView {
                     </MainMenu>
                     <SubMenu parent="/pandas/bamboo" slot>
                         <MenuItem href="/pandas/bamboo" label="Event Kalender" />
+                        <MenuItem href="/pandas/bamboo/pandas" label="Pandas" />
+                    </SubMenu>
+                    <SubMenu parent="/pandas/groves" slot>
+                        <Transition>
+                            {move || load_groves.get().map(|groves| {
+                                groves.map(|groves| groves.iter().map(|grove| view! {
+                                    <MenuItem href=format!("/pandas/groves/{}/{}", grove.id, grove.name) label=grove.name.clone() />
+                                }).collect_view()).ok()
+                            })}
+                        </Transition>
+                        <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
                     </SubMenu>
                 </Menu>
                 <PageBody>
                     <Routes>
                         <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
                         <Route path="/pandas/bamboo" view=bamboo::Calendar />
+                        <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
+                        <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
+                        <Route path="/pandas/groves" view=move || {
+                            let groves = groves_signal.get();
+
+                            if let Some(grove) = groves.iter().next() {
+                                view! {
+                                    <Redirect path=format!("/pandas/groves/{}/{}", grove.id, grove.name.clone()) />
+                                }
+                            } else {
+                                view! {
+                                    <Redirect path="/pandas/groves/new" />
+                                }
+                            }
+                        } />
                     </Routes>
                 </PageBody>
             </Router>

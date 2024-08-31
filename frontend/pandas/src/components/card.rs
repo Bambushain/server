@@ -2,47 +2,65 @@ use leptos::*;
 use leptos_cosmo::prelude::*;
 
 #[slot]
-pub struct Card {
-    pub children: ChildrenFn,
-    #[prop(into)]
-    pub title: MaybeSignal<String>,
-    #[prop(into, optional)]
-    pub prepend: Option<ChildrenFn>,
-    #[prop(into, optional)]
-    pub buttons: Option<ChildrenFn>,
+pub struct CardBottom {
+    #[prop(optional)]
+    pub children: Option<Children>,
 }
 
-impl Card {
-    fn render(&self) -> impl IntoView {
-        let buttons = self.buttons.clone();
-        let prepend = self.prepend.clone();
+#[component]
+pub fn Card(
+    children: Children,
+    #[prop(into)] title: MaybeSignal<String>,
+    #[prop(into, default = "".into())] prepend: MaybeSignal<String>,
+    #[prop(optional)] card_bottom: Option<CardBottom>,
+) -> impl IntoView {
+    let card_content_class = if card_bottom
+        .is_some()
+    {
+        "pandas-card__content has--buttons"
+    } else {
+        "pandas-card__content"
+    };
 
-        view! {
-            <div class="panda-card">
-                <div class="panda-card__content">
-                    {move || prepend.clone().map(|prepend| view! {
-                        <div class="panda-card__prepend">{prepend}</div>
-                    })}
-                    <div class="panda-card__content-text">
-                        <h1>{self.title.clone()}</h1>
-                        {(self.children)()}
-                    </div>
+    view! {
+        <div class="pandas-card">
+            <div class=card_content_class>
+                {move || if !prepend.get().is_empty() {
+                    Some(view! {
+                        <div class="pandas-card__prepend">
+                            <img style="max-height:7rem;" src={
+                                let prepend = prepend.clone();
+
+                                move || prepend.get()
+                            } />
+                       </div>
+                    })
+                } else {
+                    None
+                }}
+                <div class="pandas-card__content-text">
+                    <h5>{title}</h5>
+                    {children()}
                 </div>
-                {move || buttons.clone().map(|buttons| view! {
-                    <ToolbarGroup>
-                        {buttons}
-                    </ToolbarGroup>
-                })}
             </div>
-        }
+            {if let Some(Some(children)) = card_bottom.map(|bottom| bottom.children) {
+                {view! {
+                    <ToolbarGroup>
+                        {(children)().into_view()}
+                    </ToolbarGroup>
+                }}
+            } else {
+                ().into_view()
+            }}
+        </div>
     }
 }
 
 #[component]
-pub fn CardList(#[prop(into)] cards: Vec<Card>) -> impl IntoView {
+pub fn CardList(children: Children) -> impl IntoView {
     view! {
-        <div class="panda-card-list">
-            {cards.iter().map(Card::render).collect::<Vec<_>>()}
+        <div class="pandas-card-list">
+            {children()}
         </div>
     }
 }
