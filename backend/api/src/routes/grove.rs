@@ -113,7 +113,7 @@ pub async fn delete_grove(
 ) -> BambooApiResponseResult {
     let path = check_invalid_path!(path, "grove")?;
 
-    dbal::delete_grove(path.grove_id, authentication.user.id, &db)
+    dbal::delete_grove(path.grove_id, &db)
         .await
         .map(|_| no_content!())
 }

@@ -158,10 +158,9 @@ pub async fn update_grove_mods(
     .map(|_| ())
 }
 
-pub async fn delete_grove(id: i32, user_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
-    get_grove(id, user_id, db)
-        .await?
-        .delete(db)
+pub async fn delete_grove(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    grove::Entity::delete_by_id(id)
+        .exec(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to delete grove"))
         .map(|_| ())

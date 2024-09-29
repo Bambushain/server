@@ -47,7 +47,6 @@ pub enum BanResultCode {
 pub async fn ban_panda(grove_id: i32, user_id: i32) -> Result<BanResultCode, ServerFnError> {
     use crate::authentication::AuthState;
     use bamboo_common::backend::dbal;
-    use bamboo_common::backend::dbal::BannedStatus;
     use bamboo_common::backend::services::DbConnection;
     use leptos_actix::extract;
 

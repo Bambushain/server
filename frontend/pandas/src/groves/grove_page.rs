@@ -1,5 +1,6 @@
-use crate::api::get_grove;
+use crate::api::is_grove_mod;
 use crate::components;
+use crate::groves::grove_admin::GroveAdminTab;
 use leptos::*;
 use leptos_cosmo::prelude::*;
 use leptos_router::use_params_map;
@@ -25,44 +26,79 @@ pub fn GrovePage() -> impl IntoView {
             .unwrap_or(-1)
         })
     };
+    let name = {
+        let params = params.clone();
 
-    let grove_resource = create_resource(
+        create_memo(move |_| params.get().get("name").cloned().unwrap_or_default())
+    };
+
+    let is_grove_mod_resource = create_local_resource(
         move || id.get(),
-        move |id| async move { get_grove(id).await },
+        move |id| async move { is_grove_mod(id).await },
     );
 
+    let is_mod = RwSignal::new(false);
+
+    {
+        let is_mod = is_mod.clone();
+        let is_grove_mod_resource = is_grove_mod_resource.clone();
+
+        create_effect(move |_| {
+            if let Some(Ok(is_grove_mod)) = is_grove_mod_resource.get() {
+                is_mod.set(is_grove_mod);
+            }
+        });
+    }
+
     view! {
-        <Transition fallback=|| view! { <ProgressRing /> }>
-            <Show when={
-                let grove_resource = grove_resource.clone();
+        <leptos_meta::Title text={
+            let name = name.clone();
 
-                move || grove_resource.get().unwrap_or(Err(ServerFnError::new("something failed"))).is_ok()
-            } fallback=|| view! {
-                <AlertMessage header="Fehler beim Laden" message_type=MessageType::Negative>
-                    <MessageContent slot>
-                        <p>Leider konnte der Hain nicht geladen werden, bitte wende dich an den Bambussupport.</p>
-                    </MessageContent>
-                </AlertMessage>
-            }>
-                <leptos_meta::Title text={
-                    let grove_resource = grove_resource.clone();
+            move || name.get()
+        } />
+        <span class="cosmo-title">
+            {name}
+        </span>
+        <Show
+            when=move || is_mod.get()
+            fallback={
+                let selected_index = selected_index.clone();
+                let id = id.clone();
 
-                    move || grove_resource.get().unwrap().unwrap().name
-                } />
-                <span class="cosmo-title">{move || grove_resource.get().unwrap().unwrap().name}</span>
-            </Show>
-        </Transition>
-        <TabControl selected_index>
-            <TabItem label="Event Kalender" slot>
-                <div class="pandas-grove__content">
-                    <components::Calendar grove_id={id.get()} />
-                </div>
-            </TabItem>
-            <TabItem label="Pandas" slot>
-                <div class="pandas-grove__content">
-                    <components::PandasList grove_id={id.get()} />
-                </div>
-            </TabItem>
-        </TabControl>
+                move || view! {
+                    <TabControl selected_index>
+                        <TabItem label="Event Kalender" slot>
+                            <div class="pandas-grove__content">
+                                <components::Calendar grove_id={id.get()} />
+                            </div>
+                        </TabItem>
+                        <TabItem label="Pandas" slot>
+                            <div class="pandas-grove__content">
+                                <components::PandasList grove_id={id.get()} />
+                            </div>
+                        </TabItem>
+                        <TabItem label="Modbereich" slot>
+                            <GroveAdminTab grove_id={id.get()} grove_name={name.get()} />
+                        </TabItem>
+                    </TabControl>
+                }
+            }
+        >
+            <TabControl selected_index>
+                <TabItem label="Event Kalender" slot>
+                    <div class="pandas-grove__content">
+                        <components::Calendar grove_id={id.get()} />
+                    </div>
+                </TabItem>
+                <TabItem label="Pandas" slot>
+                    <div class="pandas-grove__content">
+                        <components::PandasList grove_id={id.get()} />
+                    </div>
+                </TabItem>
+                <TabItem label="Modbereich" slot>
+                    <GroveAdminTab grove_id={id.get()} grove_name={name.get()} />
+                </TabItem>
+            </TabControl>
+        </Show>
     }
 }

@@ -16,7 +16,7 @@ fn PandaCard(
     let profile_picture = format!(
         "/api/user/{}/picture#time={}",
         panda.id,
-        chrono::offset::Local::now().timestamp_millis()
+        Local::now().timestamp_millis()
     );
     let display_name = panda.display_name.clone();
     let discord_name = panda.discord_name.clone();
