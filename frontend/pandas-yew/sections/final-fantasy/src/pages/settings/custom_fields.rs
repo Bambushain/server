@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::hash::Hash;
 
 use gloo_dialogs::alert;

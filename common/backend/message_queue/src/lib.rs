@@ -39,7 +39,7 @@ pub async fn get_jetstream() -> Result<Context, NotificationError> {
 pub async fn get_once_stream() -> Result<Stream, NotificationError> {
     get_jetstream()
         .await?
-        .create_stream(jetstream::stream::Config {
+        .create_stream(stream::Config {
             name: "BAMBOO".to_string(),
             retention: stream::RetentionPolicy::WorkQueue,
             subjects: Queue::iter()

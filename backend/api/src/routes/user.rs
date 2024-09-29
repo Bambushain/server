@@ -32,7 +32,7 @@ pub async fn get_users(
     if let Some(grove) = query.grove {
         dbal::get_users_by_grove(
             authentication.user.id,
-            grove.clone(),
+            grove,
             if query.banned_only {
                 BannedStatus::Banned
             } else if query.all {

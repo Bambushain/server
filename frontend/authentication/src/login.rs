@@ -26,7 +26,7 @@ pub async fn login(
 
     let res = dbal::validate_auth(email.clone(), password, two_factor_code, &db)
         .await
-        .map_err(|err| ServerFnError::new(err))?;
+        .map_err(ServerFnError::new)?;
 
     if !res.requires_two_factor_code {
         let response = expect_context::<ResponseOptions>();
@@ -84,5 +84,5 @@ pub async fn reset_password(
     dbal::reset_password_by_token(email.clone(), token.clone(), password.clone(), &db)
         .await
         .map(|_| true)
-        .map_err(|err| ServerFnError::new(err))
+        .map_err(ServerFnError::new)
 }

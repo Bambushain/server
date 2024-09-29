@@ -43,35 +43,30 @@ impl NotificationError {
 #[macro_export]
 macro_rules! impl_nats {
     ($type: ty) => {
-        impl crate::IntoBytes for $type {
-            fn into_bytes(
-                self,
-            ) -> Result<bytes::Bytes, crate::NotificationError> {
+        impl $crate::IntoBytes for $type {
+            fn into_bytes(self) -> Result<bytes::Bytes, $crate::NotificationError> {
                 let mut data = Vec::<u8>::new();
 
-                ciborium::into_writer(&self, &mut data).map_err(|err| {
-                    crate::NotificationError::new(err.to_string())
-                })?;
+                ciborium::into_writer(&self, &mut data)
+                    .map_err(|err| $crate::NotificationError::new(err.to_string()))?;
 
                 Ok(bytes::Bytes::copy_from_slice(data.as_slice()))
             }
         }
 
-        impl crate::FromMessage<$type> for $type {
+        impl $crate::FromMessage<$type> for $type {
             fn from_message(
                 message: async_nats::Message,
-            ) -> Result<$type, crate::NotificationError> {
-                ciborium::from_reader(message.payload.iter().as_slice()).map_err(|err| {
-                    crate::NotificationError::new(err.to_string())
-                })
+            ) -> Result<$type, $crate::NotificationError> {
+                ciborium::from_reader(message.payload.iter().as_slice())
+                    .map_err(|err| $crate::NotificationError::new(err.to_string()))
             }
 
             fn from_jetstream_message(
                 message: async_nats::jetstream::Message,
-            ) -> Result<$type, crate::NotificationError> {
-                ciborium::from_reader(message.payload.iter().as_slice()).map_err(|err| {
-                    crate::NotificationError::new(err.to_string())
-                })
+            ) -> Result<$type, $crate::NotificationError> {
+                ciborium::from_reader(message.payload.iter().as_slice())
+                    .map_err(|err| $crate::NotificationError::new(err.to_string()))
             }
         }
     };

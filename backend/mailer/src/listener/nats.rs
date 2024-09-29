@@ -4,8 +4,8 @@ use async_nats::subject::ToSubject;
 use bamboo_common::backend::mq::{get_once_stream, Queue};
 use bamboo_common::backend::services::EnvironmentService;
 use bamboo_common::core::queueing::{FromMessage, Mail, NotificationError};
-use std::time::Duration;
 use futures_util::StreamExt;
+use std::time::Duration;
 
 pub async fn start_listening() -> Result<(), NotificationError> {
     log::info!("Start listening to new mails on nats");
@@ -38,11 +38,9 @@ pub async fn start_listening() -> Result<(), NotificationError> {
                     .map_err(|err| NotificationError::new(format!("Failed to ack {err}")))
                 {
                     log::error!("Failed to ack message {err}")
-                } else {
-                    if let Ok(mail) = Mail::from_jetstream_message(message) {
-                        if let Err(err) = mailer::send_mail(mail, EnvironmentService::new()).await {
-                            log::error!("Failed to send email: {err}");
-                        }
+                } else if let Ok(mail) = Mail::from_jetstream_message(message) {
+                    if let Err(err) = mailer::send_mail(mail, EnvironmentService::new()).await {
+                        log::error!("Failed to send email: {err}");
                     }
                 }
             } else if let Err(err) = message {

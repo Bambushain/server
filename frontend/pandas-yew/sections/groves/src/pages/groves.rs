@@ -11,7 +11,6 @@ use bamboo_frontend_pandas_base::storage::CurrentUser;
 use bounce::helmet::Helmet;
 use bounce::use_atom;
 use chrono::Datelike;
-use std::ops::Deref;
 use stylist::yew::use_style;
 use yew::prelude::*;
 use yew::virtual_dom::Key;

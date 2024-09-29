@@ -37,23 +37,15 @@ fn Login() -> impl IntoView {
     let login = create_server_action::<LoginAction>();
     let value = login.value();
 
-    let two_factor_visible = {
-        let value = value.clone();
-
-        move || match value.get() {
-            Some(Ok(value)) => value.requires_two_factor,
-            Some(Err(_)) => false,
-            None => false,
-        }
+    let two_factor_visible = move || match value.get() {
+        Some(Ok(value)) => value.requires_two_factor,
+        Some(Err(_)) => false,
+        None => false,
     };
-    let has_error = {
-        let value = value.clone();
-
-        move || match value.get() {
-            Some(Ok(value)) => value.login_success,
-            Some(Err(_)) => true,
-            None => false,
-        }
+    let has_error = move || match value.get() {
+        Some(Ok(value)) => value.login_success,
+        Some(Err(_)) => true,
+        None => false,
     };
 
     create_effect(move |_| {
@@ -152,14 +144,10 @@ fn ResetPassword() -> impl IntoView {
     let token = move || query.get().map(|res| res.token).unwrap_or(Some("".into()));
     let email = move || query.get().map(|res| res.email).unwrap_or(Some("".into()));
 
-    let has_error = {
-        let value = value.clone();
-
-        move || match value.get() {
-            Some(Ok(value)) => !value,
-            Some(Err(_)) => true,
-            None => false,
-        }
+    let has_error = move || match value.get() {
+        Some(Ok(value)) => !value,
+        Some(Err(_)) => true,
+        None => false,
     };
     let reset_enabled = move || password.get().eq(&password_repeat.get());
 

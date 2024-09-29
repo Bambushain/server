@@ -24,7 +24,7 @@ pub async fn get_pandas(grove_id: Option<i32>) -> Result<Vec<GroveUser>, ServerF
                 users
                     .iter()
                     .map(|user| GroveUser {
-                        id: user.id.clone(),
+                        id: user.id,
                         email: user.email.clone(),
                         display_name: user.display_name.clone(),
                         discord_name: user.discord_name.clone(),

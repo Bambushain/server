@@ -228,12 +228,13 @@ pub async fn set_forgot_password_token(
     db: &DatabaseConnection,
 ) -> BambooResult<(String, NaiveDate)> {
     let user = get_user(id, db).await?;
-    let valid_until = chrono::prelude::Local::now()
-        .checked_add_days(Days::new(7))
-        .ok_or(BambooError::invalid_data(
-            error_tag!(),
-            "Failed to add a week to the date",
-        ))?;
+    let valid_until =
+        Local::now()
+            .checked_add_days(Days::new(7))
+            .ok_or(BambooError::invalid_data(
+                error_tag!(),
+                "Failed to add a week to the date",
+            ))?;
     let mut token = [0u8; 32];
     getrandom::getrandom(&mut token)
         .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
@@ -262,7 +263,7 @@ pub async fn reset_password_by_token(
     let user = get_user_by_email_or_username(email, db).await?;
     if let (Some(code), Some(until)) = (
         user.forgot_password_code.clone(),
-        user.forgot_password_valid_until.clone(),
+        user.forgot_password_valid_until,
     ) {
         if until >= Local::now().date_naive()
             && bcrypt::verify(token, code.as_str()).unwrap_or(false)

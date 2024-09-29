@@ -108,7 +108,6 @@ pub async fn update_grove_mods(
 )]
 pub async fn delete_grove(
     path: Option<path::GrovePath>,
-    authentication: Authentication,
     db: DbConnection,
 ) -> BambooApiResponseResult {
     let path = check_invalid_path!(path, "grove")?;

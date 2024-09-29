@@ -28,7 +28,10 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             // serve JS/WASM/CSS from `pkg`
-            .service(Files::new("/authentication/pkg", format!("{site_root}/pkg")))
+            .service(Files::new(
+                "/authentication/pkg",
+                format!("{site_root}/pkg"),
+            ))
             // serve other assets from the `assets` directory
             .service(Files::new("/authentication/assets", site_root))
             .leptos_routes(leptos_options.to_owned(), routes.to_owned(), App)
@@ -36,7 +39,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(db.clone())
             .wrap(middleware::Compress::default())
     })
-        .bind(&addr)?
-        .run()
-        .await
+    .bind(&addr)?
+    .run()
+    .await
 }

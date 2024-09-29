@@ -1,5 +1,5 @@
 use crate::api;
-use bamboo_common::core::entities::{UpdateProfile};
+use bamboo_common::core::entities::UpdateProfile;
 use bamboo_common::frontend::api::{ApiError, CONFLICT, FORBIDDEN, NOT_FOUND};
 use bamboo_frontend_pandas_base::controls::{use_dialogs, BambooErrorMessage};
 use bamboo_frontend_pandas_base::routing::{AppRoute, GroveRoute};

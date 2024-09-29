@@ -90,8 +90,6 @@ impl ActiveModel {
     pub fn set_password(&mut self, plain_password: &String) -> Result<(), bcrypt::BcryptError> {
         bcrypt::hash(plain_password.as_bytes(), 12).map(|hashed_password| {
             self.password = Set(hashed_password);
-
-            ()
         })
     }
 }

@@ -1,13 +1,13 @@
 use crate::enqueue_mail;
 use bamboo_common_backend_dbal as dbal;
+use bamboo_common_core::queueing::Mail;
 use chrono::Locale;
 use maud::html;
 use sea_orm::DatabaseConnection;
-use bamboo_common_core::queueing::Mail;
 
 pub async fn enqueue_forgot_password_mail(email: String, db: &DatabaseConnection) {
-    if let Ok(user) = dbal::get_user_by_email_or_username(email, &db).await {
-        if let Ok((token, valid_until)) = dbal::set_forgot_password_token(user.id, &db).await {
+    if let Ok(user) = dbal::get_user_by_email_or_username(email, db).await {
+        if let Ok((token, valid_until)) = dbal::set_forgot_password_token(user.id, db).await {
             let mail_body = html! {
                 mj-text {
                     p {

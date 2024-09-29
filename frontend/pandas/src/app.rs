@@ -29,9 +29,7 @@ pub fn App() -> impl IntoView {
     });
 
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css"/>
+        <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css" />
         <Link href="/pandas/assets/favicon.svg" rel="icon" type_="image/svg+xml" />
         <Link href="/pandas/assets/favicon.png" rel="icon" type_="image/png" />
 
@@ -50,27 +48,37 @@ pub fn App() -> impl IntoView {
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
                 <Transition>
                     {move || {
-                        load_groves.get().map(|groves| {
-                            if let Ok(groves) = groves {
-                                groves_signal.set(groves.to_owned());
-                            }
-                        })
+                        load_groves
+                            .get()
+                            .map(|groves| {
+                                if let Ok(groves) = groves {
+                                    groves_signal.set(groves.to_owned());
+                                }
+                            })
                     }}
                     {move || {
-                        load_current_user.get().map(|user| {
-                            if let Ok(user) = user {
-                                current_user.set(user.clone());
-                                Some(view! {
-                                    <TopBar has_right_item=true right_item_label="Abmelden" profile_picture={format!("/api/user/{}/picture", user.id)}>
-                                        <TopBarItem label="Lizenzen" />
-                                        <TopBarItem label="Impressum" />
-                                        <TopBarItem label="Datenschutz" />
-                                    </TopBar>
-                                })
-                            } else {
-                                None
-                            }
-                        })
+                        load_current_user
+                            .get()
+                            .map(|user| {
+                                if let Ok(user) = user {
+                                    current_user.set(user.clone());
+                                    Some(
+                                        view! {
+                                            <TopBar
+                                                has_right_item=true
+                                                right_item_label="Abmelden"
+                                                profile_picture=format!("/api/user/{}/picture", user.id)
+                                            >
+                                                <TopBarItem label="Lizenzen" />
+                                                <TopBarItem label="Impressum" />
+                                                <TopBarItem label="Datenschutz" />
+                                            </TopBar>
+                                        },
+                                    )
+                                } else {
+                                    None
+                                }
+                            })
                     }}
                 </Transition>
                 <Menu>
@@ -87,34 +95,57 @@ pub fn App() -> impl IntoView {
                     </SubMenu>
                     <SubMenu parent="/pandas/groves" slot>
                         <Transition>
-                            {move || load_groves.get().map(|groves| {
-                                groves.map(|groves| groves.iter().map(|grove| view! {
-                                    <MenuItem href=format!("/pandas/groves/{}/{}", grove.id, grove.name) label=grove.name.clone() />
-                                }).collect_view()).ok()
-                            })}
+                            {move || {
+                                load_groves
+                                    .get()
+                                    .map(|groves| {
+                                        groves
+                                            .map(|groves| {
+                                                groves
+                                                    .iter()
+                                                    .map(|grove| {
+                                                        view! {
+                                                            <MenuItem
+                                                                href=format!("/pandas/groves/{}/{}", grove.id, grove.name)
+                                                                label=grove.name.clone()
+                                                            />
+                                                        }
+                                                    })
+                                                    .collect_view()
+                                            })
+                                            .ok()
+                                    })
+                            }}
                         </Transition>
                         <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
                     </SubMenu>
                 </Menu>
                 <PageBody>
                     <Routes>
-                        <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
+                        <Route
+                            path="/pandas"
+                            view=|| view! { <Redirect path="/pandas/bamboo" /> }
+                        />
                         <Route path="/pandas/bamboo" view=bamboo::Calendar />
                         <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
                         <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
-                        <Route path="/pandas/groves" view=move || {
-                            let groves = groves_signal.get();
-
-                            if let Some(grove) = groves.iter().next() {
-                                view! {
-                                    <Redirect path=format!("/pandas/groves/{}/{}", grove.id, grove.name.clone()) />
-                                }
-                            } else {
-                                view! {
-                                    <Redirect path="/pandas/groves/new" />
+                        <Route
+                            path="/pandas/groves"
+                            view=move || {
+                                let groves = groves_signal.get();
+                                if let Some(grove) = groves.first() {
+                                    view! {
+                                        <Redirect path=format!(
+                                            "/pandas/groves/{}/{}",
+                                            grove.id,
+                                            grove.name.clone(),
+                                        ) />
+                                    }
+                                } else {
+                                    view! { <Redirect path="/pandas/groves/new" /> }
                                 }
                             }
-                        } />
+                        />
                     </Routes>
                 </PageBody>
             </Router>

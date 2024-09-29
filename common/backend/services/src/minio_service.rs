@@ -8,7 +8,7 @@ use bamboo_common_core::error::{BambooError, BambooErrorResult, BambooResult};
 
 #[derive(Clone)]
 pub struct MinioClient {
-    bucket: Bucket,
+    bucket: Box<Bucket>,
 }
 
 impl MinioClient {
@@ -23,7 +23,7 @@ impl MinioClient {
         let region = if let Some(endpoint) = endpoint {
             Region::Custom { region, endpoint }
         } else {
-            Region::from_str(region.as_str()).unwrap()
+            Region::from_str(region.as_str())?
         };
         let credentials = Credentials::new(
             Some(access_key.as_str()),

@@ -4,7 +4,9 @@ use actix_web::{body, dev, Error, HttpMessage, HttpResponse};
 use bamboo_common::backend::services::DbConnection;
 
 use bamboo_common::backend::actix::cookie;
-use bamboo_common::backend::actix::middleware::{get_user_and_token_by_cookie, AuthenticationState};
+use bamboo_common::backend::actix::middleware::{
+    get_user_and_token_by_cookie, AuthenticationState,
+};
 
 pub async fn authenticate_user(
     db: DbConnection,

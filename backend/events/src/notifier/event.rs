@@ -13,17 +13,16 @@ use bamboo_common::core::queueing::{EventAction, EventType};
 use serde::{Deserialize, Serialize};
 use tokio_stream::wrappers::ReceiverStream;
 
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct Event {
     event: GroveEvent,
     action: EventType,
 }
 
-impl Into<sse::Event> for Event {
-    fn into(self) -> sse::Event {
-        let mut data = sse::Data::new_json(self.event.clone()).unwrap();
-        data.set_event(self.action.to_string());
+impl From<Event> for sse::Event {
+    fn from(event: Event) -> Self {
+        let mut data = sse::Data::new_json(event.event.clone()).unwrap();
+        data.set_event(event.action.to_string());
 
         sse::Event::Data(data)
     }

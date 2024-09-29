@@ -1,6 +1,5 @@
 use bamboo_frontend_pandas_base::controls::{use_events, Calendar};
 use chrono::Datelike;
-use std::ops::Deref;
 use stylist::yew::use_style;
 use yew::prelude::*;
 use yew_cosmo::prelude::*;

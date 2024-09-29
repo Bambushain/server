@@ -49,23 +49,27 @@ struct LoadEventData {
 fn EventEntry(event: GroveEvent) -> impl IntoView {
     let edit_event_open = create_rw_signal(false);
 
-    let color = Color::from_hex(event.color.as_str()).unwrap_or(Color::default());
+    let color = Color::from_hex(event.color.as_str()).unwrap_or_default();
 
     let me = expect_context::<RwSignal<User>>();
 
     view! {
         <div
             class="pandas-calendar__event"
-            style=format!("--event-background-color: {}; --event-shadow-color: {}; --event-text-color: {};", color.fade(0.8).hsla().clone(), color.fade(0.9).hsla().clone(), color_yiq(event.color.clone()))
+            style=format!(
+                "--event-background-color: {}; --event-shadow-color: {}; --event-text-color: {};",
+                color.fade(0.8).hsla().clone(),
+                color.fade(0.9).hsla().clone(),
+                color_yiq(event.color.clone()),
+            )
         >
-            { event.title.clone() }
+            {event.title.clone()}
             <Show when={
                 let event = event.clone();
-
                 move || me.get().id == event.user.clone().map(|user| user.id).unwrap_or(-1)
             }>
                 <Icon
-                    icon={icondata_lu::LuPencil}
+                    icon=icondata_lu::LuPencil
                     width="1rem"
                     height="1rem"
                     class="pandas-calendar__event-edit"
@@ -77,21 +81,17 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
                     <h3>{event.title.clone()}</h3>
                     <h5>
                         {if let Some(grove) = event.grove.clone() {
-                            {grove.name}
+                            { grove.name }
                         } else {
                             "Privates Event".to_string()
                         }}
                     </h5>
                 </hgroup>
-                <p>{ event.description.clone() }</p>
+                <p>{event.description.clone()}</p>
                 <span class="panda-calendar__event-arrow" />
             </div>
         </div>
-        <Show when={
-            let edit_event_open = edit_event_open.clone();
-
-            move || edit_event_open.get()
-        }>
+        <Show when=move || edit_event_open.get()>
             <EditEventDialog event=event.clone() is_open=edit_event_open />
         </Show>
     }
@@ -121,24 +121,30 @@ fn Day(
     };
 
     view! {
-        <div class="pandas-calendar__day" style=format!("--day-number-color: {day_number_color}; --text: '{day}'; --background-color: {background_color}")>
+        <div
+            class="pandas-calendar__day"
+            style=format!(
+                "--day-number-color: {day_number_color}; --text: '{day}'; --background-color: {background_color}",
+            )
+        >
             <Icon
-                icon={icondata_lu::LuCalendarPlus}
+                icon=icondata_lu::LuCalendarPlus
                 height="1.5rem"
                 width="1.5rem"
                 class="pandas-calendar__event-add"
-                on:click={
-                    let add_event_open = add_event_open.clone();
-
-                    move |_| add_event_open.set(true)
-                }
+                on:click=move |_| add_event_open.set(true)
             />
             <Show when=move || add_event_open.get()>
-                <AddEventDialog day=NaiveDate::from_ymd_opt(year, month, day).unwrap() grove_id=grove_id is_open=add_event_open />
+                <AddEventDialog
+                    day=NaiveDate::from_ymd_opt(year, month, day).unwrap()
+                    grove_id=grove_id
+                    is_open=add_event_open
+                />
             </Show>
-            {events.iter().map(move |evt| view! {
-                <EventEntry event={evt.clone()} />
-            }).collect::<Vec<_>>()}
+            {events
+                .iter()
+                .map(move |evt| view! { <EventEntry event=evt.clone() /> })
+                .collect::<Vec<_>>()}
         </div>
     }
 }
@@ -171,22 +177,12 @@ fn AddEventDialog(
 
     let is_private = create_rw_signal(grove_id.get().is_none());
 
-    let current_grove_id = {
-        let groves = groves.clone();
-        let selected_grove = selected_grove.clone();
-
-        create_memo(move |_| {
-            let selected_grove = groves.get().into_iter().find(|grove| {
-                grove.name
-                    == selected_grove
-                        .get()
-                        .map(|name| name.clone())
-                        .unwrap_or("".to_string())
-            });
-
-            selected_grove
-        })
-    };
+    let current_grove_id = create_memo(move |_| {
+        groves
+            .get()
+            .into_iter()
+            .find(|grove| grove.name == selected_grove.get().unwrap_or("".to_string()))
+    });
 
     let groves_options = move || {
         groves
@@ -200,7 +196,7 @@ fn AddEventDialog(
     let has_error = move || value.with(|val| matches!(val, Some(Err(_))));
 
     create_effect(move |_| {
-        if let Some(_) = value.get() {
+        if value.get().is_some() {
             is_open.set(false);
         }
     });
@@ -215,31 +211,21 @@ fn AddEventDialog(
                         </MessageContent>
                     </AlertMessage>
                 </Show>
-                <Show when={
-                    let current_grove_id = current_grove_id.clone();
-
-                    move || current_grove_id.get().is_some()
-                }>
-                    <input type="hidden" name="grove" value=move || current_grove_id.get().unwrap().id />
+                <Show when=move || current_grove_id.get().is_some()>
+                    <input
+                        type="hidden"
+                        name="grove"
+                        value=move || current_grove_id.get().unwrap().id
+                    />
                 </Show>
-                <Textbox
-                    width=InputWidth::Medium
-                    label="Titel"
-                    required=true
-                    name="title"
-                />
+                <Textbox width=InputWidth::Medium label="Titel" required=true name="title" />
                 <Textarea
                     width=InputWidth::Medium
                     label="Beschreibung"
                     name="description"
                     required=false
                 />
-                <ColorPicker
-                    width=InputWidth::Medium
-                    label="Farbe"
-                    name="color"
-                    value=color
-                />
+                <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
                 <DatePicker
                     width=InputWidth::Medium
                     label="Von"
@@ -255,29 +241,16 @@ fn AddEventDialog(
                     name="end_date"
                     value=end_date
                 />
-                <Show when={
-                    let grove_id = grove_id.clone();
-
-                    move || grove_id.get().is_none()
-                }>
-                    <Switch
-                        label="Nur für mich"
-                        checked=is_private
-                        name="is_private"
-                    />
+                <Show when=move || grove_id.get().is_none()>
+                    <Switch label="Nur für mich" checked=is_private name="is_private" />
                 </Show>
-                <Show when={
-                    let grove_id = grove_id.clone();
-                    let is_private = is_private.clone();
-
-                    move || grove_id.get().is_none() && !is_private.get()
-                }>
+                <Show when=move || grove_id.get().is_none() && !is_private.get()>
                     <SingleSelect
                         label="Hain"
                         required=true
                         items=groves_options()
                         name="grove"
-                        selected=selected_grove.clone()
+                        selected=selected_grove
                     />
                 </Show>
             </ModalContent>
@@ -355,12 +328,7 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                 </Show>
                 <input type="hidden" prop:value=event.id name="id" />
                 <input type="hidden" prop:value=grove_id name="grove_id" />
-                <Textbox
-                    width=InputWidth::Medium
-                    label="Titel"
-                    name="title"
-                    value=title
-                />
+                <Textbox width=InputWidth::Medium label="Titel" name="title" value=title />
                 <Textarea
                     width=InputWidth::Medium
                     label="Beschreibung"
@@ -368,12 +336,7 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                     value=description
                     required=false
                 />
-                <ColorPicker
-                    width=InputWidth::Medium
-                    label="Farbe"
-                    name="color"
-                    value=color
-                />
+                <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
                 <DatePicker
                     width=InputWidth::Medium
                     label="Von"
@@ -390,7 +353,12 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                 />
             </ModalContent>
             <ModalButton label="Abbrechen" on_click=move |_| is_open.set(false) slot />
-            <ModalButton variant=Variant::Negative label="Event löschen" on_click=delete_event slot />
+            <ModalButton
+                variant=Variant::Negative
+                label="Event löschen"
+                on_click=delete_event
+                slot
+            />
             <ModalButton label="Event speichern" is_submit=true slot />
         </ActionFormModal>
     }
@@ -400,54 +368,32 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView {
     let date = RwSignal::new(Local::now().date_naive().with_day(1).unwrap());
 
-    let prev_month = {
-        let date = date.clone();
+    let prev_month = create_memo(move |_| date.get() - Months::new(1));
+    let current_month = create_memo(move |_| date.get().month());
+    let next_month = create_memo(move |_| date.get() + Months::new(1));
 
-        create_memo(move |_| date.get() - Months::new(1))
-    };
-    let current_month = {
-        let date = date.clone();
+    let first_day_of_month = date;
+    let last_day_of_month = create_memo(move |_| date.get() + Months::new(1) - Days::new(1));
 
-        create_memo(move |_| date.get().month())
-    };
-    let next_month = {
-        let date = date.clone();
+    let calendar_start_date = create_memo(move |_| {
+        let date = first_day_of_month.get();
 
-        create_memo(move |_| date.get() + Months::new(1))
-    };
+        if date.weekday() == Weekday::Mon {
+            date
+        } else {
+            let offset = date.weekday() as u64 - 1;
+            let last_day_of_prev_month = date.checked_sub_days(Days::new(1)).unwrap();
 
-    let first_day_of_month = date.clone();
-    let last_day_of_month = {
-        let date = date.clone();
-
-        create_memo(move |_| date.get() + Months::new(1) - Days::new(1))
-    };
-
-    let calendar_start_date = {
-        let date = first_day_of_month.clone();
-
-        create_memo(move |_| {
-            let date = date.get();
-
-            if date.weekday() == Weekday::Mon {
-                date
-            } else {
-                let offset = date.weekday() as u64 - 1;
-                let last_day_of_prev_month = date.checked_sub_days(Days::new(1)).unwrap();
-
-                let offset_days = Days::new(offset);
-                last_day_of_prev_month
-                    .checked_sub_days(offset_days)
-                    .unwrap()
-            }
-        })
-    };
+            let offset_days = Days::new(offset);
+            last_day_of_prev_month
+                .checked_sub_days(offset_days)
+                .unwrap()
+        }
+    });
     let calendar_end_date = {
-        let first_day = first_day_of_month.clone();
-        let date = last_day_of_month.clone();
-
         create_memo(move |_| {
-            let date = date.get();
+            let first_day = first_day_of_month;
+            let date = last_day_of_month.get();
 
             let first_day_offset = if first_day.get().weekday() == Weekday::Sun {
                 5
@@ -485,21 +431,13 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
         },
     );
 
-    let prev = {
-        let date = date.clone();
-
-        move |_| {
-            date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
-            events_resource.refetch()
-        }
+    let prev = move |_| {
+        date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
+        events_resource.refetch()
     };
-    let next = {
-        let date = date.clone();
-
-        move |_| {
-            date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
-            events_resource.refetch()
-        }
+    let next = move |_| {
+        date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
+        events_resource.refetch()
     };
 
     #[cfg(any(feature = "csr", feature = "hydrate"))]
@@ -513,7 +451,6 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                         .collect::<Vec<_>>(),
                 ),
             );
-        let events = events.clone();
         let _ = watch(
             move || data.get(),
             move |data, _, _| {
@@ -545,17 +482,32 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
         <Transition>
             {move || {
                 create_effect(move |_| {
-                    events_resource.map(move |evts| events.set(evts.clone().unwrap_or(Default::default())));
+                    events_resource.map(move |evts| events.set(evts.clone().unwrap_or_default()));
                 });
-            }}
-            <div class="pandas-calendar">
+            }} <div class="pandas-calendar">
                 <div class="pandas-calendar__header">
                     <span class="pandas-calendar__action is--prev">
-                        <a on:click={prev}>{move || prev_month.get().format_localized("%B %Y", Locale::de_DE).to_string()}</a>
+                        <a on:click=prev>
+                            {move || {
+                                prev_month
+                                    .get()
+                                    .format_localized("%B %Y", Locale::de_DE)
+                                    .to_string()
+                            }}
+                        </a>
                     </span>
-                    <h2>{move || date.get().format_localized("%B %Y", Locale::de_DE).to_string()}</h2>
+                    <h2>
+                        {move || date.get().format_localized("%B %Y", Locale::de_DE).to_string()}
+                    </h2>
                     <span class="pandas-calendar__action is--next">
-                        <a on:click={next}>{move || next_month.get().format_localized("%B %Y", Locale::de_DE).to_string()}</a>
+                        <a on:click=next>
+                            {move || {
+                                next_month
+                                    .get()
+                                    .format_localized("%B %Y", Locale::de_DE)
+                                    .to_string()
+                            }}
+                        </a>
                     </span>
                 </div>
                 <div class="pandas-calendar__container">
@@ -566,31 +518,34 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                     <div class="pandas-calendar__weekday">Freitag</div>
                     <div class="pandas-calendar__weekday">Samstag</div>
                     <div class="pandas-calendar__weekday">Sonntag</div>
-                        {move || DateRange::new(calendar_start_date.get(), calendar_end_date.get()).unwrap().into_iter().map(|day| {
-                            let events_for_day = {
-                                let events = events.clone();
-
-                                move |day: NaiveDate| {
+                    {move || {
+                        DateRange::new(calendar_start_date.get(), calendar_end_date.get())
+                            .unwrap()
+                            .into_iter()
+                            .map(|day| {
+                                let events_for_day = move |day: NaiveDate| {
                                     events
                                         .get()
                                         .iter()
-                                        .filter(move |event| event.start_date <= day && event.end_date >= day)
+                                        .filter(move |event| {
+                                            event.start_date <= day && event.end_date >= day
+                                        })
                                         .cloned()
                                         .collect::<Vec<_>>()
+                                };
+                                view! {
+                                    <Day
+                                        grove_id=grove_id
+                                        events=events_for_day(day)
+                                        day=day.day()
+                                        month=day.month()
+                                        year=day.year()
+                                        selected_month=current_month.get()
+                                    />
                                 }
-                            };
-
-                            view! {
-                                <Day
-                                    grove_id={grove_id}
-                                    events={events_for_day(day.clone())}
-                                    day={day.day()}
-                                    month={day.month()}
-                                    year={day.year()}
-                                    selected_month={current_month.get()}
-                                />
-                            }
-                        }).collect::<Vec<_>>()}
+                            })
+                            .collect::<Vec<_>>()
+                    }}
                 </div>
             </div>
         </Transition>

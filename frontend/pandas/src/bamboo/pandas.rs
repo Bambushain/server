@@ -1,6 +1,6 @@
+use crate::components;
 use leptos::*;
 use leptos_meta as meta;
-use crate::components;
 
 #[component]
 pub fn Pandas() -> impl IntoView {

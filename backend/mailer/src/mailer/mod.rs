@@ -1,6 +1,7 @@
 use crate::template;
 use bamboo_common::backend::services::EnvironmentService;
 use bamboo_common::core::error::{BambooError, BambooErrorResult, BambooResult};
+use bamboo_common::core::queueing::Mail;
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, Body, Mailbox, MultiPart};
 use lettre::message::{MessageBuilder, SinglePart};
@@ -8,7 +9,6 @@ use lettre::transport::smtp;
 use lettre::transport::smtp::client::TlsParameters;
 use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use maud::{Markup, PreEscaped};
-use bamboo_common::core::queueing::Mail;
 
 fn get_transport(
     env_service: &EnvironmentService,
