@@ -1,7 +1,8 @@
 use crate::api::{
-    get_banned_pandas, get_grove, get_pandas, DeleteGroveAction, DisableInvitesAction,
-    EnableInvitesAction, UnbanPandaAction, UpdateModsAction,
+    get_all_groves, get_banned_pandas, get_grove, get_pandas, DeleteGroveAction,
+    DisableInvitesAction, EnableInvitesAction, UnbanPandaAction, UpdateModsAction,
 };
+use crate::state::AllGroves;
 use bamboo_common::core::entities::user::GroveUser;
 use leptos::*;
 use leptos_cosmo::prelude::*;
@@ -13,10 +14,12 @@ pub fn GroveAdminTab(
     #[prop(into)] grove_name: MaybeSignal<String>,
 ) -> impl IntoView {
     let navigate = use_navigate();
-    let grove_resource = create_resource(
+    let grove_resource = create_local_resource(
         move || grove_id.get(),
         move |id| async move { get_grove(id).await },
     );
+    let groves_resource =
+        create_local_resource(move || {}, move |_| async move { get_all_groves().await });
     let pandas_resource = create_local_resource_with_initial_value(
         move || grove_id.get(),
         move |id| async move { get_pandas(Some(id)).await },
@@ -37,14 +40,30 @@ pub fn GroveAdminTab(
     let selected_mods = create_rw_signal(vec![]);
     let pandas = create_rw_signal(vec![]);
 
+    let groves_ctx = expect_context::<RwSignal<AllGroves>>();
+
     create_effect(move |_| {
         if let Some(Ok(_)) = enable_invites_action.value().get() {
             grove_resource.refetch()
         }
     });
+    {
+        let navigate = navigate.clone();
+
+        create_effect(move |_| {
+            if grove_resource.get().is_some_and(|res| res.is_err()) {
+                navigate("/pandas/groves", NavigateOptions::default());
+            }
+        });
+    }
     create_effect(move |_| {
         if let Some(Ok(_)) = disable_invites_action.value().get() {
             grove_resource.refetch()
+        }
+    });
+    create_effect(move |_| {
+        if let Some(Ok(groves)) = groves_resource.get() {
+            groves_ctx.set(groves);
         }
     });
     create_effect(move |_| {
@@ -71,16 +90,16 @@ pub fn GroveAdminTab(
     let on_delete = Callback::new(move |_| {
         if let Some(Ok(grove)) = grove_resource.get() {
             confirm(
-                    "Hain löschen",
-                    format!("Soll der Hain {} wirklich gelöscht werden? Dies löscht auch den Eventkalender.", grove.name),
-                    Variant::Negative,
-                    "Hain löschen",
-                    "Nicht löschen",
-                    Some(Callback::new(move |_| {
-                        delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get() })
-                    })),
-                    None,
-                )
+                "Hain löschen",
+                format!("Soll der Hain {} wirklich gelöscht werden? Dies löscht auch den Eventkalender.", grove.name),
+                Variant::Negative,
+                "Hain löschen",
+                "Nicht löschen",
+                Some(Callback::new(move |_| {
+                    delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get() })
+                })),
+                None,
+            )
         }
     });
     let on_unban = Callback::new(move |user: GroveUser| {
@@ -112,7 +131,8 @@ pub fn GroveAdminTab(
                 .get()
                 .is_some_and(|res| res.is_ok())
             {
-                navigate("/pandas/grove", NavigateOptions::default())
+                groves_resource.refetch();
+                navigate("/pandas/groves", NavigateOptions::default())
             }
         });
     }

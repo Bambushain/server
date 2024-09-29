@@ -5,6 +5,7 @@ pub mod authentication;
 mod bamboo;
 mod components;
 mod groves;
+mod state;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

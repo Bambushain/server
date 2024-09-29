@@ -3,6 +3,7 @@ use bamboo_common::backend::database::get_database;
 use bamboo_common::backend::services::DbConnection;
 
 mod authentication;
+mod state;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]

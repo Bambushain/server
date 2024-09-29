@@ -166,3 +166,16 @@ pub async fn unban_panda(grove_id: i32, user_id: i32) -> Result<(), ServerFnErro
         Err(ServerFnError::new("Not allowed"))
     }
 }
+
+#[server(CreateGroveAction, "/pandas/grove/create")]
+pub async fn create_grove(name: String, allow_invite: String) -> Result<Grove, ServerFnError> {
+    use crate::authentication::AuthState;
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
+    dbal::create_grove(name, allow_invite.to_lowercase() == "on", auth_state.user.id, &db)
+        .await
+        .map_err(ServerFnError::new)
+}
