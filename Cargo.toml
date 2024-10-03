@@ -65,12 +65,12 @@ actix = "0.13.5"
 actix-files = "0.6.6"
 actix-web = "4.9.0"
 actix-web-lab = { version = "0.22.0", features = ["spa"] }
-async-nats = "0.36.0"
-async-trait = "0.1.81"
+async-nats = "0.37.0"
+async-trait = "0.1.83"
 base64 = "0.22.1"
 bcrypt = "0.15.1"
 bounce = { version = "0.9.0", features = ["query", "helmet"] }
-bytes = "1.7.1"
+bytes = "1.7.2"
 bytestring = "1.3.1"
 cargo_metadata = "0.18.1"
 chacha20poly1305 = "0.10.1"
@@ -88,40 +88,40 @@ futures = "0.3.30"
 futures-util = "0.3.30"
 getrandom = "0.2.15"
 gloo = "0.11.0"
-handlebars = "6.0.0"
+handlebars = "6.1.0"
 hex = "0.4.3"
-html2text = "0.12.5"
+html2text = "0.12.6"
 http = "1.1.0"
 icondata_lu = "0.0.10"
 itertools = "0.13.0"
-leptos = "0.6.14"
+leptos = "0.6.15"
 leptos-cosmo = { path = "../leptos-cosmo" }
-leptos_actix = "0.6.14"
-leptos_meta = "0.6.14"
-leptos_router = "0.6.14"
+leptos_actix = "0.6.15"
+leptos_meta = "0.6.15"
+leptos_router = "0.6.15"
 leptos-use = "0.13.5"
-lettre = { version = "0.11.7", features = ["tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"], default-features = false }
+lettre = { version = "0.11.9", features = ["tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"], default-features = false }
 log = "0.4.22"
 maud = "0.26.0"
 mrml = { version = "4.0.1", features = ["async", "parse", "render"] }
 openidconnect = "3.5.0"
 parking_lot = "0.12.3"
 pbkdf2 = "0.12.2"
-quote = "1.0.36"
+quote = "1.0.37"
 rand = "0.8.5"
 rust-s3 = "0.35.1"
-sea-orm = { version = "1.0.0", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
-sea-orm-migration = { version = "1.0.0", features = ["sqlx-mysql", "runtime-tokio-rustls"] }
-serde = { version = "1.0.207", features = ["derive"] }
-serde_json = "1.0.124"
+sea-orm = { version = "1.0.1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
+sea-orm-migration = { version = "1.0.1", features = ["sqlx-mysql", "runtime-tokio-rustls"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 strum = "0.26.3"
 sha2 = "0.10.8"
 strum_macros = "0.26.4"
 stylist = { version = "0.13.0", features = ["yew"] }
-syn = "2.0.74"
-tokio = "1.39.2"
-tokio-stream = "0.1.15"
-tokio-util = "0.7.11"
+syn = "2.0.79"
+tokio = "1.40.0"
+tokio-stream = "0.1.16"
+tokio-util = "0.7.12"
 totp-rs = { version = "5.6.0", features = ["qr", "gen_secret"] }
 uuid = { version = "1.10.0", features = ["v4"] }
 wasm-bindgen = "0.2.93"

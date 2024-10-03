@@ -10,5 +10,4 @@ bamboo-common-backend-dbal = { path = "../dbal" }
 bamboo-common-backend-services = { path = "../services" }
 
 actix-web = { workspace = true }
-actix-web-lab = { workspace = true }
 sea-orm = { workspace = true }

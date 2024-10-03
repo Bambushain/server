@@ -12,14 +12,10 @@ bamboo-common-backend-mq = { path = "../message_queue" }
 bamboo-common-backend-services = { path = "../services" }
 bamboo-common-core = { path = "../../core" }
 
-async-nats = { workspace = true }
-bytes = { workspace = true }
+#async-nats = { workspace = true }
+#bytes = { workspace = true }
 chrono = { workspace = true }
-ciborium = { workspace = true }
+#ciborium = { workspace = true }
 log = { workspace = true }
 maud = { workspace = true }
 sea-orm = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-
-[package.metadata.cargo-machete]
-ignored = ["async-nats", "bytes", "ciborium"]

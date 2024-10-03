@@ -14,10 +14,8 @@ actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true, features = ["macros"] }
 codee = { workspace = true }
 console_error_panic_hook = { workspace = true }
-console_log = { workspace = true }
 chrono = { workspace = true }
 date-range = { workspace = true }
-either = { workspace = true }
 http = { workspace = true, optional = true }
 icondata_lu = { workspace = true }
 leptos = { workspace = true }
@@ -29,7 +27,6 @@ leptos-use = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
-strum_macros = { workspace = true }
 wasm-bindgen = { workspace = true }
 
 [features]

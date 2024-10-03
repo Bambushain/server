@@ -16,7 +16,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 
 [package.metadata.cargo-machete]
-ignored = ["async-nats", "bytes", "ciborium"]
+ignored = ["log", "strum"]
 
 [features]
 backend = ["async-nats", "bytes", "ciborium", "log"]

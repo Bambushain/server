@@ -8,8 +8,5 @@ license.workspace = true
 bamboo-common-core = { path = "../../core" }
 
 async-nats = { workspace = true }
-bytes = { workspace = true }
-ciborium = { workspace = true }
-serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }

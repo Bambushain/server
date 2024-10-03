@@ -14,13 +14,11 @@
                 "S3_USE_PATH_STYLE": "true",
             },
             "cargoArgs": [
-                "run",
-                "--package",
-                "bamboo",
-                "--bin",
-                "backend-api",
+                "watch",
                 "--features",
-                "backend-api"
+                "backend-api",
+                "-x",
+                "run --package bamboo --bin backend-api --features backend-api",
             ],
         },
         {
@@ -31,13 +29,11 @@
                 "NATS_SERVER": "localhost:4222",
             },
             "cargoArgs": [
-                "run",
-                "--package",
-                "bamboo",
-                "--bin",
-                "backend-events",
+                "watch",
                 "--features",
-                "backend-events"
+                "backend-events",
+                "-x",
+                "run --package bamboo --bin backend-events --features backend-events",
             ],
         },
         {
@@ -54,13 +50,11 @@
                 "NATS_SERVER": "localhost:4222",
             },
             "cargoArgs": [
-                "run",
-                "--package",
-                "bamboo",
-                "--bin",
-                "backend-mailer",
+                "watch",
                 "--features",
-                "backend-mailer"
+                "backend-mailer",
+                "-x",
+                "run --package bamboo --bin backend-mailer --features backend-mailer",
             ],
         },
         {
