@@ -29,16 +29,26 @@ fn get_transport(
         .get_env("MAILER_PORT", "25")
         .parse::<u16>()
         .unwrap_or(25u16);
-    let transport = if env_service.get_env("MAILER_ENCRYPTION", "false") == "false" {
-        builder.tls(smtp::client::Tls::None)
-    } else {
-        builder.tls(smtp::client::Tls::Required(
+    let encryption = env_service.get_env("MAILER_ENCRYPTION", "none");
+
+    let transport = if encryption == "tls" && env_service.get_env("MAILER_STARTTLS", "false") == "true" {
+        builder.tls(smtp::client::Tls::Opportunistic(
             TlsParameters::new(mail_server).map_err(|err| {
                 log::error!("Failed to parse the server domain {err}");
 
                 BambooError::mailing("Failed to parse the server domain")
             })?,
         ))
+    } else if encryption == "ssl" {
+        builder.tls(smtp::client::Tls::Wrapper(
+            TlsParameters::new(mail_server).map_err(|err| {
+                log::error!("Failed to parse the server domain {err}");
+
+                BambooError::mailing("Failed to parse the server domain")
+            })?,
+        ))
+    } else {
+        builder.tls(smtp::client::Tls::None)
     }
     .credentials(smtp::authentication::Credentials::new(
         env_service.get_env("MAILER_USERNAME", ""),
@@ -139,6 +149,9 @@ pub async fn send_mail(mail: Mail, env_service: EnvironmentService) -> BambooErr
     get_transport(&env_service)?
         .send(email)
         .await
-        .map_err(|_| BambooError::mailing("Failed to send email"))
+        .map_err(|err| {
+            log::error!("{err:#?}");
+            BambooError::mailing("Failed to send email")
+        })
         .map(|_| ())
 }
