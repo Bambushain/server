@@ -1,6 +1,6 @@
 use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
-use crate::{bamboo, groves, my};
+use crate::{bamboo, groves, my, support};
 use bamboo_common::core::entities::User;
 use leptos::*;
 use leptos_cosmo::prelude::*;
@@ -51,31 +51,34 @@ fn PandasRoutes() -> impl IntoView {
     let groves = expect_context::<RwSignal<AllGroves>>();
 
     view! {
-        <Routes>
-            <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
-            <Route path="/pandas/bamboo" view=bamboo::Calendar />
-            <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
-            <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
-            <Route
-                path="/pandas/groves"
-                view=move || {
-                    let groves = groves.get();
-                    if let Some(grove) = groves.first() {
-                        view! {
-                            <Redirect path=format!(
-                                "/pandas/groves/{}/{}",
-                                grove.id,
-                                grove.name.clone(),
-                            ) />
+        <PageBody>
+            <Routes>
+                <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
+                <Route path="/pandas/bamboo" view=bamboo::Calendar />
+                <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
+                <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
+                <Route
+                    path="/pandas/groves"
+                    view=move || {
+                        let groves = groves.get();
+                        if let Some(grove) = groves.first() {
+                            view! {
+                                <Redirect path=format!(
+                                    "/pandas/groves/{}/{}",
+                                    grove.id,
+                                    grove.name.clone(),
+                                ) />
+                            }
+                        } else {
+                            view! { <Redirect path="/pandas/groves/new" /> }
                         }
-                    } else {
-                        view! { <Redirect path="/pandas/groves/new" /> }
                     }
-                }
-            />
-            <Route path="/pandas/groves/new" view=groves::NewGrovePage />
-            <Route path="/pandas/profile" view=my::MyProfilePage />
-        </Routes>
+                />
+                <Route path="/pandas/groves/new" view=groves::NewGrovePage />
+                <Route path="/pandas/profile" view=my::MyProfilePage />
+                <Route path="/pandas/support" view=support::BambooSupportPage />
+            </Routes>
+        </PageBody>
     }
 }
 
@@ -165,9 +168,7 @@ pub fn App() -> impl IntoView {
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
                 <PandasTopBar />
                 <PandasMenu />
-                <PageBody>
-                    <PandasRoutes />
-                </PageBody>
+                <PandasRoutes />
             </Router>
         </PageLayout>
     }

@@ -71,7 +71,7 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
                 current_user_ctx.set(res.user.unwrap());
                 if let Some(profile_picture) = profile_picture.get() {
                     let files = gloo_file::FileList::from(profile_picture);
-                    if let Some(file) = files.iter().cloned().next() {
+                    if let Some(file) = files.iter().next().cloned() {
                         spawn_local(async move {
                             if let Ok(data) = read_as_bytes(&file).await {
                                 if update_profile_picture(data).await.is_ok() {
@@ -244,9 +244,7 @@ fn EnableTotpDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
                                 message_type=MessageType::Negative
                                 visible=has_error
                             >
-                                <MessageContent slot>
-                                    {error_message}
-                                </MessageContent>
+                                <MessageContent slot>{error_message}</MessageContent>
                             </AlertMessage>
                             <InputGroup>
                                 <Textbox
@@ -322,7 +320,13 @@ fn ChangePasswordDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVi
     });
 
     view! {
-        <ActionFormModal action=change_password_action title="Passwort ändern" has_error error_message error_message_header>
+        <ActionFormModal
+            action=change_password_action
+            title="Passwort ändern"
+            has_error
+            error_message
+            error_message_header
+        >
             <ModalContent slot>
                 <Textbox
                     input_type=TextBoxType::Password

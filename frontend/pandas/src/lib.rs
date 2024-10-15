@@ -7,6 +7,7 @@ mod components;
 mod groves;
 mod my;
 mod state;
+mod support;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

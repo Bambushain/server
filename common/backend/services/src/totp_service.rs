@@ -10,6 +10,12 @@ use sea_orm::DatabaseConnection;
 
 pub struct TotpService {}
 
+impl Default for TotpService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TotpService {
     pub fn new() -> Self {
         Self {}
