@@ -31,31 +31,32 @@ fn get_transport(
         .unwrap_or(25u16);
     let encryption = env_service.get_env("MAILER_ENCRYPTION", "none");
 
-    let transport = if encryption == "tls" && env_service.get_env("MAILER_STARTTLS", "false") == "true" {
-        builder.tls(smtp::client::Tls::Opportunistic(
-            TlsParameters::new(mail_server).map_err(|err| {
-                log::error!("Failed to parse the server domain {err}");
+    let transport =
+        if encryption == "tls" && env_service.get_env("MAILER_STARTTLS", "false") == "true" {
+            builder.tls(smtp::client::Tls::Opportunistic(
+                TlsParameters::new(mail_server).map_err(|err| {
+                    log::error!("Failed to parse the server domain {err}");
 
-                BambooError::mailing("Failed to parse the server domain")
-            })?,
-        ))
-    } else if encryption == "ssl" {
-        builder.tls(smtp::client::Tls::Wrapper(
-            TlsParameters::new(mail_server).map_err(|err| {
-                log::error!("Failed to parse the server domain {err}");
+                    BambooError::mailing("Failed to parse the server domain")
+                })?,
+            ))
+        } else if encryption == "ssl" {
+            builder.tls(smtp::client::Tls::Wrapper(
+                TlsParameters::new(mail_server).map_err(|err| {
+                    log::error!("Failed to parse the server domain {err}");
 
-                BambooError::mailing("Failed to parse the server domain")
-            })?,
+                    BambooError::mailing("Failed to parse the server domain")
+                })?,
+            ))
+        } else {
+            builder.tls(smtp::client::Tls::None)
+        }
+        .credentials(smtp::authentication::Credentials::new(
+            env_service.get_env("MAILER_USERNAME", ""),
+            env_service.get_env("MAILER_PASSWORD", ""),
         ))
-    } else {
-        builder.tls(smtp::client::Tls::None)
-    }
-    .credentials(smtp::authentication::Credentials::new(
-        env_service.get_env("MAILER_USERNAME", ""),
-        env_service.get_env("MAILER_PASSWORD", ""),
-    ))
-    .port(port)
-    .build();
+        .port(port)
+        .build();
 
     Ok(transport)
 }

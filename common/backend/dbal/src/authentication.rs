@@ -68,6 +68,15 @@ pub async fn delete_token(token: String, db: &DatabaseConnection) -> BambooError
         .map(|_| ())
 }
 
+pub async fn delete_all_token(user_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    token::Entity::delete_many()
+        .filter(token::Column::UserId.eq(user_id))
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete the tokens"))
+        .map(|_| ())
+}
+
 pub async fn validate_two_factor_code(
     id: i32,
     code: String,

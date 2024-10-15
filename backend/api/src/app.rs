@@ -1,8 +1,8 @@
 use actix_web::{middleware, App, HttpServer};
 use bamboo_common::backend::dbal;
 use bamboo_common::backend::migration::{Migrator, MigratorTrait};
-use bamboo_common::backend::services::minio_service::MinioClient;
 use bamboo_common::backend::services::DbConnection;
+use bamboo_common::backend::services::MinioClient;
 
 use crate::routes;
 
@@ -65,17 +65,7 @@ pub async fn start_server() -> std::io::Result<()> {
         .await
         .map_err(std::io::Error::other)?;
     log::info!("Successfully migrated database");
-    let minio_client = MinioClient::new(
-        std::env::var("S3_BUCKET").map_err(std::io::Error::other)?,
-        std::env::var("S3_ACCESS_KEY").map_err(std::io::Error::other)?,
-        std::env::var("S3_SECRET_KEY").map_err(std::io::Error::other)?,
-        std::env::var("S3_REGION").map_err(std::io::Error::other)?,
-        std::env::var("S3_ENDPOINT").ok(),
-        std::env::var("S3_USE_PATH_STYLE")
-            .ok()
-            .map_or(false, |val| val.to_lowercase() == "true"),
-    )
-    .map_err(std::io::Error::other)?;
+    let minio_client = MinioClient::new().map_err(std::io::Error::other)?;
 
     setup_google_playstore_user(&db).await?;
 

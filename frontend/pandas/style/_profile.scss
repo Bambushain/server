@@ -1,0 +1,73 @@
+.pandas-profile {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-columns: min(20rem, 15vw) 1fr;
+  grid-template-areas: "picture toolbar" "picture email" "picture discord" "picture groves";
+  gap: 1rem;
+
+  p,
+  h2 {
+    margin: 0;
+  }
+
+  &__picture {
+    width: 100%;
+    grid-area: picture;
+  }
+
+  &__email {
+    grid-area: email;
+  }
+
+  &__discord {
+    grid-area: discord;
+  }
+
+  &__groves {
+    grid-area: groves;
+  }
+}
+
+.pandas-totp {
+  &__container {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: [code] 24.5rem [details] auto;
+    grid-template-areas: "code details";
+    justify-content: center;
+    align-items: start;
+  }
+
+  &__logo {
+    width: 10rem;
+    height: 10rem;
+    place-self: center;
+    grid-area: code;
+    fill: var(--primary-color);
+    stroke: var(--white);
+    stroke-opacity: 1;
+    stroke-width: 57.6;
+    stroke-dasharray: none;
+    stroke-linejoin: miter;
+    paint-order: stroke markers fill;
+
+    path {
+      transform: scale(89%) translate(6%, 6%);
+    }
+  }
+
+  &__code {
+    width: 24.5rem;
+    height: 24.5rem;
+    object-fit: scale-down;
+    grid-area: code;
+  }
+
+  &__details {
+    grid-area: details;
+    display: flex;
+    flex-flow: column;
+    max-width: 20vw;
+    padding-top: 2rem;
+  }
+}

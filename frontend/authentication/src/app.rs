@@ -43,7 +43,7 @@ fn Login() -> impl IntoView {
         None => false,
     };
     let has_error = move || match value.get() {
-        Some(Ok(value)) => value.login_success,
+        Some(Ok(value)) => !value.login_success,
         Some(Err(_)) => true,
         None => false,
     };

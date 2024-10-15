@@ -175,7 +175,12 @@ pub async fn create_grove(name: String, allow_invite: String) -> Result<Grove, S
     use leptos_actix::extract;
 
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
-    dbal::create_grove(name, allow_invite.to_lowercase() == "on", auth_state.user.id, &db)
-        .await
-        .map_err(ServerFnError::new)
+    dbal::create_grove(
+        name,
+        allow_invite.to_lowercase() == "on",
+        auth_state.user.id,
+        &db,
+    )
+    .await
+    .map_err(ServerFnError::new)
 }

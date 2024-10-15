@@ -9,3 +9,19 @@ pub async fn get_current_user() -> Result<User, ServerFnError> {
 
     extract::<AuthState>().await.map(|state| state.user.clone())
 }
+
+#[server(LogoutAction, "/pandas/logout")]
+pub async fn logout() -> Result<(), ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
+
+    dbal::delete_token(auth_state.token.clone(), &db)
+        .await
+        .map(|_| ())
+        .map_err(ServerFnError::new)
+}

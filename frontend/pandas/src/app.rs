@@ -1,11 +1,12 @@
-use crate::api::{get_all_groves, get_current_user};
+use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
-use crate::{bamboo, groves};
+use crate::{bamboo, groves, my};
 use bamboo_common::core::entities::User;
 use leptos::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
 use leptos_router::*;
+use leptos_use::use_window;
 
 #[component]
 fn PandasMenu() -> impl IntoView {
@@ -51,10 +52,7 @@ fn PandasRoutes() -> impl IntoView {
 
     view! {
         <Routes>
-            <Route
-                path="/pandas"
-                view=|| view! { <Redirect path="/pandas/bamboo" /> }
-            />
+            <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
             <Route path="/pandas/bamboo" view=bamboo::Calendar />
             <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
             <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
@@ -76,7 +74,43 @@ fn PandasRoutes() -> impl IntoView {
                 }
             />
             <Route path="/pandas/groves/new" view=groves::NewGrovePage />
+            <Route path="/pandas/profile" view=my::MyProfilePage />
         </Routes>
+    }
+}
+
+#[component]
+fn PandasTopBar() -> impl IntoView {
+    let logout_action = create_server_action::<LogoutAction>();
+    let current_user_ctx = expect_context::<RwSignal<User>>();
+
+    let profile_picture =
+        create_memo(move |_| format!("/api/user/{}/picture", current_user_ctx.get().id));
+
+    let logout = Callback::new(move |_| logout_action.dispatch(LogoutAction {}));
+
+    create_effect(move |_| {
+        if logout_action.value().get().is_some_and(|res| res.is_ok()) {
+            let window = use_window();
+            let _ = window
+                .as_ref()
+                .unwrap()
+                .location()
+                .set_href("/authentication");
+        }
+    });
+
+    view! {
+        <TopBar
+            has_right_item=true
+            right_item_label="Abmelden"
+            right_item_on_click=logout
+            profile_picture=profile_picture
+        >
+            <TopBarItem label="Lizenzen" />
+            <TopBarItem label="Impressum" />
+            <TopBarItem label="Datenschutz" />
+        </TopBar>
     }
 }
 
@@ -86,9 +120,6 @@ pub fn App() -> impl IntoView {
 
     let current_user_ctx = create_rw_signal(User::default());
     let groves_ctx = create_rw_signal(AllGroves::new());
-
-    let profile_picture =
-        create_memo(move |_| format!("/api/user/{}/picture", current_user_ctx.get().id));
 
     let current_user_resource =
         create_local_resource(|| {}, |_| async move { get_current_user().await });
@@ -132,15 +163,7 @@ pub fn App() -> impl IntoView {
         >
             <Router>
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
-                <TopBar
-                    has_right_item=true
-                    right_item_label="Abmelden"
-                    profile_picture=profile_picture
-                >
-                    <TopBarItem label="Lizenzen" />
-                    <TopBarItem label="Impressum" />
-                    <TopBarItem label="Datenschutz" />
-                </TopBar>
+                <PandasTopBar />
                 <PandasMenu />
                 <PageBody>
                     <PandasRoutes />

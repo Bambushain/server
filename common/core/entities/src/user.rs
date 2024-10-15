@@ -29,9 +29,11 @@ pub struct Model {
     pub display_name: String,
     pub discord_name: String,
     #[cfg(feature = "backend")]
+    #[serde(skip)]
     pub totp_secret: Option<Vec<u8>>,
     #[cfg(feature = "backend")]
     #[serde(default)]
+    #[serde(skip)]
     pub totp_secret_encrypted: bool,
     #[serde(rename = "appTotpEnabled")]
     pub totp_validated: Option<bool>,
