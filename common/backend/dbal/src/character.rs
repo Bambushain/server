@@ -26,7 +26,7 @@ fn map_character(
         name: character.name.clone(),
         world: character.world.clone(),
         user_id,
-        custom_fields: fill_custom_fields(user_id, custom_fields),
+        custom_fields: fill_custom_fields(character.id, custom_fields),
         free_company_id: character.free_company_id,
         free_company: character.free_company_name.map(|name| FreeCompany {
             id: character.free_company_id.unwrap(),

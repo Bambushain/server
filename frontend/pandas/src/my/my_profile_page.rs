@@ -113,7 +113,12 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
                     value=email
                 />
                 <Textbox label="Name" name="display_name" required=true value=name />
-                <Textbox label="Discord Name (optional)" name="discord_name" value=discord_name />
+                <Textbox
+                    label="Discord Name (optional)"
+                    name="discord_name"
+                    value=discord_name
+                    required=false
+                />
                 <FilePicker
                     label="Profilbild (optional)"
                     file_picked=move |file| profile_picture.set(Some(file))

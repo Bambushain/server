@@ -16,91 +16,73 @@ use strum_macros::EnumIter;
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.crafter_job"
+        enum_name = "final_fantasy.gatherer_job"
     )
 )]
-pub enum CrafterJob {
+pub enum GathererJob {
     #[default]
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "carpenter"))]
-    Carpenter,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "blacksmith"))]
-    Blacksmith,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "armorer"))]
-    Armorer,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "goldsmith"))]
-    Goldsmith,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "leatherworker"))]
-    Leatherworker,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "weaver"))]
-    Weaver,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "alchemist"))]
-    Alchemist,
+    #[cfg_attr(feature = "backend", sea_orm(string_value = "culinarian"))]
+    Culinarian,
+    #[cfg_attr(feature = "backend", sea_orm(string_value = "miner"))]
+    Miner,
+    #[cfg_attr(feature = "backend", sea_orm(string_value = "botanist"))]
+    Botanist,
+    #[cfg_attr(feature = "backend", sea_orm(string_value = "fisher"))]
+    Fisher,
 }
 
-impl CrafterJob {
+impl GathererJob {
     pub fn get_file_name(self) -> String {
         match self {
-            CrafterJob::Carpenter => "carpenter.webp",
-            CrafterJob::Blacksmith => "blacksmith.webp",
-            CrafterJob::Armorer => "armorer.webp",
-            CrafterJob::Goldsmith => "goldsmith.webp",
-            CrafterJob::Leatherworker => "leatherworker.webp",
-            CrafterJob::Weaver => "weaver.webp",
-            CrafterJob::Alchemist => "alchemist.webp",
+            GathererJob::Culinarian => "culinarian.webp",
+            GathererJob::Miner => "miner.webp",
+            GathererJob::Botanist => "botanist.webp",
+            GathererJob::Fisher => "fisher.webp",
         }
         .to_string()
     }
 
     pub fn get_job_name(self) -> String {
         match self {
-            CrafterJob::Carpenter => "Carpenter",
-            CrafterJob::Blacksmith => "Blacksmith",
-            CrafterJob::Armorer => "Armorer",
-            CrafterJob::Goldsmith => "Goldsmith",
-            CrafterJob::Leatherworker => "Leatherworker",
-            CrafterJob::Weaver => "Weaver",
-            CrafterJob::Alchemist => "Alchemist",
+            GathererJob::Culinarian => "Culinarian",
+            GathererJob::Miner => "Miner",
+            GathererJob::Botanist => "Botanist",
+            GathererJob::Fisher => "Fisher",
         }
         .to_string()
     }
 }
 
-impl PartialOrd for CrafterJob {
+impl PartialOrd for GathererJob {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for CrafterJob {
+impl Ord for GathererJob {
     fn cmp(&self, other: &Self) -> Ordering {
         self.get_job_name().cmp(&other.get_job_name())
     }
 }
 
-impl Display for CrafterJob {
+impl Display for GathererJob {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            CrafterJob::Carpenter => "Zimmerer",
-            CrafterJob::Blacksmith => "Grobschmied",
-            CrafterJob::Armorer => "Plattner",
-            CrafterJob::Goldsmith => "Goldschmied",
-            CrafterJob::Leatherworker => "Gerber",
-            CrafterJob::Weaver => "Weber",
-            CrafterJob::Alchemist => "Alchemist",
+            GathererJob::Culinarian => "Gourmet",
+            GathererJob::Miner => "Minenarbeiter",
+            GathererJob::Botanist => "Gärtner",
+            GathererJob::Fisher => "Fischer",
         })
     }
 }
 
-impl From<String> for CrafterJob {
+impl From<String> for GathererJob {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
-            "carpenter" => CrafterJob::Carpenter,
-            "blacksmith" => CrafterJob::Blacksmith,
-            "armorer" => CrafterJob::Armorer,
-            "goldsmith" => CrafterJob::Goldsmith,
-            "leatherworker" => CrafterJob::Leatherworker,
-            "weaver" => CrafterJob::Weaver,
-            "alchemist" => CrafterJob::Alchemist,
+            "culinarian" => GathererJob::Culinarian,
+            "miner" => GathererJob::Miner,
+            "botanist" => GathererJob::Botanist,
+            "fisher" => GathererJob::Fisher,
             _ => unreachable!(),
         }
     }
@@ -110,14 +92,14 @@ impl From<String> for CrafterJob {
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
-    sea_orm(table_name = "crafter", schema_name = "final_fantasy")
+    sea_orm(table_name = "gatherer", schema_name = "final_fantasy")
 )]
 #[serde(rename_all = "camelCase")]
 pub struct Model {
     #[cfg_attr(feature = "backend", sea_orm(primary_key))]
     #[serde(default)]
     pub id: i32,
-    pub job: CrafterJob,
+    pub job: GathererJob,
     #[serde(default)]
     pub level: Option<String>,
     pub character_id: i32,
@@ -159,7 +141,7 @@ impl Related<super::character::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn new(character_id: i32, job: CrafterJob, level: String) -> Self {
+    pub fn new(character_id: i32, job: GathererJob, level: String) -> Self {
         Self {
             id: i32::default(),
             job,

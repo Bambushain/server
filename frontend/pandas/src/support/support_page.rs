@@ -18,18 +18,21 @@ fn SupportForm(
         } />
         <Title title=header />
         <div class="pandas-support">
-            {move || if submit_request_action.value().get().is_some_and(|res| res.is_ok()) {
-                Some(view! {
-                    <AlertMessage message_type=MessageType::Positive>
-                        <MessageContent slot>
-                            {"Deine Nachricht wurde erfolgreich an unser Team geschickt"}
-                        </MessageContent>
-                    </AlertMessage>
-                })
-            } else {
-                None
-            }}
-            <AlertMessage message_type=MessageType::Information>
+            {move || {
+                if submit_request_action.value().get().is_some_and(|res| res.is_ok()) {
+                    Some(
+                        view! {
+                            <AlertMessage message_type=MessageType::Positive>
+                                <MessageContent slot>
+                                    {"Deine Nachricht wurde erfolgreich an unser Team geschickt"}
+                                </MessageContent>
+                            </AlertMessage>
+                        },
+                    )
+                } else {
+                    None
+                }
+            }} <AlertMessage message_type=MessageType::Information>
                 <MessageContent slot>{message.clone()}</MessageContent>
             </AlertMessage>
             <ActionForm

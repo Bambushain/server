@@ -90,9 +90,18 @@ pub async fn create_fighter(
         ));
     }
 
-    let mut model = fighter.into_active_model();
+    let mut model = fighter.clone().into_active_model();
     model.character_id = Set(character_id);
     model.id = NotSet;
+    if fighter.level.is_some_and(|level| level.is_empty()) {
+        model.level = Set(None);
+    }
+    if fighter
+        .gear_score
+        .is_some_and(|gear_score| gear_score.is_empty())
+    {
+        model.gear_score = Set(None);
+    }
 
     model
         .insert(db)

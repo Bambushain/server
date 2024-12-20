@@ -4,6 +4,7 @@ pub mod app;
 pub mod authentication;
 mod bamboo;
 mod components;
+mod final_fantasy;
 mod groves;
 mod my;
 mod state;

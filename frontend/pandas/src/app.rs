@@ -1,6 +1,6 @@
 use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
-use crate::{bamboo, groves, my, support};
+use crate::{bamboo, final_fantasy, groves, my, support};
 use bamboo_common::core::entities::User;
 use leptos::*;
 use leptos_cosmo::prelude::*;
@@ -24,6 +24,10 @@ fn PandasMenu() -> impl IntoView {
             <SubMenu parent="/pandas/bamboo" slot>
                 <MenuItem href="/pandas/bamboo" label="Event Kalender" />
                 <MenuItem href="/pandas/bamboo/pandas" label="Pandas" />
+            </SubMenu>
+            <SubMenu parent="/pandas/final-fantasy" slot>
+                <MenuItem href="/pandas/final-fantasy" label="Charaktere" />
+                <MenuItem href="/pandas/final-fantasy/customization" label="Personalisierung" />
             </SubMenu>
             <SubMenu parent="/pandas/groves" slot>
                 {move || {
@@ -56,6 +60,7 @@ fn PandasRoutes() -> impl IntoView {
                 <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
                 <Route path="/pandas/bamboo" view=bamboo::Calendar />
                 <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
+                <Route path="/pandas/final-fantasy" view=final_fantasy::Characters />
                 <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
                 <Route
                     path="/pandas/groves"

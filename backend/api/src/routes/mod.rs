@@ -10,6 +10,7 @@ mod custom_field;
 mod event;
 mod fighter;
 mod free_company;
+mod gatherer;
 mod grove;
 mod licenses;
 mod my;
@@ -81,6 +82,11 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(crafter::get_crafter)
         .service(crafter::update_crafter)
         .service(crafter::delete_crafter)
+        .service(gatherer::get_gatherers)
+        .service(gatherer::create_gatherer)
+        .service(gatherer::get_gatherer)
+        .service(gatherer::update_gatherer)
+        .service(gatherer::delete_gatherer)
         .service(fighter::get_fighters)
         .service(fighter::create_fighter)
         .service(fighter::get_fighter)
