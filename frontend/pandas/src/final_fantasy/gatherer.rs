@@ -1,6 +1,8 @@
-use crate::api::ff::{get_gatherers, CreateGathererAction, DeleteGathererAction};
+use crate::api::ff::{
+    get_gatherers, CreateGathererAction, DeleteGathererAction, EditGathererAction,
+};
 use crate::components::*;
-use bamboo_common::core::entities::GathererJob;
+use bamboo_common::core::entities::{Gatherer, GathererJob};
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use strum::IntoEnumIterator;
@@ -52,11 +54,56 @@ fn CreateGathererDialog(
 }
 
 #[component]
+fn EditGathererDialog(
+    #[prop(into)] character_id: Signal<i32>,
+    #[prop(into)] id: Signal<i32>,
+    #[prop(into)] job: Signal<GathererJob>,
+    #[prop(into)] level: Signal<String>,
+    on_save: Callback<(), ()>,
+    on_close: Callback<(), ()>,
+) -> impl IntoView {
+    let action = ServerAction::<EditGathererAction>::new();
+    let value = action.value();
+
+    let selected_job = RwSignal::new(Some(job.get().get_job_name()));
+    let level = RwSignal::new(level.get());
+
+    Effect::new(move |_| {
+        if value.read().is_some() {
+            on_save.run(())
+        }
+    });
+
+    view! {
+        <ActionFormModal action=action title=format!("{} bearbeiten", job.read().to_string())>
+            <ModalContent slot>
+                <input type="hidden" value=character_id name="character_id" />
+                <input type="hidden" value=id name="id" />
+                <SingleSelect
+                    label="Job"
+                    items=vec![(Some(job.get().get_job_name()), job.get().to_string())]
+                    selected=selected_job
+                    name="gatherer_job"
+                />
+                <Textbox required=false label="Level" name="level" value=level />
+            </ModalContent>
+            <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
+            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
+        </ActionFormModal>
+    }
+}
+
+#[component]
 pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
     let gatherer_resource = Resource::new(
         move || character_id.get(),
         |id| async move { get_gatherers(id).await },
     );
+
+    let id = RwSignal::new(i32::default());
+    let job = RwSignal::new(GathererJob::default());
+    let level = RwSignal::new(String::default());
+
     let delete_gatherer_action = ServerAction::<DeleteGathererAction>::new();
 
     let available_gatherer = RwSignal::new(vec![]);
@@ -65,6 +112,12 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
     let add_saved = Callback::from(move || {
         gatherer_resource.refetch();
         add_open.set(false)
+    });
+
+    let edit_open = RwSignal::new(false);
+    let edit_saved = Callback::from(move || {
+        gatherer_resource.refetch();
+        edit_open.set(false)
     });
 
     let delete_gatherer = {
@@ -97,6 +150,12 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                 }
             });
         }
+    };
+    let edit_gatherer = move |gatherer: Gatherer| {
+        *id.write() = gatherer.id;
+        *job.write() = gatherer.job;
+        *level.write() = gatherer.level.unwrap_or_default();
+        *edit_open.write() = true;
     };
 
     Effect::new(move |_| {
@@ -148,6 +207,7 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                                             .iter()
                                             .cloned()
                                             .map(|gatherer| {
+                                                let gatherer_to_edit = gatherer.clone();
 
                                                 view! {
                                                     <Card
@@ -167,7 +227,10 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                                                             format!("Level {}", gatherer.level.unwrap())
                                                         }}
                                                         <CardBottom slot>
-                                                            <Button label="Bearbeiten" />
+                                                            <Button
+                                                                label="Bearbeiten"
+                                                                on:click=move |_| edit_gatherer(gatherer_to_edit.clone())
+                                                            />
                                                             <Button
                                                                 label="Löschen"
                                                                 on:click=move |_| delete_gatherer(gatherer.id)
@@ -197,6 +260,16 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                         available_gatherers=available_gatherer.into()
                         on_close=Callback::from(move || add_open.set(false))
                         on_save=add_saved
+                    />
+                </Show>
+                <Show when=move || edit_open.get()>
+                    <EditGathererDialog
+                        character_id=character_id
+                        id=id
+                        job=job
+                        level=level
+                        on_close=Callback::from(move || edit_open.set(false))
+                        on_save=edit_saved
                     />
                 </Show>
             </div>

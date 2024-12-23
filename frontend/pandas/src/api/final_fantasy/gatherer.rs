@@ -56,3 +56,30 @@ pub async fn create_gatherer(
     .map_err(ServerFnError::new)
     .map(|_| ())
 }
+
+#[server(EditGathererAction, "/pandas/gatherer")]
+pub async fn edit_gatherer(
+    id: i32,
+    character_id: i32,
+    gatherer_job: GathererJob,
+    level: String,
+) -> Result<(), ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
+
+    dbal::update_gatherer(
+        id,
+        auth_state.user.id,
+        character_id,
+        Gatherer::new(character_id, gatherer_job, level),
+        &db,
+    )
+    .await
+    .map_err(ServerFnError::new)
+    .map(|_| ())
+}

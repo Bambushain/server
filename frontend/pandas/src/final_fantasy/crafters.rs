@@ -1,6 +1,6 @@
-use crate::api::ff::{get_crafters, CreateCrafterAction, DeleteCrafterAction};
+use crate::api::ff::{get_crafters, CreateCrafterAction, DeleteCrafterAction, EditCrafterAction};
 use crate::components::*;
-use bamboo_common::core::entities::CrafterJob;
+use bamboo_common::core::entities::{Crafter, CrafterJob};
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use strum::IntoEnumIterator;
@@ -34,7 +34,7 @@ fn CreateCrafterDialog(
     });
 
     view! {
-        <ActionFormModal action=action title="Handwerker hinzufügen">
+        <ActionFormModal action=action title="Sammler hinzufügen">
             <ModalContent slot>
                 <input type="hidden" value=character_id name="character_id" />
                 <SingleSelect
@@ -46,7 +46,47 @@ fn CreateCrafterDialog(
                 <Textbox required=false label="Level" name="level" />
             </ModalContent>
             <ModalButton on_click=on_close label="Schließen" slot />
-            <ModalButton is_submit=true label="Handwerker hinzufügen" slot />
+            <ModalButton is_submit=true label="Sammler hinzufügen" slot />
+        </ActionFormModal>
+    }
+}
+
+#[component]
+fn EditCrafterDialog(
+    #[prop(into)] character_id: Signal<i32>,
+    #[prop(into)] id: Signal<i32>,
+    #[prop(into)] job: Signal<CrafterJob>,
+    #[prop(into)] level: Signal<String>,
+    on_save: Callback<(), ()>,
+    on_close: Callback<(), ()>,
+) -> impl IntoView {
+    let action = ServerAction::<EditCrafterAction>::new();
+    let value = action.value();
+
+    let selected_job = RwSignal::new(Some(job.get().get_job_name()));
+    let level = RwSignal::new(level.get());
+
+    Effect::new(move |_| {
+        if value.read().is_some() {
+            on_save.run(())
+        }
+    });
+
+    view! {
+        <ActionFormModal action=action title=format!("{} bearbeiten", job.read().to_string())>
+            <ModalContent slot>
+                <input type="hidden" value=character_id name="character_id" />
+                <input type="hidden" value=id name="id" />
+                <SingleSelect
+                    label="Job"
+                    items=vec![(Some(job.get().get_job_name()), job.get().to_string())]
+                    selected=selected_job
+                    name="crafter_job"
+                />
+                <Textbox required=false label="Level" name="level" value=level />
+            </ModalContent>
+            <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
+            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
         </ActionFormModal>
     }
 }
@@ -57,14 +97,25 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
         move || character_id.get(),
         |id| async move { get_crafters(id).await },
     );
+
+    let id = RwSignal::new(i32::default());
+    let job = RwSignal::new(CrafterJob::default());
+    let level = RwSignal::new(String::default());
+
     let delete_crafter_action = ServerAction::<DeleteCrafterAction>::new();
 
     let available_crafter = RwSignal::new(vec![]);
-    let add_open = RwSignal::new(false);
     let add_enabled = Memo::new(move |_| !available_crafter.read().is_empty());
+    let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
         crafter_resource.refetch();
         add_open.set(false)
+    });
+
+    let edit_open = RwSignal::new(false);
+    let edit_saved = Callback::from(move || {
+        crafter_resource.refetch();
+        edit_open.set(false)
     });
 
     let delete_crafter = {
@@ -78,11 +129,8 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                     .map(|res| res.iter().cloned().find(|f| f.id == crafter_id).clone())
                 {
                     use_modals().confirm(
-                        "Handwerker löschen",
-                        format!(
-                            "Soll der Handwerker {} wirklich gelöscht werden?",
-                            crafter.job
-                        ),
+                        "Sammler löschen",
+                        format!("Soll der Sammler {} wirklich gelöscht werden?", crafter.job),
                         Variant::Negative,
                         format!("{} löschen", crafter.job),
                         format!("{} behalten", crafter.job),
@@ -97,6 +145,12 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                 }
             });
         }
+    };
+    let edit_crafter = move |crafter: Crafter| {
+        *id.write() = crafter.id;
+        *job.write() = crafter.job;
+        *level.write() = crafter.level.unwrap_or_default();
+        *edit_open.write() = true;
     };
 
     Effect::new(move |_| {
@@ -121,11 +175,11 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                     fallback=|| {
                         view! {
                             <AlertMessage
-                                header="Noch keine Handwerker"
+                                header="Noch keine Sammler"
                                 message_type=MessageType::Information
                             >
                                 <MessageContent slot>
-                                    "Du hast noch keine Handwerker angelegt, klick unten auf das Plus um deinen Ersten anzulegen"
+                                    "Du hast noch keine Sammler angelegt, klick unten auf das Plus um deinen Ersten anzulegen"
                                 </MessageContent>
                             </AlertMessage>
                         }
@@ -148,6 +202,8 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                             .iter()
                                             .cloned()
                                             .map(|crafter| {
+                                                let crafter_to_edit = crafter.clone();
+
                                                 view! {
                                                     <Card
                                                         title=crafter.job.to_string()
@@ -166,7 +222,10 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                                             format!("Level {}", crafter.level.unwrap())
                                                         }}
                                                         <CardBottom slot>
-                                                            <Button label="Bearbeiten" />
+                                                            <Button
+                                                                label="Bearbeiten"
+                                                                on:click=move |_| edit_crafter(crafter_to_edit.clone())
+                                                            />
                                                             <Button
                                                                 label="Löschen"
                                                                 on:click=move |_| delete_crafter(crafter.id)
@@ -186,7 +245,7 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                         size=CircleButtonSize::Large
                         variant=Variant::Primary
                         icon=icons::LuPlus
-                        title="Handwerker hinzufügen"
+                        title="Sammler hinzufügen"
                         on:click=move |_| add_open.set(true)
                     />
                 </Show>
@@ -196,6 +255,16 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                         available_crafters=available_crafter.into()
                         on_close=Callback::from(move || add_open.set(false))
                         on_save=add_saved
+                    />
+                </Show>
+                <Show when=move || edit_open.get()>
+                    <EditCrafterDialog
+                        character_id=character_id
+                        id=id
+                        job=job
+                        level=level
+                        on_close=Callback::from(move || edit_open.set(false))
+                        on_save=edit_saved
                     />
                 </Show>
             </div>

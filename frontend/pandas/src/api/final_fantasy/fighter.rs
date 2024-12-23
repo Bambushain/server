@@ -60,6 +60,7 @@ pub async fn create_fighter(
 
 #[server(EditFighterAction, "/pandas/fighter")]
 pub async fn edit_fighter(
+    id: i32,
     character_id: i32,
     fighter_job: FighterJob,
     level: String,
@@ -73,7 +74,8 @@ pub async fn edit_fighter(
 
     let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
 
-    dbal::create_fighter(
+    dbal::update_fighter(
+        id,
         auth_state.user.id,
         character_id,
         Fighter::new(character_id, fighter_job, level, gear_score),

@@ -56,3 +56,30 @@ pub async fn create_crafter(
     .map_err(ServerFnError::new)
     .map(|_| ())
 }
+
+#[server(EditCrafterAction, "/pandas/crafter")]
+pub async fn edit_crafter(
+    id: i32,
+    character_id: i32,
+    crafter_job: CrafterJob,
+    level: String,
+) -> Result<(), ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
+
+    dbal::update_crafter(
+        id,
+        auth_state.user.id,
+        character_id,
+        Crafter::new(character_id, crafter_job, level),
+        &db,
+    )
+    .await
+    .map_err(ServerFnError::new)
+    .map(|_| ())
+}

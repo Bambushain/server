@@ -1,14 +1,14 @@
 use crate::api::ff::{get_fighters, CreateFighterAction, DeleteFighterAction, EditFighterAction};
 use crate::components::*;
-use bamboo_common::core::entities::FighterJob;
+use bamboo_common::core::entities::{Fighter, FighterJob};
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use strum::IntoEnumIterator;
 
 #[component]
 fn CreateFighterDialog(
-    character_id: Signal<i32>,
-    available_fighters: Signal<Vec<FighterJob>>,
+    #[prop(into)] character_id: Signal<i32>,
+    #[prop(into)] available_fighters: Signal<Vec<FighterJob>>,
     on_save: Callback<(), ()>,
     on_close: Callback<(), ()>,
 ) -> impl IntoView {
@@ -55,6 +55,49 @@ fn CreateFighterDialog(
 }
 
 #[component]
+fn EditFighterDialog(
+    #[prop(into)] character_id: Signal<i32>,
+    #[prop(into)] id: Signal<i32>,
+    #[prop(into)] job: Signal<FighterJob>,
+    #[prop(into)] gear_score: Signal<String>,
+    #[prop(into)] level: Signal<String>,
+    on_save: Callback<(), ()>,
+    on_close: Callback<(), ()>,
+) -> impl IntoView {
+    let action = ServerAction::<EditFighterAction>::new();
+    let value = action.value();
+
+    let selected_job = RwSignal::new(Some(job.get().get_job_name()));
+    let gear_score = RwSignal::new(gear_score.get());
+    let level = RwSignal::new(level.get());
+
+    Effect::new(move |_| {
+        if value.read().is_some() {
+            on_save.run(())
+        }
+    });
+
+    view! {
+        <ActionFormModal action=action title=format!("{} bearbeiten", job.read().to_string())>
+            <ModalContent slot>
+                <input type="hidden" value=character_id name="character_id" />
+                <input type="hidden" value=id name="id" />
+                <SingleSelect
+                    label="Job"
+                    items=vec![(Some(job.get().get_job_name()), job.get().to_string())]
+                    selected=selected_job
+                    name="fighter_job"
+                />
+                <Textbox required=false label="Level" name="level" value=level />
+                <Textbox required=false label="Gear Score" name="gear_score" value=gear_score />
+            </ModalContent>
+            <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
+            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
+        </ActionFormModal>
+    }
+}
+
+#[component]
 pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
     let fighter_resource = Resource::new(
         move || character_id.get(),
@@ -62,12 +105,23 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
     );
     let delete_fighter_action = ServerAction::<DeleteFighterAction>::new();
 
+    let id = RwSignal::new(i32::default());
+    let job = RwSignal::new(FighterJob::default());
+    let gear_score = RwSignal::new(String::default());
+    let level = RwSignal::new(String::default());
+
     let available_fighter = RwSignal::new(vec![]);
     let add_enabled = Memo::new(move |_| !available_fighter.read().is_empty());
     let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
         fighter_resource.refetch();
         add_open.set(false)
+    });
+
+    let edit_open = RwSignal::new(false);
+    let edit_saved = Callback::from(move || {
+        fighter_resource.refetch();
+        edit_open.set(false)
     });
 
     let delete_fighter = {
@@ -97,6 +151,13 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                 }
             });
         }
+    };
+    let edit_fighter = move |fighter: Fighter| {
+        *id.write() = fighter.id;
+        *job.write() = fighter.job;
+        *gear_score.write() = fighter.gear_score.unwrap_or_default();
+        *level.write() = fighter.level.unwrap_or_default();
+        *edit_open.write() = true;
     };
 
     Effect::new(move |_| {
@@ -148,6 +209,7 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                                             .iter()
                                             .cloned()
                                             .map(|fighter| {
+                                                let fighter_to_edit = fighter.clone();
 
                                                 view! {
                                                     <Card
@@ -177,7 +239,10 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                                                             format!("Gear Score {}", fighter.gear_score.unwrap())
                                                         }}
                                                         <CardBottom slot>
-                                                            <Button label="Bearbeiten" />
+                                                            <Button
+                                                                label="Bearbeiten"
+                                                                on:click=move |_| edit_fighter(fighter_to_edit.clone())
+                                                            />
                                                             <Button
                                                                 label="Löschen"
                                                                 on:click=move |_| delete_fighter(fighter.id)
@@ -204,9 +269,20 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                 <Show when=move || add_open.get()>
                     <CreateFighterDialog
                         character_id=character_id
-                        available_fighters=available_fighter.into()
+                        available_fighters=available_fighter
                         on_close=Callback::from(move || add_open.set(false))
                         on_save=add_saved
+                    />
+                </Show>
+                <Show when=move || edit_open.get()>
+                    <EditFighterDialog
+                        character_id=character_id
+                        id=id
+                        job=job
+                        gear_score=gear_score
+                        level=level
+                        on_close=Callback::from(move || edit_open.set(false))
+                        on_save=edit_saved
                     />
                 </Show>
             </div>
