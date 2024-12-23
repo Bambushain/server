@@ -1,5 +1,5 @@
 use bamboo_common::core::entities::User;
-use leptos::{server, ServerFnError};
+use leptos::prelude::{server, ServerFnError};
 
 #[server(GetCurrentUser, "/pandas/current-user")]
 pub async fn get_current_user() -> Result<User, ServerFnError> {

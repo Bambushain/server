@@ -2,10 +2,11 @@ use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
 use bamboo_common::core::entities::User;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
-use leptos_router::*;
+use leptos_router::components::*;
+use leptos_router::path;
 use leptos_use::use_window;
 
 #[component]
@@ -56,16 +57,16 @@ fn PandasRoutes() -> impl IntoView {
 
     view! {
         <PageBody>
-            <Routes>
-                <Route path="/pandas" view=|| view! { <Redirect path="/pandas/bamboo" /> } />
-                <Route path="/pandas/bamboo" view=bamboo::Calendar />
-                <Route path="/pandas/bamboo/pandas" view=bamboo::Pandas />
-                <Route path="/pandas/final-fantasy" view=final_fantasy::Characters />
-                <Route path="/pandas/groves/:id/:name" view=groves::GrovePage />
+            <Routes fallback=|| view! { <Redirect path="/pandas/bamboo" /> }>
+                <Route path=path!("/pandas") view=|| view! { <Redirect path="/pandas/bamboo" /> } />
+                <Route path=path!("/pandas/bamboo") view=bamboo::Calendar />
+                <Route path=path!("/pandas/bamboo/pandas") view=bamboo::Pandas />
+                <Route path=path!("/pandas/final-fantasy") view=final_fantasy::Characters />
+                <Route path=path!("/pandas/groves/:id/:name") view=groves::GrovePage />
                 <Route
-                    path="/pandas/groves"
+                    path=path!("/pandas/groves")
                     view=move || {
-                        let groves = groves.get();
+                        let groves = groves.read();
                         if let Some(grove) = groves.first() {
                             view! {
                                 <Redirect path=format!(
@@ -79,9 +80,9 @@ fn PandasRoutes() -> impl IntoView {
                         }
                     }
                 />
-                <Route path="/pandas/groves/new" view=groves::NewGrovePage />
-                <Route path="/pandas/profile" view=my::MyProfilePage />
-                <Route path="/pandas/support" view=support::BambooSupportPage />
+                <Route path=path!("/pandas/groves/new") view=groves::NewGrovePage />
+                <Route path=path!("/pandas/profile") view=my::MyProfilePage />
+                <Route path=path!("/pandas/support") view=support::BambooSupportPage />
             </Routes>
         </PageBody>
     }
@@ -89,15 +90,17 @@ fn PandasRoutes() -> impl IntoView {
 
 #[component]
 fn PandasTopBar() -> impl IntoView {
-    let logout_action = create_server_action::<LogoutAction>();
+    let logout_action = ServerAction::<LogoutAction>::new();
     let current_user_ctx = expect_context::<RwSignal<User>>();
 
     let profile_picture =
-        create_memo(move |_| format!("/api/user/{}/picture", current_user_ctx.get().id));
+        RwSignal::new(format!("/api/user/{}/picture", current_user_ctx.read().id));
 
-    let logout = Callback::new(move |_| logout_action.dispatch(LogoutAction {}));
+    let logout = Callback::new(move |_| {
+        logout_action.dispatch(LogoutAction {});
+    });
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if logout_action.value().get().is_some_and(|res| res.is_ok()) {
             let window = use_window();
             let _ = window
@@ -106,6 +109,9 @@ fn PandasTopBar() -> impl IntoView {
                 .location()
                 .set_href("/authentication");
         }
+    });
+    Effect::new(move |_| {
+        *profile_picture.write() = format!("/api/user/{}/picture", current_user_ctx.read().id);
     });
 
     view! {
@@ -126,32 +132,17 @@ fn PandasTopBar() -> impl IntoView {
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
-    let current_user_ctx = create_rw_signal(User::default());
-    let groves_ctx = create_rw_signal(AllGroves::new());
+    let current_user_ctx = RwSignal::new(User::default());
+    let groves_ctx = RwSignal::new(AllGroves::new());
 
-    let current_user_resource =
-        create_local_resource(|| {}, |_| async move { get_current_user().await });
+    let current_user_resource = Resource::new(|| (), |_| async move { get_current_user().await });
 
-    create_effect(move |_| current_user_resource.refetch());
+    Effect::new(move |_| current_user_resource.refetch());
 
     provide_context(current_user_ctx);
     provide_context(groves_ctx);
 
-    let groves_resource = create_local_resource(|| {}, |_| async move { get_all_groves().await });
-
-    create_effect(move |_| {
-        if let Some(Ok(groves)) = groves_resource.get() {
-            groves_ctx.set(groves);
-        }
-    });
-    create_effect(move |_| {
-        if let Some(Ok(current_user)) = current_user_resource.get() {
-            current_user_ctx.set(current_user)
-        }
-    });
-    create_effect(move |_| {
-        groves_resource.refetch();
-    });
+    let groves_resource = Resource::new(|| (), |_| async move { get_all_groves().await });
 
     view! {
         <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css" />
@@ -164,6 +155,16 @@ pub fn App() -> impl IntoView {
         <Meta content="#598c79" name="msapplication-TileColor" />
         <Meta content="#598c79" name="theme-color" />
         <Meta content="width=device-width, initial-scale=1" name="viewport" />
+        <Suspense>
+            {move || Suspend::new(async move {
+                if let Ok(groves) = groves_resource.await {
+                    groves_ctx.set(groves);
+                }
+                if let Ok(current_user) = current_user_resource.await {
+                    current_user_ctx.set(current_user)
+                }
+            })}
+        </Suspense>
 
         <PageLayout
             primary_color=Color::new(89, 140, 121, 0.0)

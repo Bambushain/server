@@ -1,7 +1,10 @@
 use crate::login::{ForgotPasswordAction, LoginAction, ResetPasswordAction};
-use leptos::*;
+use leptos::prelude::*;
 use leptos_meta::*;
-use leptos_router::*;
+use leptos_router::components::*;
+use leptos_router::hooks::use_query;
+use leptos_router::params::Params;
+use leptos_router::path;
 use leptos_use::use_window;
 
 #[component]
@@ -9,7 +12,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Stylesheet id="leptos" href="/authentication/pkg/frontend-authentication.css"/>
+        <Stylesheet id="leptos" href="/authentication/pkg/frontend-authentication.css" />
         <Title formatter=|text| format!("{text} – Bambushain") />
         <Link href="/authentication/assets/favicon.svg" rel="icon" type_="image/svg+xml" />
         <Link href="/authentication/assets/favicon.png" rel="icon" type_="image/png" />
@@ -22,11 +25,10 @@ pub fn App() -> impl IntoView {
         <Meta content="width=device-width, initial-scale=1" name="viewport" />
 
         <Router>
-            <Routes>
-                <Route path="/authentication" view=Login/>
-                <Route path="/authentication/forgot-password" view=ForgotPassword/>
-                <Route path="/authentication/reset-password" view=ResetPassword/>
-                <Route path="/authentication/*" view=Login/>
+            <Routes fallback=|| view! { <Login /> }>
+                <Route path=path!("/authentication") view=Login />
+                <Route path=path!("/authentication/forgot-password") view=ForgotPassword />
+                <Route path=path!("/authentication/reset-password") view=ResetPassword />
             </Routes>
         </Router>
     }
@@ -34,7 +36,7 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn Login() -> impl IntoView {
-    let login = create_server_action::<LoginAction>();
+    let login = ServerAction::<LoginAction>::new();
     let value = login.value();
 
     let two_factor_visible = move || match value.get() {
@@ -48,7 +50,7 @@ fn Login() -> impl IntoView {
         None => false,
     };
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(value)) = value.get() {
             if value.login_success {
                 let window = use_window();
@@ -67,7 +69,7 @@ fn Login() -> impl IntoView {
                         Zu den Anmeldedaten wurde kein Benutzer gefunden
                     </Show>
                 </p>
-                <ActionForm action=login class="auth-form">
+                <ActionForm action=login attr:class="auth-form">
                     <div class="auth-fields">
                         <label>Email oder Name</label>
                         <input type="text" name="email" required />
@@ -78,8 +80,12 @@ fn Login() -> impl IntoView {
                             <input type="text" maxlength="6" name="two_factor_code" required />
                         </Show>
                         <div class="auth-buttons">
-                            <a href="/authentication/forgot-password" class="auth-button">Passwort vergessen</a>
-                            <button type="submit" class="auth-button">Anmelden</button>
+                            <a href="/authentication/forgot-password" class="auth-button">
+                                Passwort vergessen
+                            </a>
+                            <button type="submit" class="auth-button">
+                                Anmelden
+                            </button>
                         </div>
                     </div>
                 </ActionForm>
@@ -94,7 +100,7 @@ fn Login() -> impl IntoView {
 
 #[component]
 fn ForgotPassword() -> impl IntoView {
-    let forgot = create_server_action::<ForgotPasswordAction>();
+    let forgot = ServerAction::<ForgotPasswordAction>::new();
     let value = forgot.value();
 
     let sent = move || value.get().is_some();
@@ -105,16 +111,23 @@ fn ForgotPassword() -> impl IntoView {
             <div class="auth-box">
                 <h1>Passwort vergessen</h1>
                 <p class="login-message">
-                    <Show when=sent fallback=|| "Gib unten deine Email oder Benutzernamen ein und dir wird ein Link zugeschickt">
+                    <Show
+                        when=sent
+                        fallback=|| {
+                            "Gib unten deine Email oder Benutzernamen ein und dir wird ein Link zugeschickt"
+                        }
+                    >
                         Wenn wir zu deinen Daten einen Benutzer haben, schicken wir dir einen Link zu
                     </Show>
                 </p>
-                <ActionForm action=forgot class="auth-form">
+                <ActionForm action=forgot attr:class="auth-form">
                     <div class="auth-fields">
                         <label>Email oder Name</label>
                         <input type="text" name="email" required />
                         <div class="auth-buttons is--reset">
-                            <button type="submit" class="auth-button">Link zuschicken</button>
+                            <button type="submit" class="auth-button">
+                                Link zuschicken
+                            </button>
                         </div>
                     </div>
                 </ActionForm>
@@ -135,10 +148,10 @@ struct ResetPasswordQuery {
 
 #[component]
 fn ResetPassword() -> impl IntoView {
-    let reset = create_server_action::<ResetPasswordAction>();
+    let reset = ServerAction::<ResetPasswordAction>::new();
     let value = reset.value();
-    let (password, set_password) = create_signal("".to_string());
-    let (password_repeat, set_password_repeat) = create_signal("".to_string());
+    let password = RwSignal::new("".to_string());
+    let password_repeat = RwSignal::new("".to_string());
 
     let query = use_query::<ResetPasswordQuery>();
     let token = move || query.get().map(|res| res.token).unwrap_or(Some("".into()));
@@ -151,7 +164,7 @@ fn ResetPassword() -> impl IntoView {
     };
     let reset_enabled = move || password.get().eq(&password_repeat.get());
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(value)) = value.get() {
             if value {
                 let window = use_window();
@@ -170,23 +183,35 @@ fn ResetPassword() -> impl IntoView {
             <div class="auth-box">
                 <h1>Passwort zurücksetzen</h1>
                 <p class="login-message">
-                    <Show when=has_error fallback=|| "Gib unten dein neues Passwort ein und bestätige es">
+                    <Show
+                        when=has_error
+                        fallback=|| "Gib unten dein neues Passwort ein und bestätige es"
+                    >
                         <span>
-                            "Leider konnte dein Passwort nicht geändert werden, bitte wende dich an den "<a href="mailto:panda.helferlein@bambushain.app">Support</a>
+                            "Leider konnte dein Passwort nicht geändert werden, bitte wende dich an den "
+                            <a href="mailto:panda.helferlein@bambushain.app">Support</a>
                         </span>
                     </Show>
                 </p>
-                <ActionForm action=reset class="auth-form">
+                <ActionForm action=reset attr:class="auth-form">
                     <div class="auth-fields">
                         <input type="hidden" name="token" prop:value=token />
                         <input type="hidden" name="email" prop:value=email />
                         <label>Neues Passwort</label>
-                        <input type="password" name="password" prop:value=password on:input=move |ev| set_password.set(event_target_value(&ev)) required />
+                        <input type="password" name="password" bind:value=password required />
                         <label>Neues Passwort wiederholen</label>
-                        <input type="password" prop:value=password_repeat on:input=move |ev| set_password_repeat.set(event_target_value(&ev)) required />
+                        <input type="password" bind:value=password_repeat required />
                         <div class="auth-buttons">
-                            <a href="/authentication" class="auth-button">Zum Login</a>
-                            <button type="submit" class="auth-button" disabled=move || !reset_enabled()>Passwort setzen</button>
+                            <a href="/authentication" class="auth-button">
+                                Zum Login
+                            </a>
+                            <button
+                                type="submit"
+                                class="auth-button"
+                                disabled=move || !reset_enabled()
+                            >
+                                Passwort setzen
+                            </button>
                         </div>
                     </div>
                 </ActionForm>

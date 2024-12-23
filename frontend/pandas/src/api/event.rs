@@ -1,6 +1,6 @@
 use bamboo_common::core::entities::GroveEvent;
 use chrono::NaiveDate;
-use leptos::{server, ServerFnError};
+use leptos::prelude::{server, ServerFnError};
 
 #[server(CreateEventAction, "/pandas/calendar")]
 pub async fn create_event(

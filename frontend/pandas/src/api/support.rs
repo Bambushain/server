@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 #[server(SubmitSupportRequestAction, "/pandas/support")]
 pub async fn submit_request(message: String, subject: String) -> Result<(), ServerFnError> {

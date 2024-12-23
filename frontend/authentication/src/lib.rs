@@ -5,9 +5,9 @@ mod login;
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
     use app::*;
-    use leptos::*;
+    use leptos::prelude::*;
 
     console_error_panic_hook::set_once();
 
-    mount_to_body(App);
+    hydrate_body(App);
 }

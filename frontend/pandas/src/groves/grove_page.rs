@@ -1,40 +1,34 @@
 use crate::api::is_grove_mod;
 use crate::components;
 use crate::groves::grove_admin::GroveAdminTab;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
-use leptos_router::use_params_map;
+use leptos_router::hooks::use_params_map;
 use std::str::FromStr;
 
 #[component]
 pub fn GrovePage() -> impl IntoView {
-    let selected_index = create_rw_signal(0usize);
+    let selected_index = RwSignal::new(0usize);
 
     let params = use_params_map();
-    let id = create_memo(move |_| {
-        i32::from_str(
-            params
-                .get()
-                .get("id")
-                .cloned()
-                .unwrap_or("-1".to_string())
-                .as_str(),
-        )
-        .unwrap_or(-1)
+    let id = Memo::new(move |_| {
+        i32::from_str(params.read().get("id").unwrap_or("-1".to_string()).as_str()).unwrap_or(-1)
     });
-    let name = create_memo(move |_| params.get().get("name").cloned().unwrap_or_default());
+    let name = Memo::new(move |_| params.read().get("name").unwrap_or_default());
 
-    let is_grove_mod_resource = create_local_resource(
+    let is_grove_mod_resource = Resource::new(
         move || id.get(),
         move |id| async move { is_grove_mod(id).await },
     );
 
     let is_mod = RwSignal::new(false);
 
-    create_effect(move |_| {
-        if let Some(Ok(is_grove_mod)) = is_grove_mod_resource.get() {
-            is_mod.set(is_grove_mod);
-        }
+    Effect::new(move |_| {
+        Suspend::new(async move {
+            if let Ok(is_grove_mod) = is_grove_mod_resource.await {
+                is_mod.set(is_grove_mod);
+            }
+        })
     });
 
     view! {
@@ -56,7 +50,7 @@ pub fn GrovePage() -> impl IntoView {
                             </div>
                         </TabItem>
                         <TabItem label="Modbereich" slot>
-                            <GroveAdminTab grove_id=id.get() grove_name=name.get() />
+                            <GroveAdminTab grove_id=id grove_name=name />
                         </TabItem>
                     </TabControl>
                 }
@@ -74,7 +68,7 @@ pub fn GrovePage() -> impl IntoView {
                     </div>
                 </TabItem>
                 <TabItem label="Modbereich" slot>
-                    <GroveAdminTab grove_id=id.get() grove_name=name.get() />
+                    <GroveAdminTab grove_id=id grove_name=name />
                 </TabItem>
             </TabControl>
         </Show>

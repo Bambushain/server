@@ -12,13 +12,11 @@ bamboo-common = { path = "../../common" }
 
 actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true, features = ["macros"] }
-bytes = { workspace = true }
 codee = { workspace = true }
 console_error_panic_hook = { workspace = true }
 chrono = { workspace = true }
 date-range = { workspace = true }
 gloo-file = { workspace = true, features = ["futures"] }
-http = { workspace = true, optional = true }
 icondata_lu = { workspace = true }
 leptos = { workspace = true }
 leptos_actix = { workspace = true, optional = true }
@@ -37,15 +35,11 @@ web-sys = { workspace = true }
 csr = [
     "leptos/csr",
     "leptos-cosmo/csr",
-    "leptos_meta/csr",
-    "leptos_router/csr",
     "bamboo-common/frontend"
 ]
 hydrate = [
     "leptos/hydrate",
     "leptos-cosmo/csr",
-    "leptos_meta/hydrate",
-    "leptos_router/hydrate",
     "bamboo-common/frontend"
 ]
 ssr = [

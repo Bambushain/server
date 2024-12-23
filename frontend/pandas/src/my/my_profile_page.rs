@@ -5,67 +5,30 @@ use crate::api::{
 };
 use bamboo_common::core::entities::User;
 use gloo_file::futures::read_as_bytes;
-use leptos::*;
+use leptos::prelude::{ActionForm, *};
+use leptos::task::spawn_local;
 use leptos_cosmo::prelude::*;
 use leptos_meta as meta;
-use leptos_router::A;
+use leptos_router::components::A;
 use leptos_use::use_window;
-use web_sys::FileList;
 
 #[component]
 fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
-    let update_profile_action = create_server_action::<UpdateProfileAction>();
+    let update_profile_action = ServerAction::<UpdateProfileAction>::new();
 
     let current_user_ctx = expect_context::<RwSignal<User>>();
 
-    let email = create_rw_signal(current_user_ctx.get().email.clone());
-    let name = create_rw_signal(current_user_ctx.get().display_name.clone());
-    let discord_name = create_rw_signal(current_user_ctx.get().discord_name.clone());
-    let profile_picture = create_rw_signal(None as Option<FileList>);
+    let email = RwSignal::new(current_user_ctx.get().email.clone());
+    let name = RwSignal::new(current_user_ctx.get().display_name.clone());
+    let discord_name = RwSignal::new(current_user_ctx.get().discord_name.clone());
+    let profile_picture = RwSignal::new_local(None);
+    let profile_picture_to_set = profile_picture.clone();
 
-    let has_picture_error = create_rw_signal(false);
-    let picture_error_message = create_rw_signal(String::new());
-    let picture_error_message_header = create_rw_signal(String::new());
+    let has_error = RwSignal::new(false);
+    let error_message = RwSignal::new(String::new());
+    let error_message_header = RwSignal::new(String::new());
 
-    let has_profile_error = create_memo(move |_| {
-        if let Some(Ok(res)) = update_profile_action.value().get() {
-            !res.success
-        } else {
-            false
-        }
-    });
-    let profile_error_message = create_memo(move |_| {
-        if let Some(Ok(res)) = update_profile_action.value().get() {
-            res.message
-        } else {
-            "".into()
-        }
-    });
-    let profile_error_message_header = create_memo(move |_| {
-        if let Some(Ok(res)) = update_profile_action.value().get() {
-            res.header
-        } else {
-            "".into()
-        }
-    });
-
-    let has_error = create_memo(move |_| has_profile_error.get() || has_picture_error.get());
-    let error_message = create_memo(move |_| {
-        if has_picture_error.get() {
-            picture_error_message.get()
-        } else {
-            profile_error_message.get()
-        }
-    });
-    let error_message_header = create_memo(move |_| {
-        if has_picture_error.get() {
-            picture_error_message_header.get()
-        } else {
-            profile_error_message_header.get()
-        }
-    });
-
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(res)) = update_profile_action.value().get() {
             if res.success && res.user.is_some() {
                 current_user_ctx.set(res.user.unwrap());
@@ -75,23 +38,26 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
                         spawn_local(async move {
                             if let Ok(data) = read_as_bytes(&file).await {
                                 if update_profile_picture(data).await.is_ok() {
-                                    on_close.call(())
+                                    on_close.run(())
                                 } else {
-                                    has_picture_error.set(true);
-                                    picture_error_message.set("Das Profilbild konnte leider nicht hochgeladen werden, bitte wende dich an den Bambussupport".into());
-                                    picture_error_message_header
-                                        .set("Fehler beim Hochladen".into());
+                                    has_error.set(true);
+                                    error_message.set("Das Profilbild konnte leider nicht hochgeladen werden, bitte wende dich an den Bambussupport".into());
+                                    error_message_header.set("Fehler beim Hochladen".into());
                                 }
                             } else {
-                                on_close.call(())
+                                on_close.run(())
                             }
                         });
                     } else {
-                        on_close.call(())
+                        on_close.run(())
                     }
                 } else {
-                    on_close.call(())
+                    on_close.run(())
                 }
+            } else {
+                has_error.set(true);
+                error_message.set(res.message);
+                error_message_header.set(res.header);
             }
         }
     });
@@ -100,9 +66,9 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
         <ActionFormModal
             title="Profil bearbeiten"
             action=update_profile_action
-            has_error
-            error_message
-            error_message_header
+            has_error=has_error
+            error_message=error_message
+            error_message_header=error_message_header
         >
             <ModalContent slot>
                 <Textbox
@@ -121,10 +87,10 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
                 />
                 <FilePicker
                     label="Profilbild (optional)"
-                    file_picked=move |file| profile_picture.set(Some(file))
+                    file_picked=move |file| profile_picture_to_set.set(Some(file))
                 />
             </ModalContent>
-            <ModalButton slot on_click=move |_| on_close.call(()) label="Schließen" />
+            <ModalButton slot on_click=move || on_close.run(()) label="Schließen" />
             <ModalButton slot is_submit=true label="Profil speichern" />
         </ActionFormModal>
     }
@@ -132,18 +98,18 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
 
 #[component]
 fn EnableTotpDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
-    let qr_code_resource = create_resource(|| {}, |_| async move { get_qr_code().await });
+    let qr_code_resource = Resource::new(|| {}, |_| async move { get_qr_code().await });
 
-    let validate_totp_action = create_server_action::<ValidateTotpAction>();
+    let validate_totp_action = ServerAction::<ValidateTotpAction>::new();
 
-    let code_state = create_rw_signal(String::new());
-    let password_state = create_rw_signal(String::new());
+    let code_state = RwSignal::new(String::new());
+    let password_state = RwSignal::new(String::new());
 
-    let error_message = create_rw_signal(String::new());
-    let error_message_header = create_rw_signal(String::new());
-    let has_error = create_rw_signal(false);
+    let error_message = RwSignal::new(String::new());
+    let error_message_header = RwSignal::new(String::new());
+    let has_error = RwSignal::new(false);
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if validate_totp_action
             .value()
             .get()
@@ -178,52 +144,48 @@ fn EnableTotpDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
     });
 
     view! {
-        <leptos_router::ActionForm action=validate_totp_action>
+        <ActionForm action=validate_totp_action>
             <Modal title="Zwei Faktor per App aktivieren">
                 <ModalContent slot>
                     <div class="pandas-totp__container">
                         <Suspense fallback=|| {
                             view! { <ProgressRing /> }
                         }>
-                            {qr_code_resource
-                                .get()
-                                .map(|res| {
-                                    if let Ok(qr_code) = res {
-                                        Some(
-                                            view! {
-                                                <img
-                                                    class="pandas-totp__code"
-                                                    src=qr_code.qr_code.clone()
-                                                    alt=qr_code.secret.clone()
-                                                />
-                                                <svg class="pandas-totp__logo" viewBox="0 0 512 512">
-                                                    <path d="M511.094,264.722c-1.136-3.307-28.511-81.137-89.171-95.166c-30.729-7.107-63.124,3.303-96.526,30.938v-35.663
-                                                    c6.222-2.428,10.637-8.464,10.637-15.545s-4.415-13.117-10.637-15.545V21.124c0-9.22-7.475-16.696-16.696-16.696h-89.595
-                                                    c-9.22,0-16.696,7.475-16.696,16.696v46.166c-18.137-33.54-41.579-53.478-69.951-59.406C71.508-4.849,13.992,54.3,11.574,56.825
-                                                    C6.875,61.728,5.615,68.989,8.387,75.19c2.773,6.2,9.015,10.103,15.811,9.873c82.495-2.81,169.04,34.422,169.902,34.798
-                                                    c2.146,0.936,4.415,1.391,6.668,1.391c0.55,0,1.097-0.031,1.643-0.085v12.741c-5.986,2.538-10.185,8.467-10.185,15.378
-                                                    s4.2,12.84,10.185,15.378v99.481c-13.69-36.175-34.515-59.305-62.158-68.907C81.436,174.809,16.819,226.106,14.098,228.3
-                                                    c-5.288,4.262-7.467,11.302-5.513,17.805c1.956,6.503,7.654,11.176,14.416,11.815c6.876,0.651,13.745,1.588,20.559,2.751
-                                                    c-26.815,24.958-41.321,57.285-42.141,59.145c-2.739,6.214-1.443,13.469,3.281,18.349c3.208,3.314,7.561,5.083,11.999,5.083
-                                                    c2.096,0,4.212-0.395,6.233-1.209c76.563-30.832,170.624-25.43,171.564-25.372c2.816,0.178,5.51-0.359,7.913-1.449v27.787
-                                                    c-5.986,2.538-10.185,8.467-10.185,15.378s4.2,12.84,10.185,15.378v117.115c0,9.22,7.475,16.696,16.696,16.696H308.7
-                                                    c9.22,0,16.696-7.475,16.696-16.696V373.928c6.222-2.428,10.637-8.464,10.637-15.545s-4.415-13.117-10.637-15.545v-97.236
-                                                    c22.507,1.287,99.826,7.886,162.387,39.448c2.383,1.202,4.958,1.79,7.516,1.79c3.954,0,7.87-1.404,10.977-4.113
-                                                    C511.396,278.264,513.3,271.144,511.094,264.722z M70.033,53.522c16.303-9.503,36.4-16.998,55.681-12.936
-                                                    c16.129,3.398,30.358,14.887,42.528,34.277C142.992,66.766,107.92,57.514,70.033,53.522z M55.265,296.723
-                                                    c8.409-10.079,18.888-19.87,31.085-25.859c14.339,4.315,27.897,9.235,40.144,14.176
-                                                    C104.959,286.978,80.307,290.495,55.265,296.723z M72.688,232.553c17.389-7.306,38.216-12.161,56.607-5.773
-                                                    c15.598,5.418,28.267,18.643,37.87,39.466C143.202,255.001,109.679,241.362,72.688,232.553z M292.005,474.18h-56.204v-99.102
-                                                    h56.204V474.18z M292.005,341.687h-56.204V165.981h56.204V341.687z M292.005,132.589h-56.204v-94.77h56.204V132.589z
-                                                    M361.327,215.325c19.184-12.489,36.925-16.945,52.99-13.256c19.207,4.408,34.299,19.645,45.106,35.114
-                                                    C423.36,224.901,387.642,218.575,361.327,215.325z" />
-                                                </svg>
-                                            },
-                                        )
-                                    } else {
-                                        None
-                                    }
-                                })}
+                            {move || Suspend::new(async move {
+                                qr_code_resource
+                                    .await
+                                    .map(|qr_code| {
+                                        view! {
+                                            <img
+                                                class="pandas-totp__code"
+                                                src=qr_code.qr_code.clone()
+                                                alt=qr_code.secret.clone()
+                                            />
+                                            <svg class="pandas-totp__logo" viewBox="0 0 512 512">
+                                                <path d="M511.094,264.722c-1.136-3.307-28.511-81.137-89.171-95.166c-30.729-7.107-63.124,3.303-96.526,30.938v-35.663
+                                                c6.222-2.428,10.637-8.464,10.637-15.545s-4.415-13.117-10.637-15.545V21.124c0-9.22-7.475-16.696-16.696-16.696h-89.595
+                                                c-9.22,0-16.696,7.475-16.696,16.696v46.166c-18.137-33.54-41.579-53.478-69.951-59.406C71.508-4.849,13.992,54.3,11.574,56.825
+                                                C6.875,61.728,5.615,68.989,8.387,75.19c2.773,6.2,9.015,10.103,15.811,9.873c82.495-2.81,169.04,34.422,169.902,34.798
+                                                c2.146,0.936,4.415,1.391,6.668,1.391c0.55,0,1.097-0.031,1.643-0.085v12.741c-5.986,2.538-10.185,8.467-10.185,15.378
+                                                s4.2,12.84,10.185,15.378v99.481c-13.69-36.175-34.515-59.305-62.158-68.907C81.436,174.809,16.819,226.106,14.098,228.3
+                                                c-5.288,4.262-7.467,11.302-5.513,17.805c1.956,6.503,7.654,11.176,14.416,11.815c6.876,0.651,13.745,1.588,20.559,2.751
+                                                c-26.815,24.958-41.321,57.285-42.141,59.145c-2.739,6.214-1.443,13.469,3.281,18.349c3.208,3.314,7.561,5.083,11.999,5.083
+                                                c2.096,0,4.212-0.395,6.233-1.209c76.563-30.832,170.624-25.43,171.564-25.372c2.816,0.178,5.51-0.359,7.913-1.449v27.787
+                                                c-5.986,2.538-10.185,8.467-10.185,15.378s4.2,12.84,10.185,15.378v117.115c0,9.22,7.475,16.696,16.696,16.696H308.7
+                                                c9.22,0,16.696-7.475,16.696-16.696V373.928c6.222-2.428,10.637-8.464,10.637-15.545s-4.415-13.117-10.637-15.545v-97.236
+                                                c22.507,1.287,99.826,7.886,162.387,39.448c2.383,1.202,4.958,1.79,7.516,1.79c3.954,0,7.87-1.404,10.977-4.113
+                                                C511.396,278.264,513.3,271.144,511.094,264.722z M70.033,53.522c16.303-9.503,36.4-16.998,55.681-12.936
+                                                c16.129,3.398,30.358,14.887,42.528,34.277C142.992,66.766,107.92,57.514,70.033,53.522z M55.265,296.723
+                                                c8.409-10.079,18.888-19.87,31.085-25.859c14.339,4.315,27.897,9.235,40.144,14.176
+                                                C104.959,286.978,80.307,290.495,55.265,296.723z M72.688,232.553c17.389-7.306,38.216-12.161,56.607-5.773
+                                                c15.598,5.418,28.267,18.643,37.87,39.466C143.202,255.001,109.679,241.362,72.688,232.553z M292.005,474.18h-56.204v-99.102
+                                                h56.204V474.18z M292.005,341.687h-56.204V165.981h56.204V341.687z M292.005,132.589h-56.204v-94.77h56.204V132.589z
+                                                M361.327,215.325c19.184-12.489,36.925-16.945,52.99-13.256c19.207,4.408,34.299,19.645,45.106,35.114
+                                                C423.36,224.901,387.642,218.575,361.327,215.325z" />
+                                            </svg>
+                                        }
+                                    })
+                            })}
                         </Suspense>
                         <div class="pandas-totp__details">
                             <AlertMessage
@@ -272,22 +234,22 @@ fn EnableTotpDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
                 <ModalButton slot on_click=on_close label="Abbrechen" />
                 <ModalButton slot is_submit=true label="App einrichten" />
             </Modal>
-        </leptos_router::ActionForm>
+        </ActionForm>
     }
 }
 
 #[component]
 fn ChangePasswordDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
-    let old_password = create_rw_signal(String::new());
-    let new_password = create_rw_signal(String::new());
+    let old_password = RwSignal::new(String::new());
+    let new_password = RwSignal::new(String::new());
 
-    let change_password_action = create_server_action::<ChangePasswordAction>();
+    let change_password_action = ServerAction::<ChangePasswordAction>::new();
 
-    let error_message = create_rw_signal(String::new());
-    let error_message_header = create_rw_signal(String::new());
-    let has_error = create_rw_signal(false);
+    let error_message = RwSignal::new(String::new());
+    let error_message_header = RwSignal::new(String::new());
+    let has_error = RwSignal::new(false);
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(res)) = change_password_action.value().get() {
             match res {
                 PasswordResponse::WrongPassword => {
@@ -303,7 +265,7 @@ fn ChangePasswordDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVi
                 }
                 PasswordResponse::Success => {
                     has_error.set(false);
-                    on_close.call(());
+                    on_close.run(());
 
                     let window = use_window();
                     let _ = window
@@ -356,55 +318,59 @@ fn ChangePasswordDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVi
 
 #[component]
 pub fn MyProfilePage() -> impl IntoView {
-    let profile_resource = create_local_resource(|| {}, |_| async move { get_profile().await });
-    let groves_resource = create_local_resource(|| {}, |_| async move { get_all_groves().await });
+    let profile_resource = Resource::new(|| (), |_| async move { get_profile().await });
+    let groves_resource = Resource::new(|| (), |_| async move { get_all_groves().await });
 
-    let delete_profile_action = create_server_action::<DeleteProfileAction>();
-    let disable_totp_action = create_server_action::<DisableTotpAction>();
+    let delete_profile_action = ServerAction::<DeleteProfileAction>::new();
+    let disable_totp_action = ServerAction::<DisableTotpAction>::new();
 
-    let change_password_open = create_rw_signal(false);
-    let edit_profile_open = create_rw_signal(false);
-    let enable_totp_open = create_rw_signal(false);
-    let time = create_rw_signal(Local::now().timestamp_millis());
+    let change_password_open = RwSignal::new(false);
+    let edit_profile_open = RwSignal::new(false);
+    let enable_totp_open = RwSignal::new(false);
+    let time = RwSignal::new(Local::now().timestamp_millis());
 
-    let profile = create_memo(move |_| profile_resource.get().map(|res| res.ok()));
-    let display_name = create_memo(move |_| {
+    let profile = Memo::new(move |_| profile_resource.get().map(|res| res.ok()));
+    let display_name = Memo::new(move |_| {
         profile
             .get()
             .unwrap_or_default()
             .map(|res| res.display_name)
             .unwrap_or_default()
     });
-    let email = create_memo(move |_| {
+    let email = Memo::new(move |_| {
         profile
             .get()
             .unwrap_or_default()
             .map(|res| res.email)
             .unwrap_or_default()
     });
-    let discord_name = create_memo(move |_| {
+    let discord_name = Memo::new(move |_| {
         profile
             .get()
             .unwrap_or_default()
             .map(|res| res.discord_name)
             .unwrap_or_default()
     });
-    let totp_validated = create_memo(move |_| {
+    let totp_validated = Memo::new(move |_| {
         profile
             .get()
             .unwrap_or_default()
             .map(|res| res.totp_validated.unwrap_or_default())
             .unwrap_or_default()
     });
-    let title = create_memo(move |_| format!("Hallo {}!", display_name.get()));
+    let title = Memo::new(move |_| format!("Hallo {}!", display_name.get()));
 
-    let delete_account = move |_| delete_profile_action.dispatch(DeleteProfileAction {});
-    let disable_totp = move |_| disable_totp_action.dispatch(DisableTotpAction {});
+    let delete_account = move |_| {
+        delete_profile_action.dispatch(DeleteProfileAction {});
+    };
+    let disable_totp = move |_| {
+        disable_totp_action.dispatch(DisableTotpAction {});
+    };
 
     let on_open_change_password = move |_| change_password_open.set(true);
     let on_open_profile_edit = move |_| edit_profile_open.set(true);
     let on_delete_account = move |_| {
-        confirm(
+        use_modals().confirm(
             "Account löschen",
             "Bist du sicher, dass du deinen Account löschen möchtest? Wenn du deinen Account löscht, werden alle deine Daten gelöscht und können nicht wiederhergestellt werden.",
             Variant::Negative,
@@ -418,7 +384,7 @@ pub fn MyProfilePage() -> impl IntoView {
         enable_totp_open.set(true);
     };
     let on_open_disable_totp = move |_| {
-        confirm(
+        use_modals().confirm(
             "App Zwei Faktor deaktivieren",
             "Möchtest du deine Zwei Faktor Authentifizierung per App deaktivieren? Anschließend wirst du abgemeldet.",
             Variant::Negative,
@@ -429,18 +395,18 @@ pub fn MyProfilePage() -> impl IntoView {
         )
     };
 
-    let close_edit_profile = move |_| {
+    let close_edit_profile = move || {
         edit_profile_open.set(false);
         time.set(Local::now().timestamp_millis());
     };
-    let close_totp = move |_| {
+    let close_totp = move || {
         enable_totp_open.set(false);
     };
-    let close_change_password = move |_| {
+    let close_change_password = move || {
         change_password_open.set(false);
     };
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if delete_profile_action
             .value()
             .get()
@@ -454,7 +420,7 @@ pub fn MyProfilePage() -> impl IntoView {
                 .set_href("/authentication");
         }
     });
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if disable_totp_action
             .value()
             .get()
@@ -534,28 +500,29 @@ pub fn MyProfilePage() -> impl IntoView {
                     <h2>{"Meine Haine"}</h2>
                     <KeyValueList>
                         {move || {
-                            groves_resource
-                                .get()
-                                .map(|groves| {
-                                    groves
-                                        .unwrap_or_default()
-                                        .iter()
-                                        .cloned()
-                                        .map(|grove| {
-                                            let name = grove.name.clone();
-                                            view! {
-                                                <dt>{name.clone()}</dt>
-                                                <dd>
-                                                    <A href=format!(
-                                                        "/pandas/groves/{}/{}",
-                                                        grove.id,
-                                                        name.clone(),
-                                                    )>{format!("{} betreten", name.clone())}</A>
-                                                </dd>
-                                            }
-                                        })
-                                        .collect_view()
-                                })
+                            Suspend::new(async move {
+                                groves_resource
+                                    .await
+                                    .map(|groves| {
+                                        groves
+                                            .iter()
+                                            .cloned()
+                                            .map(|grove| {
+                                                let name = grove.name.clone();
+                                                view! {
+                                                    <dt>{name.clone()}</dt>
+                                                    <dd>
+                                                        <A href=format!(
+                                                            "/pandas/groves/{}/{}",
+                                                            grove.id,
+                                                            name.clone(),
+                                                        )>{format!("{} betreten", name.clone())}</A>
+                                                    </dd>
+                                                }
+                                            })
+                                            .collect_view()
+                                    })
+                            })
                         }}
                     </KeyValueList>
                 </div>

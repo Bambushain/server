@@ -1,5 +1,5 @@
 use bamboo_common::core::entities::user::GroveUser;
-use leptos::{server, ServerFnError};
+use leptos::prelude::{server, ServerFnError};
 use serde::{Deserialize, Serialize};
 
 #[server(GetPandasAction, "/pandas/pandas")]

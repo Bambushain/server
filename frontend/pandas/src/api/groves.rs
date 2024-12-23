@@ -1,6 +1,6 @@
 use bamboo_common::core::entities::user::GroveUser;
 use bamboo_common::core::entities::Grove;
-use leptos::{server, ServerFnError};
+use leptos::prelude::{server, ServerFnError};
 
 #[server(GetGrovesAction, "/pandas/groves")]
 pub async fn get_all_groves() -> Result<Vec<Grove>, ServerFnError> {

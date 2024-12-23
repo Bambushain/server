@@ -57,3 +57,29 @@ pub async fn create_fighter(
     .map_err(ServerFnError::new)
     .map(|_| ())
 }
+
+#[server(EditFighterAction, "/pandas/fighter")]
+pub async fn edit_fighter(
+    character_id: i32,
+    fighter_job: FighterJob,
+    level: String,
+    gear_score: String,
+) -> Result<(), ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
+
+    dbal::create_fighter(
+        auth_state.user.id,
+        character_id,
+        Fighter::new(character_id, fighter_job, level, gear_score),
+        &db,
+    )
+    .await
+    .map_err(ServerFnError::new)
+    .map(|_| ())
+}

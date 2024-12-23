@@ -1,5 +1,5 @@
 use bamboo_common::core::entities::{TotpQrCode, User};
-use leptos::{server, ServerFnError};
+use leptos::prelude::{server, ServerFnError};
 use serde::{Deserialize, Serialize};
 
 #[server(GetProfileAction, "/pandas/profile")]

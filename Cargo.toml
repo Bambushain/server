@@ -66,22 +66,18 @@ actix-files = "0.6"
 actix-web = "4.9"
 actix-web-lab = { version = "0.23", features = ["spa"] }
 async-nats = "0.38"
-async-trait = "0.1"
 base64 = "0.22"
 bcrypt = "0.16"
-bounce = { version = "0.9", features = ["query", "helmet"] }
 bytes = "1.8"
 bytestring = "1.3"
-cargo_metadata = "0.18"
+cargo_metadata = "0.19"
 chacha20poly1305 = "0.10"
 chrono = { version = "0.4", features = ["serde", "unstable-locales"] }
 ciborium = "0.2"
 color-art = "0.3"
 codee = { version = "0.2", features = ["json_serde"] }
 console_error_panic_hook = "0.1"
-console_log = { version = "1.0", features = ["color"] }
 date-range = "0.3"
-either = "1.13"
 env_logger = "0.11"
 fast_qr = { version = "0.12", features = ["svg"] }
 futures = "0.3"
@@ -89,45 +85,40 @@ futures-util = "0.3"
 getrandom = "0.2"
 gloo = "0.11"
 gloo-file = "0.3"
-handlebars = "6.2"
 hex = "0.4"
 html2text = "0.13"
-http = "1.1"
 icondata_lu = "0.0"
 itertools = "0.13"
-leptos = "0.6"
+leptos = "0.7"
 leptos-cosmo = { path = "../jinya/leptos-cosmo" }
-leptos_actix = "0.6"
-leptos_meta = "0.6"
-leptos_router = "0.6"
-leptos-use = "0.13"
+leptos_actix = "0.7"
+leptos_meta = "0.7"
+leptos_router = "0.7"
+leptos-use = "0.15"
 lettre = { version = "0.11", features = ["tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"], default-features = false }
 log = "0.4"
 maud = "0.26"
 mrml = { version = "4.0", features = ["async", "parse", "render"] }
-openidconnect = "3.5"
 parking_lot = "0.12"
 pbkdf2 = "0.12"
 quote = "1.0"
-rand = "0.8"
 rust-s3 = "0.35"
 sea-orm = { version = "1.1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
 sea-orm-migration = { version = "1.1", features = ["sqlx-mysql", "runtime-tokio-rustls"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-server_fn = { version = "0.6", features = ["multipart"] }
+server_fn = { version = "0.7", features = ["multipart"] }
 strum = "0.26"
 sha2 = "0.10"
 strum_macros = "0.26"
 syn = "2.0"
-tokio = "1.40"
+tokio = "1.42"
 tokio-stream = "0.1"
 tokio-util = "0.7"
 totp-rs = { version = "5.6", features = ["qr", "gen_secret"] }
-uuid = { version = "1.10", features = ["v4"] }
+uuid = { version = "1.11", features = ["v4"] }
 wasm-bindgen = "0.2"
 web-sys = "0.3"
-url = "2.5"
 
 [features]
 default = []

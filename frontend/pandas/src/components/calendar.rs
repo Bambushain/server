@@ -1,14 +1,19 @@
 use crate::api::{get_events, CreateEventAction, DeleteEventAction, UpdateEventAction};
-use bamboo_common::core::entities::{Grove, GroveEvent, User};
+use crate::state::AllGroves;
+use bamboo_common::core::entities::{GroveEvent, User};
+#[cfg(any(feature = "csr", feature = "hydrate"))]
 use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
 use chrono::{Days, Months};
 use date_range::DateRange;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_cosmo::icons::Icon;
 use leptos_cosmo::prelude::*;
 use std::fmt::{Display, Formatter};
+use std::ops::{Add, Not, Sub};
+#[cfg(any(feature = "csr", feature = "hydrate"))]
 use std::str::FromStr;
+#[cfg(any(feature = "csr", feature = "hydrate"))]
 use strum::IntoEnumIterator;
 
 enum ColorYiqResult {
@@ -38,44 +43,40 @@ fn color_yiq(color: String) -> ColorYiqResult {
     }
 }
 
-#[derive(Clone, PartialEq)]
-struct LoadEventData {
-    pub start: NaiveDate,
-    pub end: NaiveDate,
-    pub grove_id: Option<i32>,
-}
-
 #[component]
 fn EventEntry(event: GroveEvent) -> impl IntoView {
-    let edit_event_open = create_rw_signal(false);
+    let edit_event_open = RwSignal::new(false);
 
     let color = Color::from_hex(event.color.as_str()).unwrap_or_default();
 
     let me = expect_context::<RwSignal<User>>();
 
+    let can_edit = {
+        let event = event.clone();
+        Memo::new(move |_| {
+            event
+                .user
+                .clone()
+                .is_some_and(|user| user.id != me.read().id)
+        })
+    };
+
     view! {
         <div
             class="pandas-calendar__event"
-            style=format!(
-                "--event-background-color: {}; --event-shadow-color: {}; --event-text-color: {};",
-                color.fade(0.8).hsla().clone(),
-                color.fade(0.9).hsla().clone(),
-                color_yiq(event.color.clone()),
-            )
+            style:--event-background-color=color.fade(0.8).hsla()
+            style:--event-shadow-color=color.fade(0.9).hsla()
+            style:--event-text-color=color_yiq(event.color.clone()).to_string()
         >
             {event.title.clone()}
-            <Show when={
-                let event = event.clone();
-                move || me.get().id == event.user.clone().map(|user| user.id).unwrap_or(-1)
-            }>
+            <button hidden=can_edit on:click=move |_| edit_event_open.set(true) class="pandas-calendar__event-edit is--button">
                 <Icon
                     icon=icondata_lu::LuPencil
                     width="1rem"
                     height="1rem"
-                    class="pandas-calendar__event-edit"
-                    on:click=move |_| edit_event_open.set(true)
+                    attr:class="pandas-calendar__event-edit is--icon"
                 />
-            </Show>
+            </button>
             <div class="pandas-calendar__event-description">
                 <hgroup class="pandas-calendar__event-header">
                     <h3>{event.title.clone()}</h3>
@@ -91,9 +92,7 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
                 <span class="panda-calendar__event-arrow" />
             </div>
         </div>
-        <Show when=move || edit_event_open.get()>
-            <EditEventDialog event=event.clone() is_open=edit_event_open />
-        </Show>
+        <EditEventDialog event=event.clone() is_open=edit_event_open />
     }
 }
 
@@ -102,11 +101,11 @@ fn Day(
     day: u32,
     month: u32,
     year: i32,
-    #[prop(into)] selected_month: MaybeSignal<u32>,
+    #[prop(into)] selected_month: Signal<u32>,
     events: Vec<GroveEvent>,
-    #[prop(into)] grove_id: MaybeSignal<Option<i32>>,
+    #[prop(into)] grove_id: Signal<Option<i32>>,
 ) -> impl IntoView {
-    let add_event_open = create_rw_signal(false);
+    let add_event_open = RwSignal::new(false);
 
     let today = Local::now().date_naive();
     let background_color = if selected_month.get() == month {
@@ -123,15 +122,15 @@ fn Day(
     view! {
         <div
             class="pandas-calendar__day"
-            style=format!(
-                "--day-number-color: {day_number_color}; --text: '{day}'; --background-color: {background_color}",
-            )
+            style:--day-number-color=day_number_color
+            style:--background-color=background_color
+            style:--text=format!("'{}'", day.to_string())
         >
             <Icon
-                icon=icondata_lu::LuCalendarPlus
+                icon=icons::LuCalendarPlus
                 height="1.5rem"
                 width="1.5rem"
-                class="pandas-calendar__event-add"
+                attr:class="pandas-calendar__event-add"
                 on:click=move |_| add_event_open.set(true)
             />
             <Show when=move || add_event_open.get()>
@@ -152,42 +151,43 @@ fn Day(
 #[component]
 fn AddEventDialog(
     day: NaiveDate,
-    grove_id: MaybeSignal<Option<i32>>,
+    grove_id: Signal<Option<i32>>,
     is_open: RwSignal<bool>,
 ) -> impl IntoView {
-    let groves = expect_context::<RwSignal<Vec<Grove>>>();
+    let groves = expect_context::<RwSignal<AllGroves>>();
 
-    let action = create_server_action::<CreateEventAction>();
+    let action = ServerAction::<CreateEventAction>::new();
 
-    let start_date = create_rw_signal(day);
-    let end_date = create_rw_signal(day);
+    let start_date = RwSignal::new(day);
+    let end_date = RwSignal::new(day);
 
-    let selected_grove = create_rw_signal(grove_id.get().map_or(
-        groves.get().first().map(|grove| grove.id.to_string()),
+    let selected_grove = RwSignal::new(grove_id.read().map_or(
+        groves.read().first().map(|grove| grove.id.to_string()),
         |id| {
             groves
-                .get()
+                .read()
                 .iter()
                 .find(|grove| grove.id == id)
                 .map(|grove| grove.name.clone())
         },
     ));
 
-    let color = create_rw_signal(Color::random());
+    let color = RwSignal::new(Color::random());
 
-    let is_private = create_rw_signal(grove_id.get().is_none());
+    let is_private = RwSignal::new(grove_id.read().is_none());
 
-    let current_grove_id = create_memo(move |_| {
+    let current_grove_id = Memo::new(move |_| {
         groves
-            .get()
-            .into_iter()
+            .read()
+            .iter()
+            .cloned()
             .find(|grove| grove.name == selected_grove.get().unwrap_or("".to_string()))
     });
 
     let groves_options = move || {
         groves
-            .get()
-            .into_iter()
+            .read()
+            .iter()
             .map(|grove| (Some(grove.id.to_string()), grove.name.clone()))
             .collect::<Vec<_>>()
     };
@@ -195,8 +195,8 @@ fn AddEventDialog(
     let value = action.value();
     let has_error = move || value.with(|val| matches!(val, Some(Err(_))));
 
-    create_effect(move |_| {
-        if value.get().is_some() {
+    Effect::new(move |_| {
+        if value.read().is_some() {
             is_open.set(false);
         }
     });
@@ -211,7 +211,7 @@ fn AddEventDialog(
                         </MessageContent>
                     </AlertMessage>
                 </Show>
-                <Show when=move || current_grove_id.get().is_some()>
+                <Show when=move || current_grove_id.read().is_some()>
                     <input
                         type="hidden"
                         name="grove"
@@ -241,10 +241,10 @@ fn AddEventDialog(
                     name="end_date"
                     value=end_date
                 />
-                <Show when=move || grove_id.get().is_none()>
+                <Show when=move || grove_id.read().is_none()>
                     <Switch label="Nur für mich" checked=is_private name="is_private" />
                 </Show>
-                <Show when=move || grove_id.get().is_none() && !is_private.get()>
+                <Show when=move || grove_id.read().is_none() && is_private.read().not()>
                     <SingleSelect
                         label="Hain"
                         required=true
@@ -254,7 +254,7 @@ fn AddEventDialog(
                     />
                 </Show>
             </ModalContent>
-            <ModalButton label="Abbrechen" on_click=move |_| is_open.set(false) slot />
+            <ModalButton label="Abbrechen" on_click=move || is_open.set(false) slot />
             <ModalButton label="Event speichern" is_submit=true slot />
         </ActionFormModal>
     }
@@ -262,8 +262,8 @@ fn AddEventDialog(
 
 #[component]
 fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView {
-    let update_action = create_server_action::<UpdateEventAction>();
-    let delete_action = create_server_action::<DeleteEventAction>();
+    let update_action = ServerAction::<UpdateEventAction>::new();
+    let delete_action = ServerAction::<DeleteEventAction>::new();
 
     let update_value = update_action.value();
     let delete_value = delete_action.value();
@@ -271,14 +271,14 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
     let has_update_error = move || update_value.with(|val| matches!(val, Some(Err(_))));
     let has_delete_error = move || delete_value.with(|val| matches!(val, Some(Err(_))));
 
-    create_effect(move |_| {
-        if update_value.get().is_some() {
+    Effect::new(move |_| {
+        if update_value.read().is_some() {
             is_open.set(false);
         }
     });
 
-    create_effect(move |_| {
-        if delete_value.get().is_some() {
+    Effect::new(move |_| {
+        if delete_value.read().is_some() {
             is_open.set(false);
         }
     });
@@ -287,80 +287,82 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
     let id = event.id;
     let day = event.start_date;
 
-    let title = create_rw_signal(event.title);
-    let description = create_rw_signal(event.description);
-    let start_date = create_rw_signal(event.start_date);
-    let end_date = create_rw_signal(event.end_date);
-    let color = create_rw_signal(
+    let title = RwSignal::new(event.title);
+    let description = RwSignal::new(event.description);
+    let start_date = RwSignal::new(event.start_date);
+    let end_date = RwSignal::new(event.end_date);
+    let color = RwSignal::new(
         Color::from_hex(event.color.as_str()).unwrap_or(Color::new(89, 140, 121, 0.0)),
     );
 
-    let delete_event = move |_| {
-        confirm(
+    let delete_event = move || {
+        use_modals().confirm(
             "Event löschen",
-            format!("Soll das Event {} wirklich gelöscht werden?", title.get()),
+            format!("Soll das Event {} wirklich gelöscht werden?", title.read()),
             Variant::Negative,
             "Event löschen",
             "Nicht löschen",
             Some(Callback::new(move |_| {
-                delete_action.dispatch(DeleteEventAction { id })
+                delete_action.dispatch(DeleteEventAction { id });
             })),
             None,
         );
     };
 
     view! {
-        <ActionFormModal action=update_action title="Event bearbeiten">
-            <ModalContent slot>
-                <Show when=has_update_error>
-                    <AlertMessage header="Fehler beim Speichern">
-                        <MessageContent slot>
-                            Das Event konnte leider nicht gespeichert werden, bitte wende dich an den Bambussupport.
-                        </MessageContent>
-                    </AlertMessage>
-                </Show>
-                <Show when=has_delete_error>
-                    <AlertMessage header="Fehler beim Löschen">
-                        <MessageContent slot>
-                            Das Event konnte leider nicht gelöscht werden, bitte wende dich an den Bambussupport.
-                        </MessageContent>
-                    </AlertMessage>
-                </Show>
-                <input type="hidden" prop:value=event.id name="id" />
-                <input type="hidden" prop:value=grove_id name="grove_id" />
-                <Textbox width=InputWidth::Medium label="Titel" name="title" value=title />
-                <Textarea
-                    width=InputWidth::Medium
-                    label="Beschreibung"
-                    name="description"
-                    value=description
-                    required=false
+        <Show when=move || *is_open.read()>
+            <ActionFormModal action=update_action title="Event bearbeiten">
+                <ModalContent slot>
+                    <Show when=has_update_error>
+                        <AlertMessage header="Fehler beim Speichern">
+                            <MessageContent slot>
+                                Das Event konnte leider nicht gespeichert werden, bitte wende dich an den Bambussupport.
+                            </MessageContent>
+                        </AlertMessage>
+                    </Show>
+                    <Show when=has_delete_error>
+                        <AlertMessage header="Fehler beim Löschen">
+                            <MessageContent slot>
+                                Das Event konnte leider nicht gelöscht werden, bitte wende dich an den Bambussupport.
+                            </MessageContent>
+                        </AlertMessage>
+                    </Show>
+                    <input type="hidden" prop:value=event.id name="id" />
+                    <input type="hidden" prop:value=grove_id name="grove_id" />
+                    <Textbox width=InputWidth::Medium label="Titel" name="title" value=title />
+                    <Textarea
+                        width=InputWidth::Medium
+                        label="Beschreibung"
+                        name="description"
+                        value=description
+                        required=false
+                    />
+                    <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
+                    <DatePicker
+                        width=InputWidth::Medium
+                        label="Von"
+                        readonly=true
+                        name="start_date"
+                        value=start_date
+                    />
+                    <DatePicker
+                        width=InputWidth::Medium
+                        label="Bis"
+                        min=Some(day)
+                        name="end_date"
+                        value=end_date
+                    />
+                </ModalContent>
+                <ModalButton label="Abbrechen" on_click=move || is_open.set(false) slot />
+                <ModalButton
+                    variant=Variant::Negative
+                    label="Event löschen"
+                    on_click=delete_event
+                    slot
                 />
-                <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
-                <DatePicker
-                    width=InputWidth::Medium
-                    label="Von"
-                    readonly=true
-                    name="start_date"
-                    value=start_date
-                />
-                <DatePicker
-                    width=InputWidth::Medium
-                    label="Bis"
-                    min=Some(day)
-                    name="end_date"
-                    value=end_date
-                />
-            </ModalContent>
-            <ModalButton label="Abbrechen" on_click=move |_| is_open.set(false) slot />
-            <ModalButton
-                variant=Variant::Negative
-                label="Event löschen"
-                on_click=delete_event
-                slot
-            />
-            <ModalButton label="Event speichern" is_submit=true slot />
-        </ActionFormModal>
+                <ModalButton label="Event speichern" is_submit=true slot />
+            </ActionFormModal>
+        </Show>
     }
 }
 
@@ -368,18 +370,18 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView {
     let date = RwSignal::new(Local::now().date_naive().with_day(1).unwrap());
 
-    let prev_month = create_memo(move |_| date.get() - Months::new(1));
-    let current_month = create_memo(move |_| date.get().month());
-    let next_month = create_memo(move |_| date.get() + Months::new(1));
+    let prev_month = Memo::new(move |_| date.read().sub(Months::new(1)));
+    let current_month = Memo::new(move |_| date.read().month());
+    let next_month = Memo::new(move |_| date.read().add(Months::new(1)));
 
     let first_day_of_month = date;
-    let last_day_of_month = create_memo(move |_| date.get() + Months::new(1) - Days::new(1));
+    let last_day_of_month = Memo::new(move |_| date.read().add(Months::new(1)).sub(Days::new(1)));
 
-    let calendar_start_date = create_memo(move |_| {
-        let date = first_day_of_month.get();
+    let calendar_start_date = Memo::new(move |_| {
+        let date = first_day_of_month.read();
 
         if date.weekday() == Weekday::Mon {
-            date
+            *date
         } else {
             let offset = date.weekday() as u64 - 1;
             let last_day_of_prev_month = date.checked_sub_days(Days::new(1)).unwrap();
@@ -390,55 +392,36 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                 .unwrap()
         }
     });
-    let calendar_end_date = {
-        create_memo(move |_| {
-            let first_day = first_day_of_month;
-            let date = last_day_of_month.get();
+    let calendar_end_date = Memo::new(move |_| {
+        let first_day = first_day_of_month;
+        let date = last_day_of_month.read();
 
-            let first_day_offset = if first_day.get().weekday() == Weekday::Sun {
-                5
-            } else {
-                first_day.get().weekday() as i8 - 1
-            };
+        let first_day_offset = if first_day.read().weekday() == Weekday::Sun {
+            5
+        } else {
+            first_day.read().weekday() as i8 - 1
+        };
 
-            let days_of_next_month = 40 - first_day_offset - date.day() as i8;
+        let days_of_next_month = 40 - first_day_offset - date.day() as i8;
 
-            first_day
-                .get()
-                .checked_add_months(Months::new(1))
-                .unwrap()
-                .checked_add_days(Days::new(days_of_next_month as u64))
-                .unwrap()
-        })
-    };
-
-    let load_event_data = create_memo(move |_| LoadEventData {
-        end: calendar_end_date.get(),
-        start: calendar_start_date.get(),
-        grove_id,
+        first_day
+            .read()
+            .checked_add_months(Months::new(1))
+            .unwrap()
+            .checked_add_days(Days::new(days_of_next_month as u64))
+            .unwrap()
     });
 
-    let events = create_rw_signal(Vec::<GroveEvent>::default());
-    let events_resource = create_resource(
-        move || load_event_data.get(),
-        |load_event_data| async move {
-            get_events(
-                load_event_data.start,
-                load_event_data.end,
-                load_event_data.grove_id,
-            )
-            .await
-        },
+    let events = RwSignal::new(Vec::<GroveEvent>::default());
+    let events_resource = Resource::new(
+        move || (calendar_end_date.get(), calendar_start_date.get(), grove_id),
+        |(end, start, grove_id)| async move { get_events(start, end, grove_id).await },
     );
 
-    let prev = move |_| {
-        date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
-        events_resource.refetch()
-    };
-    let next = move |_| {
-        date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
-        events_resource.refetch()
-    };
+    let prev =
+        move |_| date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
+    let next =
+        move |_| date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
 
     #[cfg(any(feature = "csr", feature = "hydrate"))]
     {
@@ -451,7 +434,7 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                         .collect::<Vec<_>>(),
                 ),
             );
-        let _ = watch(
+        let _ = Effect::watch(
             move || data.get(),
             move |data, _, _| {
                 if let Some(data) = data {
@@ -478,32 +461,36 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
         );
     }
 
+    Effect::new(move || {
+        events_resource.refetch();
+    });
+
     view! {
         <Transition>
-            {move || {
-                create_effect(move |_| {
-                    events_resource.map(move |evts| events.set(evts.clone().unwrap_or_default()));
-                });
-            }} <div class="pandas-calendar">
+            {move || Suspend::new(async move {
+                events_resource
+                    .await
+                    .map_or_else(|_| events.set(vec![]), move |evts| events.set(evts.clone()));
+            })} <div class="pandas-calendar">
                 <div class="pandas-calendar__header">
                     <span class="pandas-calendar__action is--prev">
                         <a on:click=prev>
                             {move || {
                                 prev_month
-                                    .get()
+                                    .read()
                                     .format_localized("%B %Y", Locale::de_DE)
                                     .to_string()
                             }}
                         </a>
                     </span>
                     <h2>
-                        {move || date.get().format_localized("%B %Y", Locale::de_DE).to_string()}
+                        {move || date.read().format_localized("%B %Y", Locale::de_DE).to_string()}
                     </h2>
                     <span class="pandas-calendar__action is--next">
                         <a on:click=next>
                             {move || {
                                 next_month
-                                    .get()
+                                    .read()
                                     .format_localized("%B %Y", Locale::de_DE)
                                     .to_string()
                             }}
@@ -525,7 +512,7 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                             .map(|day| {
                                 let events_for_day = move |day: NaiveDate| {
                                     events
-                                        .get()
+                                        .read()
                                         .iter()
                                         .filter(move |event| {
                                             event.start_date <= day && event.end_date >= day
@@ -540,7 +527,7 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
                                         day=day.day()
                                         month=day.month()
                                         year=day.year()
-                                        selected_month=current_month.get()
+                                        selected_month=current_month
                                     />
                                 }
                             })

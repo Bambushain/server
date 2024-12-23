@@ -1,28 +1,31 @@
 use crate::api::{get_all_groves, CreateGroveAction};
 use crate::state::AllGroves;
-use leptos::*;
-use leptos_cosmo::prelude::*;
-use leptos_router::{use_navigate, NavigateOptions};
+use leptos::prelude::*;
+use leptos_cosmo::prelude::{ActionForm, *};
+use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
 
 #[component]
 pub fn NewGrovePage() -> impl IntoView {
-    let name = create_rw_signal(String::new());
+    let name = RwSignal::new(String::new());
 
-    let invite_on = create_rw_signal(true);
+    let invite_on = RwSignal::new(true);
 
-    let create_grove_action = create_server_action::<CreateGroveAction>();
+    let create_grove_action = ServerAction::<CreateGroveAction>::new();
 
-    let groves_resource = create_local_resource(|| {}, |_| async move { get_all_groves().await });
+    let groves_resource = Resource::new(|| (), |_| async move { get_all_groves().await });
     let groves_context = expect_context::<RwSignal<AllGroves>>();
 
     let navigate = use_navigate();
 
-    create_effect(move |_| {
-        if let Some(Ok(groves)) = groves_resource.get() {
-            groves_context.set(groves);
-        }
+    Effect::new(move |_| {
+        Suspend::new(async move {
+            if let Ok(groves) = groves_resource.await {
+                groves_context.set(groves);
+            }
+        })
     });
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(grove)) = create_grove_action.value().get() {
             let navigate = navigate.clone();
             groves_resource.refetch();
@@ -52,7 +55,7 @@ pub fn NewGrovePage() -> impl IntoView {
             </Show>
             <ActionForm
                 buttons=Box::new(|| {
-                    view! { <Button is_submit=true label="Hain erstellen" /> }.into()
+                    view! { <Button is_submit=true label="Hain erstellen" /> }.into_any()
                 })
                 action=create_grove_action
             >

@@ -1,5 +1,5 @@
 use crate::components;
-use leptos::*;
+use leptos::prelude::*;
 use leptos_meta as meta;
 
 #[component]

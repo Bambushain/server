@@ -4,106 +4,115 @@ use crate::api::{
 };
 use crate::state::AllGroves;
 use bamboo_common::core::entities::user::GroveUser;
-use leptos::*;
-use leptos_cosmo::prelude::*;
-use leptos_router::{use_navigate, NavigateOptions};
+use leptos::prelude::*;
+use leptos_cosmo::prelude::{ActionForm, *};
+use leptos_router::{hooks::use_navigate, NavigateOptions};
 
 #[component]
 pub fn GroveAdminTab(
-    #[prop(into)] grove_id: MaybeSignal<i32>,
-    #[prop(into)] grove_name: MaybeSignal<String>,
+    #[prop(into)] grove_id: Signal<i32>,
+    #[prop(into)] grove_name: Signal<String>,
 ) -> impl IntoView {
     let navigate = use_navigate();
-    let grove_resource = create_local_resource(
+    let grove_resource = Resource::new(
         move || grove_id.get(),
         move |id| async move { get_grove(id).await },
     );
-    let groves_resource =
-        create_local_resource(move || {}, move |_| async move { get_all_groves().await });
-    let pandas_resource = create_local_resource_with_initial_value(
+    let groves_resource = Resource::new(move || {}, move |_| async move { get_all_groves().await });
+    let pandas_resource = Resource::new(
         move || grove_id.get(),
         move |id| async move { get_pandas(Some(id)).await },
-        Some(Ok(Vec::<GroveUser>::new())),
     );
-    let banned_pandas_resource = create_resource_with_initial_value(
+    let banned_pandas_resource = Resource::new(
         move || grove_id.get(),
         move |id| async move { get_banned_pandas(id).await },
-        None,
     );
 
-    let enable_invites_action = create_server_action::<EnableInvitesAction>();
-    let disable_invites_action = create_server_action::<DisableInvitesAction>();
-    let delete_grove_action = create_server_action::<DeleteGroveAction>();
-    let update_mods_action = create_server_action::<UpdateModsAction>();
-    let unban_panda_action = create_server_action::<UnbanPandaAction>();
+    let enable_invites_action = ServerAction::<EnableInvitesAction>::new();
+    let disable_invites_action = ServerAction::<DisableInvitesAction>::new();
+    let delete_grove_action = ServerAction::<DeleteGroveAction>::new();
+    let update_mods_action = ServerAction::<UpdateModsAction>::new();
+    let unban_panda_action = ServerAction::<UnbanPandaAction>::new();
 
-    let selected_mods = create_rw_signal(vec![]);
-    let pandas = create_rw_signal(vec![]);
+    let selected_mods = RwSignal::new(vec![]);
+    let pandas = RwSignal::new(vec![]);
 
     let groves_ctx = expect_context::<RwSignal<AllGroves>>();
 
-    create_effect(move |_| {
-        if let Some(Ok(_)) = enable_invites_action.value().get() {
+    Effect::new(move |_| {
+        if enable_invites_action
+            .value()
+            .get()
+            .is_some_and(|val| val.is_ok())
+        {
             grove_resource.refetch()
         }
     });
     {
         let navigate = navigate.clone();
 
-        create_effect(move |_| {
-            if grove_resource.get().is_some_and(|res| res.is_err()) {
-                navigate("/pandas/groves", NavigateOptions::default());
-            }
+        Effect::new(move |_| {
+            let navigate = navigate.clone();
+
+            Suspend::new(async move {
+                if grove_resource.await.is_err() {
+                    navigate("/pandas/groves", NavigateOptions::default());
+                }
+            })
         });
     }
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(_)) = disable_invites_action.value().get() {
             grove_resource.refetch()
         }
     });
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Some(Ok(groves)) = groves_resource.get() {
             groves_ctx.set(groves);
         }
     });
-    create_effect(move |_| {
-        if let Some(Ok(pandas_in_grove)) = pandas_resource.get() {
-            pandas.set(
-                pandas_in_grove
-                    .iter()
-                    .map(|panda| (panda.id.to_string(), panda.display_name.clone()))
-                    .collect::<Vec<_>>(),
-            );
-            selected_mods.set(
-                pandas_in_grove
-                    .iter()
-                    .filter_map(|panda| panda.is_mod.then_some(panda.id.to_string()))
-                    .collect::<Vec<_>>(),
-            )
-        }
+    Effect::new(move |_| {
+        Suspend::new(async move {
+            if let Ok(pandas_in_grove) = pandas_resource.await {
+                pandas.set(
+                    pandas_in_grove
+                        .iter()
+                        .map(|panda| (panda.id.to_string(), panda.display_name.clone()))
+                        .collect::<Vec<_>>(),
+                );
+                selected_mods.set(
+                    pandas_in_grove
+                        .iter()
+                        .filter_map(|panda| panda.is_mod.then_some(panda.id.to_string()))
+                        .collect::<Vec<_>>(),
+                )
+            }
+        })
     });
 
-    let enable_invite =
-        move |_| enable_invites_action.dispatch(EnableInvitesAction { id: grove_id.get() });
-    let disable_invite =
-        move |_| disable_invites_action.dispatch(DisableInvitesAction { id: grove_id.get() });
+    let enable_invite = move |_| {
+        enable_invites_action.dispatch(EnableInvitesAction { id: grove_id.get() });
+    };
+    let disable_invite = move |_| {
+        disable_invites_action.dispatch(DisableInvitesAction { id: grove_id.get() });
+    };
     let on_delete = Callback::new(move |_| {
         if let Some(Ok(grove)) = grove_resource.get() {
-            confirm(
+            use_modals().confirm(
                 "Hain löschen",
                 format!("Soll der Hain {} wirklich gelöscht werden? Dies löscht auch den Eventkalender.", grove.name),
                 Variant::Negative,
                 "Hain löschen",
                 "Nicht löschen",
                 Some(Callback::new(move |_| {
-                    delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get() })
+                    delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get() });
                 })),
                 None,
             )
         }
     });
     let on_unban = Callback::new(move |user: GroveUser| {
-        confirm(
+        use_modals().confirm(
             format!("Ban für {} aufheben", user.display_name),
             format!(
                 "Soll der Ban von Panda {} wirklich aufgehoben werden?",
@@ -116,7 +125,7 @@ pub fn GroveAdminTab(
                 unban_panda_action.dispatch(UnbanPandaAction {
                     grove_id: grove_id.get(),
                     user_id: user.id,
-                })
+                });
             })),
             None,
         )
@@ -125,7 +134,7 @@ pub fn GroveAdminTab(
     {
         let navigate = navigate.clone();
 
-        create_effect(move |_| {
+        Effect::new(move |_| {
             if delete_grove_action
                 .value()
                 .get()
@@ -137,7 +146,7 @@ pub fn GroveAdminTab(
         });
     }
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if unban_panda_action
             .value()
             .get()
@@ -150,7 +159,7 @@ pub fn GroveAdminTab(
     view! {
         <Transition fallback=|| view! { <ProgressRing /> }>
             <div class="pandas-grove__management">
-                <h1>{format!("Willkommen in der Verwaltung von {}", grove_name.get())}</h1>
+                <h1>{format!("Willkommen in der Verwaltung von {}", grove_name.read())}</h1>
                 <p>
                     {"Hier hast du die Möglichkeit deinen Hain zu verwalten. Unten findest du den Einladungslink damit Leute deinem Hain beitreten können."}
                     <br />
@@ -161,11 +170,11 @@ pub fn GroveAdminTab(
                 <h2>{"Pandas einladen"}</h2>
                 <Show
                     when=move || {
-                        if let Some(Ok(grove)) = grove_resource.get() {
-                            grove.get_invite_link().is_some()
-                        } else {
-                            false
-                        }
+                        grove_resource
+                            .get()
+                            .is_some_and(|res| {
+                                res.is_ok_and(|grove| grove.get_invite_link().is_some())
+                            })
                     }
                     fallback=move || {
                         view! {
@@ -212,7 +221,7 @@ pub fn GroveAdminTab(
                 </p>
                 <ActionForm
                     buttons=Box::new(|| {
-                        view! { <Button is_submit=true label="Mods speichern" /> }.into()
+                        view! { <Button is_submit=true label="Mods speichern" /> }.into_any()
                     })
                     action=update_mods_action
                 >
@@ -252,7 +261,7 @@ pub fn GroveAdminTab(
                                             <td>
                                                 <Button
                                                     label="Ban aufheben"
-                                                    on:click=move |_| on_unban.call(user.clone())
+                                                    on:click=move |_| on_unban.run(user.clone())
                                                 />
                                             </td>
                                         </tr>
