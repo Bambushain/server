@@ -74,7 +74,7 @@ lint-frontend:
 build-backend:
   extends:
     - .base-backend-cache
-  stage: lint
+  stage: build
   script:
     - cargo build --release --bin backend-api --bin backend-events --bin backend-mailer
     - cp target/release/bamboo-mailer bamboo-mailer
