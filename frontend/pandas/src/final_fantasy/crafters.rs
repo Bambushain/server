@@ -86,7 +86,11 @@ fn EditCrafterDialog(
                 <Textbox required=false label="Level" name="level" value=level />
             </ModalContent>
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
-            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
+            <ModalButton
+                is_submit=true
+                label=format!("{} bearbeiten", job.read().to_string())
+                slot
+            />
         </ActionFormModal>
     }
 }
@@ -118,33 +122,28 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
         edit_open.set(false)
     });
 
-    let delete_crafter = {
-        let crafter_resource = crafter_resource.clone();
-        let delete_crafter_action = delete_crafter_action.clone();
-
-        move |crafter_id: i32| {
-            Suspend::new(async move {
-                if let Ok(Some(crafter)) = crafter_resource
-                    .await
-                    .map(|res| res.iter().cloned().find(|f| f.id == crafter_id).clone())
-                {
-                    use_modals().confirm(
-                        "Sammler löschen",
-                        format!("Soll der Sammler {} wirklich gelöscht werden?", crafter.job),
-                        Variant::Negative,
-                        format!("{} löschen", crafter.job),
-                        format!("{} behalten", crafter.job),
-                        Some(Callback::new(move |_| {
-                            delete_crafter_action.dispatch(DeleteCrafterAction {
-                                crafter_id,
-                                character_id: character_id.get(),
-                            });
-                        })),
-                        None,
-                    );
-                }
-            });
-        }
+    let delete_crafter = move |crafter_id: i32| {
+        Suspend::new(async move {
+            if let Ok(Some(crafter)) = crafter_resource
+                .await
+                .map(|res| res.iter().find(|&f| f.id == crafter_id).cloned().clone())
+            {
+                use_modals().confirm(
+                    "Sammler löschen",
+                    format!("Soll der Sammler {} wirklich gelöscht werden?", crafter.job),
+                    Variant::Negative,
+                    format!("{} löschen", crafter.job),
+                    format!("{} behalten", crafter.job),
+                    Some(Callback::new(move |_| {
+                        delete_crafter_action.dispatch(DeleteCrafterAction {
+                            crafter_id,
+                            character_id: character_id.get(),
+                        });
+                    })),
+                    None,
+                );
+            }
+        });
     };
     let edit_crafter = move |crafter: Crafter| {
         *id.write() = crafter.id;
@@ -187,13 +186,16 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                 >
                     <CardList>
                         {move || {
-                            let crafter_resource = crafter_resource.clone();
+                            let crafter_resource = crafter_resource;
                             Suspend::new(async move {
                                 crafter_resource
                                     .await
                                     .map(|crafters| {
                                         *available_crafter.write() = {
-                                            let used_crafter = crafters.iter().map(|g| g.job.clone()).collect::<Vec<_>>();
+                                            let used_crafter = crafters
+                                                .iter()
+                                                .map(|g| g.job)
+                                                .collect::<Vec<_>>();
                                             CrafterJob::iter()
                                                 .filter(|job| !used_crafter.contains(job))
                                                 .collect::<Vec<_>>()

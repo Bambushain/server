@@ -58,8 +58,6 @@ fn DetailsTab(
     let delete_character_action = ServerAction::<DeleteCharacterAction>::new();
 
     let delete_character = {
-        let delete_character_action = delete_character_action.clone();
-
         move || {
             if let Some(character) = character.get() {
                 let name = character.name;
@@ -154,8 +152,8 @@ pub fn Characters() -> impl IntoView {
         let selected_char = filtered_characters
             .get()
             .iter()
-            .cloned()
-            .find(|char| char.id == selected_character_id.get());
+            .find(|&char| char.id == selected_character_id.get())
+            .cloned();
         if selected_char.is_none() {
             filtered_characters.get().first().cloned()
         } else {
@@ -177,7 +175,7 @@ pub fn Characters() -> impl IntoView {
     let character_id = Memo::new(move |_| {
         selected_character
             .get()
-            .map(|character| character.id.clone())
+            .map(|character| character.id)
             .unwrap_or_default()
     });
     let character_race = Memo::new(move |_| {

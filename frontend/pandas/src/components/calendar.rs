@@ -180,8 +180,8 @@ fn AddEventDialog(
         groves
             .read()
             .iter()
+            .find(|&grove| grove.name == selected_grove.get().unwrap_or("".to_string()))
             .cloned()
-            .find(|grove| grove.name == selected_grove.get().unwrap_or("".to_string()))
     });
 
     let groves_options = move || {

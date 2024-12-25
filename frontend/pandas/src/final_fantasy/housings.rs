@@ -22,42 +22,33 @@ fn CreateHousingDialog(
             .map(|t| (Some(t.get_name()), t.to_string()))
             .collect::<Vec<_>>()
     });
-    let districts = {
-        let housings = housings.clone();
+    let districts = Memo::new(move |_| {
+        let housings = housings.get();
 
-        Memo::new(move |_| {
-            let housings = housings.get();
-
-            HousingDistrict::iter()
-                .filter(|district| {
-                    housings
-                        .iter()
-                        .filter(|housing| housing.district == *district)
-                        .count()
-                        < 30 * 60
-                })
-                .map(|district| (Some(district.get_name()), district.to_string()))
-                .collect::<Vec<_>>()
-        })
-    };
+        HousingDistrict::iter()
+            .filter(|district| {
+                housings
+                    .iter()
+                    .filter(|housing| housing.district == *district)
+                    .count()
+                    < 30 * 60
+            })
+            .map(|district| (Some(district.get_name()), district.to_string()))
+            .collect::<Vec<_>>()
+    });
     let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_name()));
-    let wards = {
-        let selected_district = selected_district.clone();
-        let housings = housings.clone();
-
-        Memo::new(move |_| {
-            let selected_district = selected_district.get().unwrap();
-            let plots = housings
-                .get()
-                .into_iter()
-                .filter(|housing| housing.district.get_name() == selected_district)
-                .collect::<Vec<_>>();
-            (1..=30i16)
-                .filter(|ward| plots.iter().filter(|plot| plot.ward == *ward).count() < 60)
-                .map(|ward| (Some(ward.to_string()), ward.to_string()))
-                .collect::<Vec<_>>()
-        })
-    };
+    let wards = Memo::new(move |_| {
+        let selected_district = selected_district.get().unwrap();
+        let plots = housings
+            .get()
+            .into_iter()
+            .filter(|housing| housing.district.get_name() == selected_district)
+            .collect::<Vec<_>>();
+        (1..=30i16)
+            .filter(|ward| plots.iter().filter(|plot| plot.ward == *ward).count() < 60)
+            .map(|ward| (Some(ward.to_string()), ward.to_string()))
+            .collect::<Vec<_>>()
+    });
     let plots = Memo::new(move |_| {
         let selected_district = selected_district.get().unwrap();
         let selected_ward = selected_ward.get().unwrap();
@@ -121,16 +112,12 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
 
     let delete_housing_action = ServerAction::<DeleteHousingAction>::new();
 
-    let delete_housing = {
-        let housing_resource = housing_resource.clone();
-        let delete_housing_action = delete_housing_action.clone();
-
-        move |housing_id: i32| {
-            if let Some(Some(Some(housing))) = housing_resource.get().map(|res| {
-                res.ok()
-                    .map(|res| res.iter().cloned().find(|f| f.id == housing_id).clone())
-            }) {
-                use_modals().confirm(
+    let delete_housing = move |housing_id: i32| {
+        if let Some(Some(Some(housing))) = housing_resource.get().map(|res| {
+            res.ok()
+                .map(|res| res.iter().find(|&f| f.id == housing_id).cloned().clone())
+        }) {
+            use_modals().confirm(
                     "Unterkunft löschen",
                     format!(
                         "Soll die {} im Gebiet {} im Bezirk {} mit der Nummer {} wirklich gelöscht werden?",
@@ -150,7 +137,6 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                     })),
                     None,
                 );
-            }
         }
     };
 
@@ -188,7 +174,7 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                 >
                     <CardList>
                         {move || {
-                            let housing_resource = housing_resource.clone();
+                            let housing_resource = housing_resource;
                             Suspend::new(async move {
                                 housing_resource
                                     .await

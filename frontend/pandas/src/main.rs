@@ -35,7 +35,7 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/pandas/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory
             .service(Files::new("/pandas/assets", site_root.as_ref()))
-            .leptos_routes(routes.to_owned(),{
+            .leptos_routes(routes.to_owned(), {
                 let leptos_options = leptos_options.clone();
                 move || {
                     use leptos::prelude::*;

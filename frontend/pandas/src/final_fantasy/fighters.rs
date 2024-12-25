@@ -92,7 +92,11 @@ fn EditFighterDialog(
                 <Textbox required=false label="Gear Score" name="gear_score" value=gear_score />
             </ModalContent>
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
-            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
+            <ModalButton
+                is_submit=true
+                label=format!("{} bearbeiten", job.read().to_string())
+                slot
+            />
         </ActionFormModal>
     }
 }
@@ -124,33 +128,28 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
         edit_open.set(false)
     });
 
-    let delete_fighter = {
-        let fighter_resource = fighter_resource.clone();
-        let delete_fighter_action = delete_fighter_action.clone();
-
-        move |fighter_id: i32| {
-            Suspend::new(async move {
-                if let Ok(Some(fighter)) = fighter_resource
-                    .await
-                    .map(|res| res.iter().cloned().find(|f| f.id == fighter_id).clone())
-                {
-                    use_modals().confirm(
-                        "Kämpfer löschen",
-                        format!("Soll der Kämpfer {} wirklich gelöscht werden?", fighter.job),
-                        Variant::Negative,
-                        format!("{} löschen", fighter.job),
-                        format!("{} behalten", fighter.job),
-                        Some(Callback::new(move |_| {
-                            delete_fighter_action.dispatch(DeleteFighterAction {
-                                fighter_id,
-                                character_id: character_id.get(),
-                            });
-                        })),
-                        None,
-                    );
-                }
-            });
-        }
+    let delete_fighter = move |fighter_id: i32| {
+        Suspend::new(async move {
+            if let Ok(Some(fighter)) = fighter_resource
+                .await
+                .map(|res| res.iter().find(|&f| f.id == fighter_id).cloned().clone())
+            {
+                use_modals().confirm(
+                    "Kämpfer löschen",
+                    format!("Soll der Kämpfer {} wirklich gelöscht werden?", fighter.job),
+                    Variant::Negative,
+                    format!("{} löschen", fighter.job),
+                    format!("{} behalten", fighter.job),
+                    Some(Callback::new(move |_| {
+                        delete_fighter_action.dispatch(DeleteFighterAction {
+                            fighter_id,
+                            character_id: character_id.get(),
+                        });
+                    })),
+                    None,
+                );
+            }
+        });
     };
     let edit_fighter = move |fighter: Fighter| {
         *id.write() = fighter.id;
@@ -194,13 +193,16 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                 >
                     <CardList>
                         {move || {
-                            let fighter_resource = fighter_resource.clone();
+                            let fighter_resource = fighter_resource;
                             Suspend::new(async move {
                                 fighter_resource
                                     .await
                                     .map(|fighters| {
                                         *available_fighter.write() = {
-                                            let used_fighter = fighters.iter().map(|g| g.job.clone()).collect::<Vec<_>>();
+                                            let used_fighter = fighters
+                                                .iter()
+                                                .map(|g| g.job)
+                                                .collect::<Vec<_>>();
                                             FighterJob::iter()
                                                 .filter(|job| !used_fighter.contains(job))
                                                 .collect::<Vec<_>>()

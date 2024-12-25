@@ -1,3 +1,5 @@
+use bamboo_common_core_macros::*;
+
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "backend")]
@@ -25,7 +27,6 @@ impl Ord for DependencyDetails {
     }
 }
 
-#[cfg(feature = "backend")]
 impl DependencyDetails {
     #[must_use]
     pub fn new(
@@ -43,4 +44,8 @@ impl DependencyDetails {
             description: description.into(),
         }
     }
+}
+
+pub fn get_dependencies() -> Vec<DependencyDetails> {
+    all_dependencies!()
 }

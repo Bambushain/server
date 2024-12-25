@@ -88,7 +88,11 @@ fn EditGathererDialog(
                 <Textbox required=false label="Level" name="level" value=level />
             </ModalContent>
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
-            <ModalButton is_submit=true label=format!("{} bearbeiten", job.read().to_string()) slot />
+            <ModalButton
+                is_submit=true
+                label=format!("{} bearbeiten", job.read().to_string())
+                slot
+            />
         </ActionFormModal>
     }
 }
@@ -120,36 +124,31 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
         edit_open.set(false)
     });
 
-    let delete_gatherer = {
-        let gatherer_resource = gatherer_resource.clone();
-        let delete_gatherer_action = delete_gatherer_action.clone();
-
-        move |gatherer_id: i32| {
-            Suspend::new(async move {
-                if let Ok(Some(gatherer)) = gatherer_resource
-                    .await
-                    .map(|res| res.iter().cloned().find(|f| f.id == gatherer_id).clone())
-                {
-                    use_modals().confirm(
-                        "Sammler löschen",
-                        format!(
-                            "Soll der Sammler {} wirklich gelöscht werden?",
-                            gatherer.job
-                        ),
-                        Variant::Negative,
-                        format!("{} löschen", gatherer.job),
-                        format!("{} behalten", gatherer.job),
-                        Some(Callback::new(move |_| {
-                            delete_gatherer_action.dispatch(DeleteGathererAction {
-                                gatherer_id,
-                                character_id: character_id.get(),
-                            });
-                        })),
-                        None,
-                    );
-                }
-            });
-        }
+    let delete_gatherer = move |gatherer_id: i32| {
+        Suspend::new(async move {
+            if let Ok(Some(gatherer)) = gatherer_resource
+                .await
+                .map(|res| res.iter().find(|&f| f.id == gatherer_id).cloned().clone())
+            {
+                use_modals().confirm(
+                    "Sammler löschen",
+                    format!(
+                        "Soll der Sammler {} wirklich gelöscht werden?",
+                        gatherer.job
+                    ),
+                    Variant::Negative,
+                    format!("{} löschen", gatherer.job),
+                    format!("{} behalten", gatherer.job),
+                    Some(Callback::new(move |_| {
+                        delete_gatherer_action.dispatch(DeleteGathererAction {
+                            gatherer_id,
+                            character_id: character_id.get(),
+                        });
+                    })),
+                    None,
+                );
+            }
+        });
     };
     let edit_gatherer = move |gatherer: Gatherer| {
         *id.write() = gatherer.id;
@@ -192,13 +191,16 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                 >
                     <CardList>
                         {move || {
-                            let gatherer_resource = gatherer_resource.clone();
+                            let gatherer_resource = gatherer_resource;
                             Suspend::new(async move {
                                 gatherer_resource
                                     .await
                                     .map(|gatherers| {
                                         *available_gatherer.write() = {
-                                            let used_gatherer = gatherers.iter().map(|g| g.job.clone()).collect::<Vec<_>>();
+                                            let used_gatherer = gatherers
+                                                .iter()
+                                                .map(|g| g.job)
+                                                .collect::<Vec<_>>();
                                             GathererJob::iter()
                                                 .filter(|job| !used_gatherer.contains(job))
                                                 .collect::<Vec<_>>()

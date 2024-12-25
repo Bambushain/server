@@ -20,10 +20,3 @@ maud = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }
 totp-rs = { workspace = true }
-
-[build-dependencies]
-bamboo-common = { path = "../../common", features = ["core", "backend"] }
-
-cargo_metadata = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }

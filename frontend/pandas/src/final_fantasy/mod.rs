@@ -1,7 +1,7 @@
 mod character_page;
 mod crafters;
 mod fighters;
-mod housings;
 mod gatherer;
+mod housings;
 
 pub use character_page::*;

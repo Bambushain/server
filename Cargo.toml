@@ -6,24 +6,21 @@ license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-bamboo-backend = { path = "backend", optional = true }
+bamboo-backend = { path = "backend" }
 
-actix = { workspace = true, optional = true }
+actix = { workspace = true }
 
 [[bin]]
 path = "src/bin/backend-api.rs"
 name = "backend-api"
-required-features = ["backend-api"]
 
 [[bin]]
 path = "src/bin/backend-events.rs"
 name = "backend-events"
-required-features = ["backend-events"]
 
 [[bin]]
 path = "src/bin/backend-mailer.rs"
 name = "backend-mailer"
-required-features = ["backend-mailer"]
 
 [workspace]
 members = [
@@ -43,6 +40,7 @@ members = [
     "common/core",
     "common/core/entities",
     "common/core/error",
+    "common/core/macros",
     "common/core/queueing",
     "common/frontend",
     "common/frontend/api",
@@ -90,7 +88,8 @@ html2text = "0.13"
 icondata_lu = "0.0"
 itertools = "0.13"
 leptos = "0.7"
-leptos-cosmo = { path = "../jinya/leptos-cosmo" }
+#leptos-cosmo = { path = "../jinya/leptos-cosmo" }
+leptos-cosmo = "1.0.9"
 leptos_actix = "0.7"
 leptos_meta = "0.7"
 leptos_router = "0.7"
@@ -117,15 +116,9 @@ tokio-stream = "0.1"
 tokio-util = "0.7"
 totp-rs = { version = "5.6", features = ["qr", "gen_secret"] }
 uuid = { version = "1.11", features = ["v4"] }
+walkdir = "2.5"
 wasm-bindgen = "0.2"
 web-sys = "0.3"
-
-[features]
-default = []
-backend = ["dep:actix", "dep:bamboo-backend"]
-backend-api = ["backend", "bamboo-backend/api"]
-backend-events = ["backend", "bamboo-backend/events"]
-backend-mailer = ["backend", "bamboo-backend/mailer"]
 
 [profile.web-dev]
 inherits = "dev"

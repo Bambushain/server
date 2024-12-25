@@ -22,7 +22,7 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
     let name = RwSignal::new(current_user_ctx.get().display_name.clone());
     let discord_name = RwSignal::new(current_user_ctx.get().discord_name.clone());
     let profile_picture = RwSignal::new_local(None);
-    let profile_picture_to_set = profile_picture.clone();
+    let profile_picture_to_set = profile_picture;
 
     let has_error = RwSignal::new(false);
     let error_message = RwSignal::new(String::new());

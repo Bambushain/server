@@ -64,8 +64,6 @@ fn PandaCard(
     });
 
     if grove_id.is_some() && is_mod.unwrap_or(false) {
-        let ban_panda_confirm = ban_panda_confirm.clone();
-
         Either::Left(view! {
             <Card title=display_name prepend=profile_picture>
                 {panda_card_content}

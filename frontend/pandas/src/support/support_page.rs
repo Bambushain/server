@@ -30,7 +30,7 @@ fn SupportForm(
                         },
                     )
             }} <AlertMessage message_type=MessageType::Information>
-                <MessageContent slot>{message.clone()}</MessageContent>
+                <MessageContent slot>{message}</MessageContent>
             </AlertMessage>
             <ActionForm
                 action=submit_request_action

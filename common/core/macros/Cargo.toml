@@ -1,0 +1,13 @@
+[package]
+name = "bamboo-common-core-macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+cargo_metadata = { workspace = true }
+quote = { workspace = true }
+walkdir = { workspace = true }

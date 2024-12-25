@@ -80,6 +80,8 @@
       <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/authentication/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common/core/queueing/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/common/core/dependencies/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/common/core/macros/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/pandas/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/common/backend/target" />
       <excludeFolder url="file://$MODULE_DIR$/common/core/target" />

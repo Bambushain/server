@@ -29,7 +29,6 @@ serde = { workspace = true }
 server_fn = { workspace = true }
 strum = { workspace = true }
 wasm-bindgen = { workspace = true }
-web-sys = { workspace = true }
 
 [features]
 csr = [
@@ -39,7 +38,7 @@ csr = [
 ]
 hydrate = [
     "leptos/hydrate",
-    "leptos-cosmo/csr",
+    "leptos-cosmo/hydrate",
     "bamboo-common/frontend"
 ]
 ssr = [
