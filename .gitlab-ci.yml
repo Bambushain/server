@@ -150,9 +150,6 @@ build-docker-main:
 
 merge-manifests-main:
   stage: deploy
-  needs:
-    - job: docker-build
-      artifacts: false
   image:
     name: mplatform/manifest-tool:alpine
     entrypoint: [ "" ]
@@ -198,9 +195,6 @@ build-docker-tag:
 
 merge-manifests-tag:
   stage: deploy
-  needs:
-    - job: docker-build
-      artifacts: false
   image:
     name: mplatform/manifest-tool:alpine
     entrypoint: [ "" ]
