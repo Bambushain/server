@@ -1,6 +1,5 @@
 use crate::api::ff;
 use crate::api::ff::DeleteCharacterAction;
-
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
 use crate::final_fantasy::gatherer::GathererTab;
