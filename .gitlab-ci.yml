@@ -64,7 +64,7 @@ lint-frontend:
   stage: lint
   script:
     - cd frontend/$APP
-    - cargo clippy --release --features ssr --feature hydrate
+    - cargo clippy --release --features ssr --features hydrate
   parallel:
     matrix:
       - APP:
