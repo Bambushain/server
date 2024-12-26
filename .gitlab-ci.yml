@@ -114,9 +114,9 @@ build-backend:
   stage: build
   script:
     - cargo build --release --bin backend-api --bin backend-events --bin backend-mailer
-    - cp $CI_PROJECT_DIR/target/release/build/bamboo-mailer $ARCH/bamboo-mailer
-    - cp $CI_PROJECT_DIR/target/release/build/bamboo-api $ARCH/bamboo-api
-    - cp $CI_PROJECT_DIR/target/release/build/bamboo-events $ARCH/bamboo-events
+    - cp $CI_PROJECT_DIR/target/release/bamboo-mailer $ARCH/bamboo-mailer
+    - cp $CI_PROJECT_DIR/target/release/bamboo-api $ARCH/bamboo-api
+    - cp $CI_PROJECT_DIR/target/release/bamboo-events $ARCH/bamboo-events
   artifacts:
     paths:
       - $ARCH/bamboo-mailer
@@ -137,7 +137,7 @@ build-frontend:
   script:
     - cd frontend/$APP
     - cargo leptos build --release
-    - cp $CI_PROJECT_DIR/target/release/build/bamboo-frontend-$APP $ARCH/bamboo-$APP
+    - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $ARCH/bamboo-$APP
   artifacts:
     paths:
       - $ARCH/bamboo-$APP
