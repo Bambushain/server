@@ -12,15 +12,15 @@ actix = { workspace = true }
 
 [[bin]]
 path = "src/bin/backend-api.rs"
-name = "backend-api"
+name = "bamboo-api"
 
 [[bin]]
 path = "src/bin/backend-events.rs"
-name = "backend-events"
+name = "bamboo-events"
 
 [[bin]]
 path = "src/bin/backend-mailer.rs"
-name = "backend-mailer"
+name = "bamboo-mailer"
 
 [workspace]
 members = [
