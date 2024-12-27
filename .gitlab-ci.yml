@@ -114,9 +114,10 @@ build-backend:
   stage: build
   script:
     - cargo build --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer
-    - cp $CI_PROJECT_DIR/target/release/bamboo-mailer $ARCH/bamboo-mailer
-    - cp $CI_PROJECT_DIR/target/release/bamboo-api $ARCH/bamboo-api
-    - cp $CI_PROJECT_DIR/target/release/bamboo-events $ARCH/bamboo-events
+    - mkdir -p $CI_PROJECT_DIR/$ARCH
+    - cp $CI_PROJECT_DIR/target/release/bamboo-mailer $CI_PROJECT_DIR/$ARCH/bamboo-mailer
+    - cp $CI_PROJECT_DIR/target/release/bamboo-api $CI_PROJECT_DIR/$ARCH/bamboo-api
+    - cp $CI_PROJECT_DIR/target/release/bamboo-events $CI_PROJECT_DIR/$ARCH/bamboo-events
   artifacts:
     paths:
       - $ARCH/bamboo-mailer
