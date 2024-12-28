@@ -31,8 +31,6 @@
   cache:
     key: $CI_PROJECT_NAME-leptos
     paths:
-      - $CI_PROJECT_DIR/pandas-dist/
-      - $CI_PROJECT_DIR/groves-dist/
       - $CI_PROJECT_DIR/target/
       - $CI_PROJECT_DIR/.cargo/
       - $CI_PROJECT_DIR/Cargo.lock
@@ -138,11 +136,11 @@ build-frontend:
   script:
     - cd frontend/$APP
     - cargo leptos build --release
-    - mkdir -p $ARCH
-    - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $ARCH/bamboo-$APP
+    - mkdir -p $CI_PROJECT_DIR/$ARCH
+    - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $CI_PROJECT_DIR/$ARCH/bamboo-$APP
   artifacts:
     paths:
-      - $ARCH/bamboo-$APP
+      - $CI_PROJECT_DIR/$ARCH/bamboo-$APP
   parallel:
     matrix:
       - APP:
