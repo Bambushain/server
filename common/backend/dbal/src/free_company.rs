@@ -121,3 +121,16 @@ async fn free_company_exists_by_name(
         .map(|count| count > 0)
         .map_err(|_| BambooError::database(error_tag!(), "Failed to load free companies"))
 }
+
+pub async fn get_free_company_by_name(
+    name: String,
+    user_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Option<FreeCompany>> {
+    free_company::Entity::find()
+        .filter(free_company::Column::UserId.eq(user_id))
+        .filter(free_company::Column::Name.eq(name))
+        .one(db)
+        .await
+        .map_err(|_| BambooError::not_found(error_tag!(), "Free company not found"))
+}

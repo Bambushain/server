@@ -115,7 +115,6 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
     let level = RwSignal::new(String::default());
 
     let available_fighter = RwSignal::new(vec![]);
-    let add_enabled = Memo::new(move |_| !available_fighter.read().is_empty());
     let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
         fighter_resource.refetch();
@@ -198,15 +197,20 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                                 fighter_resource
                                     .await
                                     .map(|fighters| {
-                                        *available_fighter.write() = {
-                                            let used_fighter = fighters
-                                                .iter()
-                                                .map(|g| g.job)
-                                                .collect::<Vec<_>>();
-                                            FighterJob::iter()
-                                                .filter(|job| !used_fighter.contains(job))
-                                                .collect::<Vec<_>>()
-                                        };
+                                        available_fighter
+                                            .set({
+                                                let used_fighter = fighters
+                                                    .iter()
+                                                    .map(|g| g.job)
+                                                    .collect::<Vec<_>>();
+                                                if fighters.is_empty() {
+                                                    FighterJob::iter().collect::<Vec<_>>()
+                                                } else {
+                                                    FighterJob::iter()
+                                                        .filter(|job| !used_fighter.contains(job))
+                                                        .collect::<Vec<_>>()
+                                                }
+                                            });
                                         fighters
                                             .iter()
                                             .cloned()
@@ -259,15 +263,49 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                         }}
                     </CardList>
                 </Show>
-                <Show when=move || add_enabled.get()>
-                    <CircleButton
-                        size=CircleButtonSize::Large
-                        variant=Variant::Primary
-                        icon=icons::LuPlus
-                        title="Kämpfer erstellen"
-                        on:click=move |_| add_open.set(true)
-                    />
-                </Show>
+                {
+                    let fighter_resource = fighter_resource;
+                    move || {
+                        Suspend::new(async move {
+                            fighter_resource
+                                .await
+                                .map(|fighters| {
+                                    {
+                                        let fighters = fighters.clone();
+
+                                        available_fighter.update(move |old| {
+                                            let all_fighters = FighterJob::iter().collect::<Vec<_>>();
+                                            let used_fighter = fighters
+                                                    .iter()
+                                                    .map(|g| g.job)
+                                                    .collect::<Vec<_>>();
+                                            let new = if fighters.is_empty() {
+                                                all_fighters.clone().to_vec()
+                                            } else {
+                                                FighterJob::iter()
+                                                    .filter(|job| !used_fighter.contains(job))
+                                                    .collect::<Vec<_>>()
+                                            };
+                                            *old = new;
+                                        });
+                                    }
+
+                                    (fighters.len() != FighterJob::iter().count())
+                                        .then_some(
+                                            view! {
+                                                <CircleButton
+                                                    size=CircleButtonSize::Large
+                                                    variant=Variant::Primary
+                                                    icon=icons::LuPlus
+                                                    title="Kämpfer hinzufügen"
+                                                    on:click=move |_| add_open.set(true)
+                                                />
+                                            },
+                                        )
+                                })
+                        })
+                    }
+                }
                 <Show when=move || add_open.get()>
                     <CreateFighterDialog
                         character_id=character_id

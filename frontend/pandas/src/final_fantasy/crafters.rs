@@ -109,7 +109,6 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
     let delete_crafter_action = ServerAction::<DeleteCrafterAction>::new();
 
     let available_crafter = RwSignal::new(vec![]);
-    let add_enabled = Memo::new(move |_| !available_crafter.read().is_empty());
     let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
         crafter_resource.refetch();
@@ -178,7 +177,7 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                 message_type=MessageType::Information
                             >
                                 <MessageContent slot>
-                                    "Du hast noch keine Sammler angelegt, klick unten auf das Plus um deinen Ersten anzulegen"
+                                    "Du hast noch keine Handwerker angelegt, klick unten auf das Plus um deinen Ersten anzulegen"
                                 </MessageContent>
                             </AlertMessage>
                         }
@@ -191,15 +190,20 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                 crafter_resource
                                     .await
                                     .map(|crafters| {
-                                        *available_crafter.write() = {
-                                            let used_crafter = crafters
-                                                .iter()
-                                                .map(|g| g.job)
-                                                .collect::<Vec<_>>();
-                                            CrafterJob::iter()
-                                                .filter(|job| !used_crafter.contains(job))
-                                                .collect::<Vec<_>>()
-                                        };
+                                        available_crafter
+                                            .set({
+                                                let used_crafter = crafters
+                                                    .iter()
+                                                    .map(|g| g.job)
+                                                    .collect::<Vec<_>>();
+                                                if crafters.is_empty() {
+                                                    CrafterJob::iter().collect::<Vec<_>>()
+                                                } else {
+                                                    CrafterJob::iter()
+                                                        .filter(|job| !used_crafter.contains(job))
+                                                        .collect::<Vec<_>>()
+                                                }
+                                            });
                                         crafters
                                             .iter()
                                             .cloned()
@@ -242,15 +246,49 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                         }}
                     </CardList>
                 </Show>
-                <Show when=move || add_enabled.get()>
-                    <CircleButton
-                        size=CircleButtonSize::Large
-                        variant=Variant::Primary
-                        icon=icons::LuPlus
-                        title="Sammler hinzufügen"
-                        on:click=move |_| add_open.set(true)
-                    />
-                </Show>
+                {
+                    let crafter_resource = crafter_resource;
+                    move || {
+                        Suspend::new(async move {
+                            crafter_resource
+                                .await
+                                .map(|crafters| {
+                                    {
+                                        let crafters = crafters.clone();
+
+                                        available_crafter.update(move |old| {
+                                            let all_crafters = CrafterJob::iter().collect::<Vec<_>>();
+                                            let used_crafter = crafters
+                                                    .iter()
+                                                    .map(|g| g.job)
+                                                    .collect::<Vec<_>>();
+                                            let new = if crafters.is_empty() {
+                                                all_crafters.clone().to_vec()
+                                            } else {
+                                                CrafterJob::iter()
+                                                    .filter(|job| !used_crafter.contains(job))
+                                                    .collect::<Vec<_>>()
+                                            };
+                                            *old = new;
+                                        });
+                                    }
+
+                                    (crafters.len() != CrafterJob::iter().count())
+                                        .then_some(
+                                            view! {
+                                                <CircleButton
+                                                    size=CircleButtonSize::Large
+                                                    variant=Variant::Primary
+                                                    icon=icons::LuPlus
+                                                    title="Handwerker hinzufügen"
+                                                    on:click=move |_| add_open.set(true)
+                                                />
+                                            },
+                                        )
+                                })
+                        })
+                    }
+                }
                 <Show when=move || add_open.get()>
                     <CreateCrafterDialog
                         character_id=character_id

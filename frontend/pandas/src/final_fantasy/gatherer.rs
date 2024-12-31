@@ -111,7 +111,6 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
     let delete_gatherer_action = ServerAction::<DeleteGathererAction>::new();
 
     let available_gatherer = RwSignal::new(vec![]);
-    let add_enabled = Memo::new(move |_| !available_gatherer.read().is_empty());
     let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
         gatherer_resource.refetch();
@@ -190,72 +189,99 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                     }
                 >
                     <CardList>
-                        {move || {
+                        {
                             let gatherer_resource = gatherer_resource;
-                            Suspend::new(async move {
-                                gatherer_resource
-                                    .await
-                                    .map(|gatherers| {
-                                        *available_gatherer.write() = {
-                                            let used_gatherer = gatherers
+                            move || {
+                                Suspend::new(async move {
+                                    gatherer_resource
+                                        .await
+                                        .map(|gatherers| {
+                                            gatherers
                                                 .iter()
-                                                .map(|g| g.job)
-                                                .collect::<Vec<_>>();
-                                            GathererJob::iter()
-                                                .filter(|job| !used_gatherer.contains(job))
-                                                .collect::<Vec<_>>()
-                                        };
-                                        gatherers
-                                            .iter()
-                                            .cloned()
-                                            .map(|gatherer| {
-                                                let gatherer_to_edit = gatherer.clone();
+                                                .cloned()
+                                                .map(|gatherer| {
+                                                    let gatherer_to_edit = gatherer.clone();
 
-                                                view! {
-                                                    <Card
-                                                        title=gatherer.job.to_string()
-                                                        prepend=format!(
-                                                            "/pandas/assets/gatherer_jobs/{}",
-                                                            gatherer.job.get_file_name(),
-                                                        )
-                                                    >
-                                                        {if gatherer
-                                                            .level
-                                                            .clone()
-                                                            .is_none_or(|level| level.is_empty())
-                                                        {
-                                                            "Kein Level angegeben".to_string()
-                                                        } else {
-                                                            format!("Level {}", gatherer.level.unwrap())
-                                                        }}
-                                                        <CardBottom slot>
-                                                            <Button
-                                                                label="Bearbeiten"
-                                                                on:click=move |_| edit_gatherer(gatherer_to_edit.clone())
-                                                            />
-                                                            <Button
-                                                                label="Löschen"
-                                                                on:click=move |_| delete_gatherer(gatherer.id)
-                                                            />
-                                                        </CardBottom>
-                                                    </Card>
-                                                }
-                                            })
-                                            .collect_view()
-                                    })
-                            })
-                        }}
+                                                    view! {
+                                                        <Card
+                                                            title=gatherer.job.to_string()
+                                                            prepend=format!(
+                                                                "/pandas/assets/gatherer_jobs/{}",
+                                                                gatherer.job.get_file_name(),
+                                                            )
+                                                        >
+                                                            {if gatherer
+                                                                .level
+                                                                .clone()
+                                                                .is_none_or(|level| level.is_empty())
+                                                            {
+                                                                "Kein Level angegeben".to_string()
+                                                            } else {
+                                                                format!("Level {}", gatherer.level.unwrap())
+                                                            }}
+                                                            <CardBottom slot>
+                                                                <Button
+                                                                    label="Bearbeiten"
+                                                                    on:click=move |_| edit_gatherer(gatherer_to_edit.clone())
+                                                                />
+                                                                <Button
+                                                                    label="Löschen"
+                                                                    on:click=move |_| delete_gatherer(gatherer.id)
+                                                                />
+                                                            </CardBottom>
+                                                        </Card>
+                                                    }
+                                                })
+                                                .collect_view()
+                                        })
+                                })
+                            }
+                        }
                     </CardList>
                 </Show>
-                <Show when=move || add_enabled.get()>
-                    <CircleButton
-                        size=CircleButtonSize::Large
-                        variant=Variant::Primary
-                        icon=icons::LuPlus
-                        title="Sammler hinzufügen"
-                        on:click=move |_| add_open.set(true)
-                    />
-                </Show>
+                {
+                    let gatherer_resource = gatherer_resource;
+                    move || {
+                        Suspend::new(async move {
+                            gatherer_resource
+                                .await
+                                .map(|gatherers| {
+                                    {
+                                        let gatherers = gatherers.clone();
+
+                                        available_gatherer.update(move |old| {
+                                            let all_gatherers = GathererJob::iter().collect::<Vec<_>>();
+                                            let used_gatherer = gatherers
+                                                    .iter()
+                                                    .map(|g| g.job)
+                                                    .collect::<Vec<_>>();
+                                            let new = if gatherers.is_empty() {
+                                                all_gatherers.clone().to_vec()
+                                            } else {
+                                                GathererJob::iter()
+                                                    .filter(|job| !used_gatherer.contains(job))
+                                                    .collect::<Vec<_>>()
+                                            };
+                                            *old = new;
+                                        });
+                                    }
+
+                                    (gatherers.len() != GathererJob::iter().count())
+                                        .then_some(
+                                            view! {
+                                                <CircleButton
+                                                    size=CircleButtonSize::Large
+                                                    variant=Variant::Primary
+                                                    icon=icons::LuPlus
+                                                    title="Sammler hinzufügen"
+                                                    on:click=move |_| add_open.set(true)
+                                                />
+                                            },
+                                        )
+                                })
+                        })
+                    }
+                }
                 <Show when=move || add_open.get()>
                     <CreateGathererDialog
                         character_id=character_id

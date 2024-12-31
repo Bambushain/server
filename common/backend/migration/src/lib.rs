@@ -34,6 +34,7 @@ mod m20240724_222658_grove_user_add_ban_column;
 mod m20240731_233956_user_add_forgot_password_token_column;
 mod m20241130_031734_split_crafter_and_gatherer;
 mod m20241220_015134_set_gatherer_crafter_seq;
+mod m20241229_011028_add_character_column_datacenter;
 
 pub struct Migrator;
 
@@ -75,6 +76,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240731_233956_user_add_forgot_password_token_column::Migration),
             Box::new(m20241130_031734_split_crafter_and_gatherer::Migration),
             Box::new(m20241220_015134_set_gatherer_crafter_seq::Migration),
+            Box::new(m20241229_011028_add_character_column_datacenter::Migration),
         ]
     }
 }

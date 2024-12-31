@@ -1,11 +1,11 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter};
-
 #[cfg(not(target_arch = "wasm32"))]
 use actix_web::{body, http, HttpRequest, HttpResponse, Responder, ResponseError};
 use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 pub enum BambooErrorCode {
     Crypto,
@@ -25,6 +25,33 @@ pub enum BambooErrorCode {
 impl Default for BambooErrorCode {
     fn default() -> Self {
         Self::Unknown
+    }
+}
+
+impl FromStr for BambooErrorCode {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(s.into())
+    }
+}
+
+impl From<&str> for BambooErrorCode {
+    fn from(s: &str) -> Self {
+        match s {
+            "Crypto" => BambooErrorCode::Crypto,
+            "Database" => BambooErrorCode::Database,
+            "ExistsAlready" => BambooErrorCode::ExistsAlready,
+            "InsufficientRights" => BambooErrorCode::InsufficientRights,
+            "InvalidData" => BambooErrorCode::InvalidData,
+            "Io" => BambooErrorCode::Io,
+            "Mailing" => BambooErrorCode::Mailing,
+            "NotFound" => BambooErrorCode::NotFound,
+            "Serialization" => BambooErrorCode::Serialization,
+            "Unauthorized" => BambooErrorCode::Unauthorized,
+            "Validation" => BambooErrorCode::Validation,
+            _ => BambooErrorCode::Unknown,
+        }
     }
 }
 

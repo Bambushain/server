@@ -1,14 +1,180 @@
 use crate::api::ff;
-use crate::api::ff::DeleteCharacterAction;
+use crate::api::ff::{
+    get_custom_fields, get_free_companies, CreateCharacterAction, DeleteCharacterAction,
+};
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
 use crate::final_fantasy::gatherer::GathererTab;
 use crate::final_fantasy::housings::HousingTab;
-use bamboo_common::core::entities::Character;
+use bamboo_common::core::entities::{Character, CharacterRace};
+use bamboo_common::core::error::BambooErrorCode;
 use leptos::either::Either;
+use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
-use std::collections::BTreeMap;
+use rand::prelude::IteratorRandom;
+use std::collections::{BTreeMap, BTreeSet};
+use strum::IntoEnumIterator;
+
+#[component]
+fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -> impl IntoView {
+    let action = ServerAction::<CreateCharacterAction>::new();
+    let value = action.value();
+
+    let has_error = RwSignal::new(false);
+    let error_message = RwSignal::new("".to_string());
+    let error_message_header = RwSignal::new("".to_string());
+
+    let name = RwSignal::new("".to_string());
+    let world = RwSignal::new("".to_string());
+    let datacenter = RwSignal::new("".to_string());
+    let race = RwSignal::new(Some(
+        CharacterRace::iter()
+            .choose(&mut rand::thread_rng())
+            .unwrap_or_default()
+            .get_race_name(),
+    ));
+    let free_company = RwSignal::new(None);
+    let custom_fields = RwSignal::new(BTreeMap::<String, RwSignal<Vec<String>>>::new());
+
+    let custom_fields_resource =
+        Resource::new(|| (), move |_| async move { get_custom_fields().await });
+    let free_companies_resource =
+        Resource::new(|| (), move |_| async move { get_free_companies().await });
+
+    let races = CharacterRace::iter()
+        .map(|race| (Some(race.get_race_name()), race.to_string()))
+        .collect::<Vec<_>>();
+
+    Effect::new(move |_| {
+        if let Some(Ok(char)) = value.get() {
+            has_error.set(false);
+            on_save.run(char)
+        } else if let Some(Err(ServerFnError::WrappedServerError(err))) = value.get() {
+            has_error.set(true);
+            if err.code == BambooErrorCode::ExistsAlready {
+                *error_message.write() = format!(
+                    "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
+                    world.read(),
+                    name.read()
+                );
+                *error_message_header.write() = "Charakter existiert bereits".into();
+            } else {
+                *error_message.write() =
+                    "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport"
+                        .into();
+                *error_message_header.write() = "Unbekannter Fehler".into();
+            }
+        }
+    });
+
+    let create_character = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        let custom_fields = custom_fields
+            .get_untracked()
+            .into_iter()
+            .map(|(field, values)| {
+                (
+                    field,
+                    values.get_untracked().into_iter().collect::<BTreeSet<_>>(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+        action.dispatch(CreateCharacterAction {
+            race: race.get_untracked().unwrap(),
+            name: name.get_untracked(),
+            world: world.get_untracked(),
+            datacenter: datacenter.get_untracked(),
+            free_company: free_company.get_untracked(),
+            custom_fields: Some(custom_fields),
+        });
+    };
+
+    view! {
+        <FormModal
+            classes="is--character"
+            title="Charakter hinzufügen"
+            has_error
+            error_message
+            error_message_header
+            on:submit=create_character
+        >
+            <ModalContent slot>
+                <Textbox name="name" label="Name" value=name />
+                <SingleSelect name="race" label="Rasse" items=races.clone() selected=race />
+                <Textbox name="datacenter" label="Datenzentrum" required=false value=datacenter />
+                <Textbox name="world" label="Stammwelt" value=world />
+                <Transition>
+                    {move || {
+                        Suspend::new(async move {
+                            free_companies_resource
+                                .await
+                                .map(|fc| {
+                                    let mut items = fc
+                                        .iter()
+                                        .map(|fc| (Some(fc.name.clone()), fc.name.clone()))
+                                        .collect::<Vec<_>>();
+                                    let mut with_none = vec![
+                                        (None, "Keine freie Gesellschaft".to_string()),
+                                    ];
+                                    with_none.append(&mut items);
+
+                                    view! {
+                                        <SingleSelect
+                                            name="free_company"
+                                            label="Freie Gesellschaft"
+                                            items=with_none.clone()
+                                            selected=free_company
+                                        />
+                                    }
+                                })
+                        })
+                    }}
+                </Transition>
+                <Transition>
+                    {move || {
+                        Suspend::new(async move {
+                            custom_fields_resource
+                                .await
+                                .map(|fields| {
+                                    fields
+                                        .iter()
+                                        .map(|field| {
+                                            let items = field
+                                                .options
+                                                .iter()
+                                                .cloned()
+                                                .map(|option| (option.label.clone(), option.label.clone()))
+                                                .collect::<Vec<_>>();
+                                            custom_fields
+                                                .try_update(|fields| {
+                                                    let new_item = RwSignal::new(vec![]);
+                                                    fields.insert(field.label.clone(), new_item);
+                                                    new_item
+                                                })
+                                                .map(|selected| {
+
+                                                    view! {
+                                                        <MultiSelect
+                                                            name=format!("custom_fields[{}]", field.label.clone())
+                                                            label=field.label.clone()
+                                                            items=items
+                                                            selected=selected
+                                                        />
+                                                    }
+                                                })
+                                        })
+                                        .collect_view()
+                                })
+                        })
+                    }}
+                </Transition>
+            </ModalContent>
+            <ModalButton on_click=on_close label="Schließen" slot />
+            <ModalButton is_submit=true label="Charakter hinzufügen" slot />
+        </FormModal>
+    }
+}
 
 #[component]
 fn DetailsTab(
@@ -38,7 +204,17 @@ fn DetailsTab(
     let world = Memo::new(move |_| {
         character
             .get()
-            .map(|character| character.world.clone())
+            .map(|character| character.world)
+            .unwrap_or_default()
+    });
+    let datacenter = Memo::new(move |_| {
+        character
+            .get()
+            .map(|character| {
+                character
+                    .datacenter
+                    .unwrap_or("Kein Datenzentrum angegeben".to_string())
+            })
             .unwrap_or_default()
     });
     let race = Memo::new(move |_| {
@@ -101,6 +277,8 @@ fn DetailsTab(
                     <dd>{race}</dd>
                     <dt>Welt</dt>
                     <dd>{world}</dd>
+                    <dt>Datenzentrum</dt>
+                    <dd>{datacenter}</dd>
                     {move || {
                         free_company
                             .get()
@@ -146,6 +324,8 @@ pub fn Characters() -> impl IntoView {
             .collect::<Vec<_>>()
     });
 
+    let add_open = RwSignal::new(false);
+
     let selected_character_id = RwSignal::new(-1);
     let selected_character = Memo::new(move |_| {
         let selected_char = filtered_characters
@@ -189,149 +369,165 @@ pub fn Characters() -> impl IntoView {
 
     let delete_success = Callback::new(move |_| characters_resource.refetch());
 
+    let add_saved = Callback::new(move |_| {
+        characters_resource.refetch();
+        add_open.set(false);
+    });
+    let open_add_character = move |_| add_open.set(true);
+
     Effect::new(move |_| characters_resource.refetch());
 
     view! {
         <leptos_meta::Title text="Charaktere" />
-        <Suspense fallback=|| {
-            view! { <ProgressRing /> }
-        }>
-            {move || Suspend::new(async move {
-                if let Ok(chars) = characters_resource.await {
-                    characters.set(chars.clone());
-                    Either::Left(
-                        view! {
-                            <Show
-                                when=move || !chars.is_empty()
-                                fallback=|| {
-                                    view! {
-                                        <AlertMessage
-                                            header="Keine Charaktere"
-                                            message_type=MessageType::Information
-                                        >
-                                            <MessageContent slot>
-                                                <div>
-                                                    "Du hast noch keine Charaktere erstellt, warum erstellst du dir nicht direkt einen um Bambushain voll und ganz zu nutzen."
-                                                    <div class="cosmo-button__container">
-                                                        <Button
-                                                            label="Neuer Charakter"
-                                                            variant=Variant::Information
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </MessageContent>
-                                        </AlertMessage>
-                                    }
-                                }
-                            >
-                                <div class="pandas-characters-list">
-                                    <div class="pandas-characters-list__items">
-                                        <input
-                                            type="search"
-                                            class="cosmo-input pandas-characters-search-bar"
-                                            placeholder="Nach Name oder Welt filtern…"
-                                            bind:value=search_value
-                                        />
-                                        <div class="pandas-characters-list__items-inner">
-                                            <Show
-                                                when=move || !filtered_characters.read().is_empty()
-                                                fallback=|| {
-                                                    view! {
-                                                        <AlertMessage
-                                                            header="Keine Charaktere gefunden"
-                                                            message_type=MessageType::Information
-                                                        >
-                                                            <MessageContent slot>
-                                                                Für deine Suche wurden keine passenden Charaktere gefunden.
-                                                            </MessageContent>
-                                                        </AlertMessage>
-                                                    }
-                                                }
+        <div class="pandas-character__page">
+            <Transition fallback=|| {
+                view! { <ProgressRing /> }
+            }>
+                {move || Suspend::new(async move {
+                    if let Ok(chars) = characters_resource.await {
+                        characters.set(chars.clone());
+                        Either::Left(
+                            view! {
+                                <Show
+                                    when=move || !chars.is_empty()
+                                    fallback=move || {
+                                        view! {
+                                            <AlertMessage
+                                                header="Keine Charaktere"
+                                                message_type=MessageType::Information
                                             >
-                                                {move || {
-                                                    filtered_characters
-                                                        .get()
-                                                        .into_iter()
-                                                        .map(move |character| {
-                                                            let name = character.name.clone();
-                                                            let race = character.race.to_string();
-                                                            let world = character.world.clone();
-                                                            view! {
-                                                                <div
-                                                            class="pandas-characters-list__item"
-                                                            class:is--active=move || selected_character
-                                                                        .get()
-                                                                        .is_some_and(|char| char.id == character.id)
-                                                            on:click={
-                                                                let character = character.clone();
-                                                                move |_| selected_character_id.set(character.id)
-                                                            }
-                                                        >
-                                                            <span class="pandas-characters-title">{name}</span>
-                                                            <span class="pandas-characters-subtitle">
-                                                                {format!("{race} auf {world}")}
-                                                            </span>
+                                                <MessageContent slot>
+                                                    <div>
+                                                        "Du hast noch keine Charaktere erstellt, warum erstellst du dir nicht direkt einen um Bambushain voll und ganz zu nutzen."
+                                                        <div class="cosmo-button__container">
+                                                            <Button
+                                                                label="Neuer Charakter"
+                                                                variant=Variant::Information
+                                                                on:click=open_add_character
+                                                            />
                                                         </div>
-                                                            }
-                                                        })
-                                                        .collect_view()
-                                                }}
+                                                    </div>
+                                                </MessageContent>
+                                            </AlertMessage>
+                                        }
+                                    }
+                                >
+                                    <div class="pandas-characters-list">
+                                        <div class="pandas-characters-list__items">
+                                            <input
+                                                type="search"
+                                                class="cosmo-input pandas-characters-search-bar"
+                                                placeholder="Nach Name oder Welt filtern…"
+                                                bind:value=search_value
+                                            />
+                                            <div class="pandas-characters-list__items-inner">
+                                                <Show
+                                                    when=move || !filtered_characters.read().is_empty()
+                                                    fallback=|| {
+                                                        view! {
+                                                            <AlertMessage
+                                                                header="Keine Charaktere gefunden"
+                                                                message_type=MessageType::Information
+                                                            >
+                                                                <MessageContent slot>
+                                                                    Für deine Suche wurden keine passenden Charaktere gefunden.
+                                                                </MessageContent>
+                                                            </AlertMessage>
+                                                        }
+                                                    }
+                                                >
+                                                    {move || {
+                                                        filtered_characters
+                                                            .get()
+                                                            .into_iter()
+                                                            .map(move |character| {
+                                                                let name = character.name.clone();
+                                                                let race = character.race.to_string();
+                                                                let world = character.world.clone();
+                                                                view! {
+                                                                    <div
+                                                                class="pandas-characters-list__item"
+                                                                class:is--active=move || selected_character
+                                                                            .get()
+                                                                            .is_some_and(|char| char.id == character.id)
+                                                                on:click={
+                                                                    let character = character.clone();
+                                                                    move |_| selected_character_id.set(character.id)
+                                                                }
+                                                            >
+                                                                <span class="pandas-characters-title">{name}</span>
+                                                                <span class="pandas-characters-subtitle">
+                                                                    {format!("{race} auf {world}")}
+                                                                </span>
+                                                            </div>
+                                                                }
+                                                            })
+                                                            .collect_view()
+                                                    }}
+                                                </Show>
+                                            </div>
+                                            <CircleButton
+                                                size=CircleButtonSize::Large
+                                                variant=Variant::Primary
+                                                icon=icons::LuPlus
+                                                title="Charakter erstellen"
+                                                on:click=open_add_character
+                                            />
+                                        </div>
+                                        <div class="pandas-characters-list__separator"></div>
+                                        <div class="pandas-characters-list__details">
+                                            <Show when=move || has_selected_character.get()>
+                                                <Title title=character_name subtitle=character_race />
+                                                <TabControl selected_index=selected_tab>
+                                                    <TabItem slot label=details_tab_label>
+                                                        <DetailsTab
+                                                            character=selected_character.into()
+                                                            delete_success=delete_success
+                                                        />
+                                                    </TabItem>
+                                                    <TabItem slot label="Kämpfer">
+                                                        <FighterTab character_id=character_id.into() />
+                                                    </TabItem>
+                                                    <TabItem slot label="Handwerker">
+                                                        <CrafterTab character_id=character_id.into() />
+                                                    </TabItem>
+                                                    <TabItem slot label="Sammler">
+                                                        <GathererTab character_id=character_id.into() />
+                                                    </TabItem>
+                                                    <TabItem slot label="Unterkünfte">
+                                                        <HousingTab character_id=character_id.into() />
+                                                    </TabItem>
+                                                </TabControl>
                                             </Show>
                                         </div>
-                                        <CircleButton
-                                            size=CircleButtonSize::Large
-                                            variant=Variant::Primary
-                                            icon=icons::LuPlus
-                                            title="Charakter erstellen"
-                                        />
                                     </div>
-                                    <div class="pandas-characters-list__separator"></div>
-                                    <div class="pandas-characters-list__details">
-                                        <Show when=move || has_selected_character.get()>
-                                            <Title title=character_name subtitle=character_race />
-                                            <TabControl selected_index=selected_tab>
-                                                <TabItem slot label=details_tab_label>
-                                                    <DetailsTab
-                                                        character=selected_character.into()
-                                                        delete_success=delete_success
-                                                    />
-                                                </TabItem>
-                                                <TabItem slot label="Kämpfer">
-                                                    <FighterTab character_id=character_id.into() />
-                                                </TabItem>
-                                                <TabItem slot label="Handwerker">
-                                                    <CrafterTab character_id=character_id.into() />
-                                                </TabItem>
-                                                <TabItem slot label="Sammler">
-                                                    <GathererTab character_id=character_id.into() />
-                                                </TabItem>
-                                                <TabItem slot label="Unterkünfte">
-                                                    <HousingTab character_id=character_id.into() />
-                                                </TabItem>
-                                            </TabControl>
-                                        </Show>
-                                    </div>
-                                </div>
-                            </Show>
-                        },
-                    )
-                } else {
-                    Either::Right(
-                        view! {
-                            <AlertMessage
-                                header="Fehler beim Laden"
-                                message_type=MessageType::Negative
-                            >
-                                <MessageContent slot>
-                                    <p>
-                                        "Leider konnten deine Charaktere nicht geladen werden, wende dich bitte an den Bambusssupport."
-                                    </p>
-                                </MessageContent>
-                            </AlertMessage>
-                        },
-                    )
-                }
-            })}
-        </Suspense>
+                                </Show>
+                                <Show when=move || add_open.get()>
+                                    <CreateCharacterDialog
+                                        on_save=add_saved
+                                        on_close=Callback::from(move || add_open.set(false))
+                                    />
+                                </Show>
+                            },
+                        )
+                    } else {
+                        Either::Right(
+                            view! {
+                                <AlertMessage
+                                    header="Fehler beim Laden"
+                                    message_type=MessageType::Negative
+                                >
+                                    <MessageContent slot>
+                                        <p>
+                                            "Leider konnten deine Charaktere nicht geladen werden, wende dich bitte an den Bambusssupport."
+                                        </p>
+                                    </MessageContent>
+                                </AlertMessage>
+                            },
+                        )
+                    }
+                })}
+            </Transition>
+        </div>
     }
 }

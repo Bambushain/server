@@ -88,8 +88,8 @@ html2text = "0.13"
 icondata_lu = "0.0"
 itertools = "0.13"
 leptos = "0.7"
-#leptos-cosmo = { path = "../jinya/leptos-cosmo" }
-leptos-cosmo = "1.0.9"
+leptos-cosmo = { path = "../jinya/leptos-cosmo" }
+#leptos-cosmo = "1.0.9"
 leptos_actix = "0.7"
 leptos_meta = "0.7"
 leptos_router = "0.7"
@@ -101,6 +101,7 @@ mrml = { version = "4.0", features = ["async", "parse", "render"] }
 parking_lot = "0.12"
 pbkdf2 = "0.12"
 quote = "1.0"
+rand = "0.8"
 rust-s3 = "0.35"
 sea-orm = { version = "1.1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
 sea-orm-migration = { version = "1.1", features = ["sqlx-mysql", "runtime-tokio-rustls"] }

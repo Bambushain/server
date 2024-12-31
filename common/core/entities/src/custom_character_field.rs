@@ -14,6 +14,7 @@ use crate::CustomCharacterFieldOption;
 pub struct CustomField {
     pub values: BTreeSet<String>,
     pub label: String,
+    #[serde(default)]
     pub position: usize,
 }
 

@@ -26,7 +26,7 @@ pub async fn get_custom_fields(
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to load character custom fields"))
         .map(|fields| {
-            fields
+            let mut res = fields
                 .iter()
                 .map(|(field, options)| CustomCharacterField {
                     options: options.clone(),
@@ -35,7 +35,9 @@ pub async fn get_custom_fields(
                     user_id: field.user_id,
                     position: field.position,
                 })
-                .collect_vec()
+                .collect_vec();
+            res.sort_by(|a, b| b.position.cmp(&a.position));
+            res
         })
 }
 

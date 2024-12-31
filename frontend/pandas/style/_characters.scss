@@ -1,4 +1,9 @@
 .pandas-characters {
+  &__page {
+    height: var(--page-height);
+    grid-column: content;
+  }
+
   &-list {
     display: grid;
     grid-template-columns: [list] 25rem [line] 0.0625rem [details] 1fr;
@@ -147,4 +152,9 @@
       place-self: end;
     }
   }
+}
+
+.cosmo-modal.is--character {
+  min-width: 40rem;
+  max-width: 40rem;
 }
