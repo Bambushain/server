@@ -129,6 +129,22 @@ pub async fn get_users_by_grove(
     .await
 }
 
+pub async fn user_is_banned_from_grove(
+    user_id: i32,
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> bool {
+    grove_user::Entity::find()
+        .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::GroveId.eq(grove_id))
+        .filter(grove_user::Column::IsBanned.eq(true))
+        .all(db)
+        .await
+        .map(|x| !x.is_empty())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
+        .unwrap_or(true)
+}
+
 pub(crate) async fn user_exists_by_id(
     id: i32,
     email: String,

@@ -6,7 +6,7 @@
 
   &-list {
     display: grid;
-    grid-template-columns: [list] 25rem [line] 0.0625rem [details] 1fr;
+    grid-template-columns: [list] 20rem [line] 0.0625rem [details] 1fr;
     gap: 1rem;
     height: var(--page-height);
 

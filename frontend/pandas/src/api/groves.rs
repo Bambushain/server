@@ -32,6 +32,19 @@ pub async fn get_grove(id: i32) -> Result<Grove, ServerFnError> {
         .map_err(ServerFnError::new)
 }
 
+#[server(IsBannedFromGroveAction, "/pandas/grove")]
+pub async fn is_banned_from_grove(id: i32) -> Result<bool, ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
+
+    Ok(dbal::user_is_banned_from_grove(auth_state.user.id, id, &db).await)
+}
+
 #[server(EnableInvitesAction, "/pandas/grove/invite/enable")]
 pub async fn enable_invites(id: i32) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
@@ -140,6 +153,10 @@ pub async fn get_banned_pandas(grove_id: i32) -> Result<Vec<GroveUser>, ServerFn
     use leptos_actix::extract;
 
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
+
+    if dbal::user_is_banned_from_grove(auth_state.user.id, grove_id, &db).await {
+        return Err(ServerFnError::new("You are banned"));
+    }
 
     dbal::get_users_by_grove(auth_state.user.id, grove_id, BannedStatus::Banned, &db)
         .await

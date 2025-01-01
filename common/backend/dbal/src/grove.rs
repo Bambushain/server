@@ -33,6 +33,7 @@ pub async fn get_grove(id: i32, user_id: i32, db: &DatabaseConnection) -> Bamboo
     grove::Entity::find_by_id(id)
         .inner_join(grove_user::Entity)
         .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::IsBanned.eq(false))
         .one(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
@@ -69,6 +70,7 @@ pub async fn get_groves(user_id: i32, db: &DatabaseConnection) -> BambooResult<V
     grove::Entity::find()
         .inner_join(grove_user::Entity)
         .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::IsBanned.eq(false))
         .order_by_asc(grove::Column::Id)
         .all(db)
         .await

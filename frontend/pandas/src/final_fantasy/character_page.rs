@@ -100,7 +100,7 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
             on:submit=create_character
         >
             <ModalContent slot>
-                <Textbox name="name" label="Name" value=name />
+                <Textbox maxlength=20 name="name" label="Name" value=name />
                 <SingleSelect name="race" label="Rasse" items=races.clone() selected=race />
                 <Textbox name="datacenter" label="Datenzentrum" required=false value=datacenter />
                 <Textbox name="world" label="Stammwelt" value=world />

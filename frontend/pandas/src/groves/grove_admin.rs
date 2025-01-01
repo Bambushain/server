@@ -10,22 +10,22 @@ use leptos_router::{hooks::use_navigate, NavigateOptions};
 
 #[component]
 pub fn GroveAdminTab(
-    #[prop(into)] grove_id: Signal<i32>,
+    #[prop(into)] grove_id: Signal<Option<i32>>,
     #[prop(into)] grove_name: Signal<String>,
 ) -> impl IntoView {
     let navigate = use_navigate();
     let grove_resource = Resource::new(
         move || grove_id.get(),
-        move |id| async move { get_grove(id).await },
+        move |id| async move { get_grove(id.unwrap()).await },
     );
     let groves_resource = Resource::new(move || {}, move |_| async move { get_all_groves().await });
     let pandas_resource = Resource::new(
         move || grove_id.get(),
-        move |id| async move { get_pandas(Some(id)).await },
+        move |id| async move { get_pandas(id).await },
     );
     let banned_pandas_resource = Resource::new(
         move || grove_id.get(),
-        move |id| async move { get_banned_pandas(id).await },
+        move |id| async move { get_banned_pandas(id.unwrap()).await },
     );
 
     let enable_invites_action = ServerAction::<EnableInvitesAction>::new();
@@ -91,10 +91,14 @@ pub fn GroveAdminTab(
     });
 
     let enable_invite = move |_| {
-        enable_invites_action.dispatch(EnableInvitesAction { id: grove_id.get() });
+        enable_invites_action.dispatch(EnableInvitesAction {
+            id: grove_id.get().unwrap(),
+        });
     };
     let disable_invite = move |_| {
-        disable_invites_action.dispatch(DisableInvitesAction { id: grove_id.get() });
+        disable_invites_action.dispatch(DisableInvitesAction {
+            id: grove_id.get().unwrap(),
+        });
     };
     let on_delete = Callback::new(move |_| {
         if let Some(Ok(grove)) = grove_resource.get() {
@@ -105,7 +109,7 @@ pub fn GroveAdminTab(
                 "Hain löschen",
                 "Nicht löschen",
                 Some(Callback::new(move |_| {
-                    delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get() });
+                    delete_grove_action.dispatch(DeleteGroveAction { id: grove_id.get().unwrap() });
                 })),
                 None,
             )
@@ -123,7 +127,7 @@ pub fn GroveAdminTab(
             "Gebannt lassen",
             Some(Callback::new(move |_| {
                 unban_panda_action.dispatch(UnbanPandaAction {
-                    grove_id: grove_id.get(),
+                    grove_id: grove_id.get().unwrap(),
                     user_id: user.id,
                 });
             })),

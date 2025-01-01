@@ -9,9 +9,9 @@ use leptos_cosmo::prelude::*;
 #[component]
 fn PandaCard(
     panda: GroveUser,
-    #[prop(into)] grove_id: Option<i32>,
-    #[prop(into)] me_id: i32,
-    #[prop(into)] is_mod: Option<bool>,
+    #[prop(into)] grove_id: Signal<Option<i32>>,
+    #[prop(into)] me_id: Signal<i32>,
+    #[prop(into)] is_mod: Signal<Option<bool>>,
     #[prop(into)] ban_callback: Callback<BanResultCode>,
 ) -> impl IntoView {
     let profile_picture = Memo::new(move |_| {
@@ -27,11 +27,13 @@ fn PandaCard(
 
     let ban_panda_action = ServerAction::<BanPandaAction>::new();
 
+    let is_me = Memo::new(move |_| me_id.get() != panda.id);
+
     let ban_panda_confirm = {
         let user_id = panda.id;
 
         move |_| {
-            let grove_id = grove_id.unwrap();
+            let grove_id = grove_id.get().unwrap();
 
             use_modals().confirm(
                 "Panda bannen",
@@ -50,11 +52,13 @@ fn PandaCard(
         }
     };
 
-    let panda_card_content = view! {
-        <a href=format!("mailto:{}", email.read())>{email}</a>
-        <Show when=move || !discord_name.read().is_empty()>
-            <span>{"Auf Discord bekannt als "}<strong>{discord_name}</strong></span>
-        </Show>
+    let panda_card_content = move || {
+        view! {
+            <a href=format!("mailto:{}", email.read())>{email}</a>
+            <Show when=move || !discord_name.read().is_empty()>
+                <span>{"Auf Discord bekannt als "}<strong>{discord_name}</strong></span>
+            </Show>
+        }
     };
 
     Effect::new(move |_| {
@@ -63,31 +67,35 @@ fn PandaCard(
         }
     });
 
-    if grove_id.is_some() && is_mod.unwrap_or(false) {
-        Either::Left(view! {
+    view! {
+        <Show
+            when=move || grove_id.read().is_some() && is_mod.get().unwrap_or(false)
+            fallback=move || view! {
+                <Card title=display_name prepend=profile_picture>
+                    {panda_card_content()}
+                </Card>
+            }
+        >
             <Card title=display_name prepend=profile_picture>
-                {panda_card_content}
+                {panda_card_content()}
                 <CardBottom slot>
                     <Button
-                        enabled=me_id != panda.id
+                        enabled=is_me
                         label="Panda bannen"
                         on:click=ban_panda_confirm
                     />
                 </CardBottom>
             </Card>
-        })
-    } else {
-        Either::Right(view! {
-            <Card title=display_name prepend=profile_picture>
-                {panda_card_content}
-            </Card>
-        })
+        </Show>
     }
 }
 
 #[component]
-pub fn PandasList(#[prop(into, optional)] grove_id: Option<i32>) -> impl IntoView {
-    let pandas = Resource::new(|| (), move |_| async move { get_pandas(grove_id).await });
+pub fn PandasList(#[prop(into, optional)] grove_id: Signal<Option<i32>>) -> impl IntoView {
+    let pandas = Resource::new(
+        move || grove_id.get(),
+        move |grove_id| async move { get_pandas(grove_id).await },
+    );
 
     let current_user = expect_context::<RwSignal<User>>();
 

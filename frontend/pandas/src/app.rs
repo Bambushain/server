@@ -2,6 +2,7 @@ use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
 use bamboo_common::core::entities::User;
+use chrono::Utc;
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
@@ -11,7 +12,7 @@ use leptos_use::use_window;
 
 #[component]
 fn PandasMenu() -> impl IntoView {
-    let groves = expect_context::<RwSignal<AllGroves>>();
+    let groves_ctx = expect_context::<RwSignal<AllGroves>>();
 
     view! {
         <Menu>
@@ -31,20 +32,22 @@ fn PandasMenu() -> impl IntoView {
                 <MenuItem href="/pandas/final-fantasy/customization" label="Personalisierung" />
             </SubMenu>
             <SubMenu parent="/pandas/groves" slot>
-                {move || {
-                    groves
-                        .get()
-                        .iter()
-                        .map(|grove| {
-                            view! {
-                                <MenuItem
-                                    href=format!("/pandas/groves/{}/{}", grove.id, grove.name)
-                                    label=grove.name.clone()
-                                />
-                            }
-                        })
-                        .collect_view()
-                }}
+                <Await future=get_all_groves() let:groves>
+                    {groves.clone().ok().map(|groves| {
+                        groves_ctx.set(groves.clone());
+                        groves
+                            .iter()
+                            .map(|grove| {
+                                view! {
+                                    <MenuItem
+                                        href=format!("/pandas/groves/{}/{}", grove.id, grove.name)
+                                        label=grove.name.clone()
+                                    />
+                                }
+                            })
+                            .collect_view()
+                    })}
+                </Await>
                 <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
             </SubMenu>
         </Menu>
@@ -52,9 +55,25 @@ fn PandasMenu() -> impl IntoView {
 }
 
 #[component]
-fn PandasRoutes() -> impl IntoView {
+fn GrovesRoute() -> impl IntoView {
     let groves = expect_context::<RwSignal<AllGroves>>();
 
+    let groves = groves.read();
+    if let Some(grove) = groves.first() {
+        view! {
+            <Redirect path=format!(
+                "/pandas/groves/{}/{}",
+                grove.id,
+                grove.name.clone(),
+            ) />
+        }
+    } else {
+        view! { <Redirect path="/pandas/groves/new" /> }
+    }
+}
+
+#[component]
+fn PandasRoutes() -> impl IntoView {
     view! {
         <PageBody>
             <Routes fallback=|| view! { <Redirect path="/pandas/bamboo" /> }>
@@ -63,23 +82,7 @@ fn PandasRoutes() -> impl IntoView {
                 <Route path=path!("/pandas/bamboo/pandas") view=bamboo::Pandas />
                 <Route path=path!("/pandas/final-fantasy") view=final_fantasy::Characters />
                 <Route path=path!("/pandas/groves/:id/:name") view=groves::GrovePage />
-                <Route
-                    path=path!("/pandas/groves")
-                    view=move || {
-                        let groves = groves.read();
-                        if let Some(grove) = groves.first() {
-                            view! {
-                                <Redirect path=format!(
-                                    "/pandas/groves/{}/{}",
-                                    grove.id,
-                                    grove.name.clone(),
-                                ) />
-                            }
-                        } else {
-                            view! { <Redirect path="/pandas/groves/new" /> }
-                        }
-                    }
-                />
+                <Route path=path!("/pandas/groves") view=GrovesRoute />
                 <Route path=path!("/pandas/groves/new") view=groves::NewGrovePage />
                 <Route path=path!("/pandas/profile") view=my::MyProfilePage />
                 <Route path=path!("/pandas/support") view=support::BambooSupportPage />
@@ -93,8 +96,11 @@ fn PandasTopBar() -> impl IntoView {
     let logout_action = ServerAction::<LogoutAction>::new();
     let current_user_ctx = expect_context::<RwSignal<User>>();
 
-    let profile_picture =
-        RwSignal::new(format!("/api/user/{}/picture", current_user_ctx.read().id));
+    let profile_picture = RwSignal::new(format!(
+        "/api/user/{}/picture?time={}",
+        current_user_ctx.read().id,
+        Utc::now().timestamp()
+    ));
 
     let logout = Callback::new(move |_| {
         logout_action.dispatch(LogoutAction {});
@@ -111,7 +117,11 @@ fn PandasTopBar() -> impl IntoView {
         }
     });
     Effect::new(move |_| {
-        *profile_picture.write() = format!("/api/user/{}/picture", current_user_ctx.read().id);
+        *profile_picture.write() = format!(
+            "/api/user/{}/picture?time={}",
+            current_user_ctx.read().id,
+            Utc::now().timestamp()
+        );
     });
 
     view! {
@@ -135,14 +145,8 @@ pub fn App() -> impl IntoView {
     let current_user_ctx = RwSignal::new(User::default());
     let groves_ctx = RwSignal::new(AllGroves::new());
 
-    let current_user_resource = Resource::new(|| (), |_| async move { get_current_user().await });
-
-    Effect::new(move |_| current_user_resource.refetch());
-
     provide_context(current_user_ctx);
     provide_context(groves_ctx);
-
-    let groves_resource = Resource::new(|| (), |_| async move { get_all_groves().await });
 
     view! {
         <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css" />
@@ -155,17 +159,11 @@ pub fn App() -> impl IntoView {
         <Meta content="#598c79" name="msapplication-TileColor" />
         <Meta content="#598c79" name="theme-color" />
         <Meta content="width=device-width, initial-scale=1" name="viewport" />
-        <Suspense>
-            {move || Suspend::new(async move {
-                if let Ok(groves) = groves_resource.await {
-                    groves_ctx.set(groves);
-                }
-                if let Ok(current_user) = current_user_resource.await {
-                    current_user_ctx.set(current_user)
-                }
-            })}
-        </Suspense>
-
+        <Await future=get_current_user() let:current_user>
+            {if let Ok(current_user) = current_user.clone() {
+                current_user_ctx.set(current_user);
+            }}
+        </Await>
         <PageLayout
             primary_color=Color::new(89, 140, 121, 0.0)
             primary_color_dark=Color::new(89, 140, 121, 0.0)

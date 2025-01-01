@@ -367,7 +367,7 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 }
 
 #[component]
-pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView {
+pub fn Calendar(#[prop(optional, into)] grove_id: Signal<Option<i32>>) -> impl IntoView {
     let date = RwSignal::new(Local::now().date_naive().with_day(1).unwrap());
 
     let prev_month = Memo::new(move |_| date.read().sub(Months::new(1)));
@@ -414,7 +414,13 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Option<i32>) -> impl IntoView 
 
     let events = RwSignal::new(Vec::<GroveEvent>::default());
     let events_resource = Resource::new(
-        move || (calendar_end_date.get(), calendar_start_date.get(), grove_id),
+        move || {
+            (
+                calendar_end_date.get(),
+                calendar_start_date.get(),
+                grove_id.get(),
+            )
+        },
         |(end, start, grove_id)| async move { get_events(start, end, grove_id).await },
     );
 
