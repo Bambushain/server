@@ -123,10 +123,11 @@ pub async fn delete_grove(id: i32) -> Result<(), ServerFnError> {
 }
 
 #[server(UpdateModsAction, "/pandas/grove/mods")]
-pub async fn update_mods(id: i32, mods: Vec<i32>) -> Result<(), ServerFnError> {
+pub async fn update_mods(id: i32, mods: Vec<String>) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use leptos_actix::extract;
+    use std::str::FromStr;
 
     use crate::authentication::AuthState;
 
@@ -135,10 +136,17 @@ pub async fn update_mods(id: i32, mods: Vec<i32>) -> Result<(), ServerFnError> {
         .await
         .map_err(ServerFnError::new)?
     {
-        dbal::update_grove_mods(id, auth_state.user.id, mods, &db)
-            .await
-            .map_err(ServerFnError::new)
-            .map(|_| ())
+        dbal::update_grove_mods(
+            id,
+            auth_state.user.id,
+            mods.iter()
+                .filter_map(|m| i32::from_str(m.as_str()).ok())
+                .collect::<Vec<_>>(),
+            &db,
+        )
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
     } else {
         Err(ServerFnError::new("You need to be mod"))
     }

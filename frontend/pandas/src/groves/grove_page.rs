@@ -29,6 +29,7 @@ pub fn GrovePage() -> impl IntoView {
     );
 
     view! {
+        <leptos_meta::Title text=move || name.get() />
         <Transition>
             {move || {
                 Suspend::new(async move {
@@ -40,14 +41,12 @@ pub fn GrovePage() -> impl IntoView {
 
                     view! {
                         <Show when=move || !is_banned fallback=move || view! {
-                            <leptos_meta::Title text="Gebannt" />
                             <AlertMessage header="Du bist gebannt" message_type=MessageType::Negative>
                                 <MessageContent slot>
                                     Tut uns leid, aber du wurdest aus diesem Hain gebannt. Bitte wähle einen anderen.
                                 </MessageContent>
                             </AlertMessage>
                         }>
-                            <leptos_meta::Title text=move || name.get() />
                             <span class="cosmo-title">{name}</span>
                             <Show
                                 when=move || is_mod
