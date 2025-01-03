@@ -1,7 +1,7 @@
 use crate::api::{get_pandas, BanPandaAction, BanResultCode};
 use crate::components::{Card, CardBottom, CardList};
 use bamboo_common::core::entities::user::GroveUser;
-use bamboo_common::core::entities::User;
+use bamboo_common::core::entities::BambooUser;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
@@ -70,20 +70,18 @@ fn PandaCard(
     view! {
         <Show
             when=move || grove_id.read().is_some() && is_mod.get().unwrap_or(false)
-            fallback=move || view! {
-                <Card title=display_name prepend=profile_picture>
-                    {panda_card_content()}
-                </Card>
+            fallback=move || {
+                view! {
+                    <Card title=display_name prepend=profile_picture>
+                        {panda_card_content()}
+                    </Card>
+                }
             }
         >
             <Card title=display_name prepend=profile_picture>
                 {panda_card_content()}
                 <CardBottom slot>
-                    <Button
-                        enabled=is_me
-                        label="Panda bannen"
-                        on:click=ban_panda_confirm
-                    />
+                    <Button enabled=is_me label="Panda bannen" on:click=ban_panda_confirm />
                 </CardBottom>
             </Card>
         </Show>
@@ -97,7 +95,7 @@ pub fn PandasList(#[prop(into, optional)] grove_id: Signal<Option<i32>>) -> impl
         move |grove_id| async move { get_pandas(grove_id).await },
     );
 
-    let current_user = expect_context::<RwSignal<User>>();
+    let current_user = expect_context::<RwSignal<BambooUser>>();
 
     let refetch = Callback::new(move |ban_result_code: BanResultCode| {
         if ban_result_code == BanResultCode::Success {

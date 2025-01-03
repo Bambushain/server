@@ -8,7 +8,8 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::Sender;
 
-use bamboo_common::core::entities::{Grove, GroveEvent, User};
+use bamboo_common::core::entities::user::BambooUser;
+use bamboo_common::core::entities::{Grove, GroveEvent};
 use bamboo_common::core::queueing::{EventAction, EventType};
 use serde::{Deserialize, Serialize};
 use tokio_stream::wrappers::ReceiverStream;
@@ -54,7 +55,7 @@ pub struct EventBroadcaster {
 
 #[derive(Debug, Clone, Default)]
 struct EventBroadcasterInner {
-    clients: Vec<(Sender<sse::Event>, User)>,
+    clients: Vec<(Sender<sse::Event>, BambooUser)>,
 }
 
 impl EventBroadcaster {
@@ -94,7 +95,7 @@ impl EventBroadcaster {
 
     pub async fn new_client(
         &self,
-        user: User,
+        user: BambooUser,
     ) -> sse::Sse<InfallibleStream<ReceiverStream<sse::Event>>> {
         log::debug!("Open channel using tokio");
         let (tx, rx) = tokio::sync::mpsc::channel::<sse::Event>(10);
@@ -126,7 +127,7 @@ impl EventBroadcaster {
         }
     }
 
-    fn check_for_grove(user: User, evt: EventAction, groves: Vec<Grove>) -> bool {
+    fn check_for_grove(user: BambooUser, evt: EventAction, groves: Vec<Grove>) -> bool {
         let event = match evt.clone() {
             EventAction::Created(event) => event,
             EventAction::Updated(event) => event,

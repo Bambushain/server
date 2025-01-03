@@ -272,26 +272,26 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                                 .map(|fighters| {
                                     {
                                         let fighters = fighters.clone();
-
-                                        available_fighter.update(move |old| {
-                                            let all_fighters = FighterJob::iter().collect::<Vec<_>>();
-                                            let used_fighter = fighters
+                                        available_fighter
+                                            .update(move |old| {
+                                                let all_fighters = FighterJob::iter().collect::<Vec<_>>();
+                                                let used_fighter = fighters
                                                     .iter()
                                                     .map(|g| g.job)
                                                     .collect::<Vec<_>>();
-                                            let new = if fighters.is_empty() {
-                                                all_fighters.clone().to_vec()
-                                            } else {
-                                                FighterJob::iter()
-                                                    .filter(|job| !used_fighter.contains(job))
-                                                    .collect::<Vec<_>>()
-                                            };
-                                            *old = new;
-                                        });
+                                                let new = if fighters.is_empty() {
+                                                    all_fighters.clone().to_vec()
+                                                } else {
+                                                    FighterJob::iter()
+                                                        .filter(|job| !used_fighter.contains(job))
+                                                        .collect::<Vec<_>>()
+                                                };
+                                                *old = new;
+                                            });
                                     }
-
                                     (fighters.len() != FighterJob::iter().count())
                                         .then_some(
+
                                             view! {
                                                 <CircleButton
                                                     size=CircleButtonSize::Large

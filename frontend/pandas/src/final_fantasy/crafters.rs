@@ -255,26 +255,26 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                 .map(|crafters| {
                                     {
                                         let crafters = crafters.clone();
-
-                                        available_crafter.update(move |old| {
-                                            let all_crafters = CrafterJob::iter().collect::<Vec<_>>();
-                                            let used_crafter = crafters
+                                        available_crafter
+                                            .update(move |old| {
+                                                let all_crafters = CrafterJob::iter().collect::<Vec<_>>();
+                                                let used_crafter = crafters
                                                     .iter()
                                                     .map(|g| g.job)
                                                     .collect::<Vec<_>>();
-                                            let new = if crafters.is_empty() {
-                                                all_crafters.clone().to_vec()
-                                            } else {
-                                                CrafterJob::iter()
-                                                    .filter(|job| !used_crafter.contains(job))
-                                                    .collect::<Vec<_>>()
-                                            };
-                                            *old = new;
-                                        });
+                                                let new = if crafters.is_empty() {
+                                                    all_crafters.clone().to_vec()
+                                                } else {
+                                                    CrafterJob::iter()
+                                                        .filter(|job| !used_crafter.contains(job))
+                                                        .collect::<Vec<_>>()
+                                                };
+                                                *old = new;
+                                            });
                                     }
-
                                     (crafters.len() != CrafterJob::iter().count())
                                         .then_some(
+
                                             view! {
                                                 <CircleButton
                                                     size=CircleButtonSize::Large

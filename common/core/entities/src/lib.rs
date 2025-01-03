@@ -23,6 +23,7 @@ pub use crate::grove::Model as Grove;
 pub use crate::grove_user::Model as GroveUser;
 pub use crate::support::*;
 pub use crate::token::Model as Token;
+pub use crate::user::BambooUser;
 pub use crate::user::Model as User;
 pub use crate::user::TotpQrCode;
 pub use crate::user::UpdateProfile;

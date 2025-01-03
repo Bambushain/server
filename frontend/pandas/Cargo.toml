@@ -16,6 +16,7 @@ codee = { workspace = true }
 console_error_panic_hook = { workspace = true }
 chrono = { workspace = true }
 date-range = { workspace = true }
+futures-util = { workspace = true }
 gloo-file = { workspace = true, features = ["futures"] }
 icondata_lu = { workspace = true }
 leptos = { workspace = true }

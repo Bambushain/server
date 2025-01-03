@@ -40,13 +40,21 @@ pub fn GrovePage() -> impl IntoView {
                     }
 
                     view! {
-                        <Show when=move || !is_banned fallback=move || view! {
-                            <AlertMessage header="Du bist gebannt" message_type=MessageType::Negative>
-                                <MessageContent slot>
-                                    Tut uns leid, aber du wurdest aus diesem Hain gebannt. Bitte wähle einen anderen.
-                                </MessageContent>
-                            </AlertMessage>
-                        }>
+                        <Show
+                            when=move || !is_banned
+                            fallback=move || {
+                                view! {
+                                    <AlertMessage
+                                        header="Du bist gebannt"
+                                        message_type=MessageType::Negative
+                                    >
+                                        <MessageContent slot>
+                                            Tut uns leid, aber du wurdest aus diesem Hain gebannt. Bitte wähle einen anderen.
+                                        </MessageContent>
+                                    </AlertMessage>
+                                }
+                            }
+                        >
                             <span class="cosmo-title">{name}</span>
                             <Show
                                 when=move || is_mod

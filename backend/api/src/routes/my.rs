@@ -7,6 +7,7 @@ use bamboo_common::core::entities::*;
 use bamboo_common::core::error::*;
 
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
+use bamboo_common::core::entities::user::BambooUser;
 
 #[put("/api/my/password", wrap = "authenticate!()")]
 pub async fn change_password(
@@ -91,7 +92,7 @@ pub async fn validate_totp(
 }
 
 #[get("/api/my/profile", wrap = "authenticate!()")]
-pub async fn get_profile(authentication: Authentication) -> BambooApiResult<User> {
+pub async fn get_profile(authentication: Authentication) -> BambooApiResult<BambooUser> {
     Ok(ok!(authentication.user.clone()))
 }
 

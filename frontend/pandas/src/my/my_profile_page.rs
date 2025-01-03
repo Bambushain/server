@@ -1,9 +1,9 @@
 use crate::api::{
-    get_all_groves, get_profile, get_qr_code, update_profile_picture, ChangePasswordAction,
-    DeleteProfileAction, DisableTotpAction, PasswordResponse, UpdateProfileAction,
-    ValidateTotpAction,
+    get_qr_code, update_profile_picture, ChangePasswordAction, DeleteProfileAction,
+    DisableTotpAction, PasswordResponse, UpdateProfileAction, ValidateTotpAction,
 };
-use bamboo_common::core::entities::User;
+use crate::state::AllGroves;
+use bamboo_common::core::entities::BambooUser;
 use gloo_file::futures::read_as_bytes;
 use leptos::prelude::{ActionForm, *};
 use leptos::task::spawn_local;
@@ -13,10 +13,13 @@ use leptos_router::components::A;
 use leptos_use::use_window;
 
 #[component]
-fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoView {
+fn UpdateProfileDialog(
+    #[prop(into)] on_saved: Callback<(), ()>,
+    #[prop(into)] on_close: Callback<(), ()>,
+) -> impl IntoView {
     let update_profile_action = ServerAction::<UpdateProfileAction>::new();
 
-    let current_user_ctx = expect_context::<RwSignal<User>>();
+    let current_user_ctx = expect_context::<RwSignal<BambooUser>>();
 
     let email = RwSignal::new(current_user_ctx.get().email.clone());
     let name = RwSignal::new(current_user_ctx.get().display_name.clone());
@@ -31,7 +34,6 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
     Effect::new(move |_| {
         if let Some(Ok(res)) = update_profile_action.value().get() {
             if res.success && res.user.is_some() {
-                current_user_ctx.set(res.user.unwrap());
                 if let Some(profile_picture) = profile_picture.get() {
                     let files = gloo_file::FileList::from(profile_picture);
                     if let Some(file) = files.iter().next().cloned() {
@@ -44,15 +46,17 @@ fn UpdateProfileDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVie
                                     error_message.set("Das Profilbild konnte leider nicht hochgeladen werden, bitte wende dich an den Bambussupport".into());
                                     error_message_header.set("Fehler beim Hochladen".into());
                                 }
+                                current_user_ctx.set(res.user.unwrap());
                             } else {
-                                on_close.run(())
+                                on_saved.run(())
                             }
                         });
                     } else {
-                        on_close.run(())
+                        current_user_ctx.set(res.user.unwrap());
+                        on_saved.run(())
                     }
                 } else {
-                    on_close.run(())
+                    on_saved.run(())
                 }
             } else {
                 has_error.set(true);
@@ -318,8 +322,8 @@ fn ChangePasswordDialog(#[prop(into)] on_close: Callback<(), ()>) -> impl IntoVi
 
 #[component]
 pub fn MyProfilePage() -> impl IntoView {
-    let profile_resource = Resource::new(|| (), |_| async move { get_profile().await });
-    let groves_resource = Resource::new(|| (), |_| async move { get_all_groves().await });
+    let current_user_ctx = expect_context::<RwSignal<BambooUser>>();
+    let groves_ctx = expect_context::<RwSignal<AllGroves>>();
 
     let delete_profile_action = ServerAction::<DeleteProfileAction>::new();
     let disable_totp_action = ServerAction::<DisableTotpAction>::new();
@@ -327,38 +331,7 @@ pub fn MyProfilePage() -> impl IntoView {
     let change_password_open = RwSignal::new(false);
     let edit_profile_open = RwSignal::new(false);
     let enable_totp_open = RwSignal::new(false);
-    let time = RwSignal::new(Local::now().timestamp_millis());
-
-    let profile = Memo::new(move |_| profile_resource.get().map(|res| res.ok()));
-    let display_name = Memo::new(move |_| {
-        profile
-            .get()
-            .unwrap_or_default()
-            .map(|res| res.display_name)
-            .unwrap_or_default()
-    });
-    let email = Memo::new(move |_| {
-        profile
-            .get()
-            .unwrap_or_default()
-            .map(|res| res.email)
-            .unwrap_or_default()
-    });
-    let discord_name = Memo::new(move |_| {
-        profile
-            .get()
-            .unwrap_or_default()
-            .map(|res| res.discord_name)
-            .unwrap_or_default()
-    });
-    let totp_validated = Memo::new(move |_| {
-        profile
-            .get()
-            .unwrap_or_default()
-            .map(|res| res.totp_validated.unwrap_or_default())
-            .unwrap_or_default()
-    });
-    let title = Memo::new(move |_| format!("Hallo {}!", display_name.get()));
+    let time = RwSignal::new(Local::now().timestamp());
 
     let delete_account = move |_| {
         delete_profile_action.dispatch(DeleteProfileAction {});
@@ -397,7 +370,10 @@ pub fn MyProfilePage() -> impl IntoView {
 
     let close_edit_profile = move || {
         edit_profile_open.set(false);
-        time.set(Local::now().timestamp_millis());
+    };
+    let saved_edit_profile = move || {
+        edit_profile_open.set(false);
+        time.set(Local::now().timestamp());
     };
     let close_totp = move || {
         enable_totp_open.set(false);
@@ -435,9 +411,11 @@ pub fn MyProfilePage() -> impl IntoView {
         }
     });
 
+    let title = Memo::new(move |_| format!("Hallo {}!", current_user_ctx.read().display_name));
+
     view! {
         <Transition>
-            <meta::Title text=move || format!("Profil von {}", display_name.get()) />
+            <meta::Title text="Mein Profil" />
             <Title title=title />
             <div class="pandas-profile">
                 <Toolbar>
@@ -447,7 +425,7 @@ pub fn MyProfilePage() -> impl IntoView {
                     <ToolbarGroup>
                         <Button label="Passwort ändern" on:click=on_open_change_password />
                         <Show
-                            when=move || totp_validated.get()
+                            when=move || current_user_ctx.read().totp_validated.unwrap_or(false)
                             fallback=move || {
                                 view! {
                                     <Button
@@ -469,28 +447,20 @@ pub fn MyProfilePage() -> impl IntoView {
                 </Toolbar>
                 <img
                     class="pandas-profile__picture"
-                    src=move || {
-                        format!(
-                            "/api/user/{}/picture#time={}",
-                            profile
-                                .get()
-                                .map(|res| res.map(|res| res.id))
-                                .unwrap_or_default()
-                                .unwrap_or_default(),
-                            time.get(),
-                        )
-                    }
+                    src=move || current_user_ctx.get().profile_picture
                 />
                 <div class="pandas-profile__email">
                     <h2>Emailadresse</h2>
-                    <a href=move || format!("mailto:{}", email.get())>{move || email.get()}</a>
+                    <a href=move || {
+                        format!("mailto:{}", current_user_ctx.get().email)
+                    }>{move || current_user_ctx.get().email}</a>
                 </div>
                 <div class="pandas-profile__discord">
                     <h2>Discordname</h2>
                     <p>
                         <Show
-                            when=move || discord_name.get().is_empty()
-                            fallback=move || discord_name.get()
+                            when=move || current_user_ctx.get().discord_name.is_empty()
+                            fallback=move || current_user_ctx.get().discord_name
                         >
                             {"Kein Name hinterlegt"}
                         </Show>
@@ -500,34 +470,28 @@ pub fn MyProfilePage() -> impl IntoView {
                     <h2>{"Meine Haine"}</h2>
                     <KeyValueList>
                         {move || {
-                            Suspend::new(async move {
-                                groves_resource
-                                    .await
-                                    .map(|groves| {
-                                        groves
-                                            .iter()
-                                            .cloned()
-                                            .map(|grove| {
-                                                let name = grove.name.clone();
-                                                view! {
-                                                    <dt>{name.clone()}</dt>
-                                                    <dd>
-                                                        <A href=format!(
-                                                            "/pandas/groves/{}/{}",
-                                                            grove.id,
-                                                            name.clone(),
-                                                        )>{format!("{} betreten", name.clone())}</A>
-                                                    </dd>
-                                                }
-                                            })
-                                            .collect_view()
-                                    })
-                            })
+                            groves_ctx
+                                .get()
+                                .into_iter()
+                                .map(|grove| {
+                                    let name = grove.name.clone();
+                                    view! {
+                                        <dt>{name.clone()}</dt>
+                                        <dd>
+                                            <A href=format!(
+                                                "/pandas/groves/{}/{}",
+                                                grove.id,
+                                                name.clone(),
+                                            )>{format!("{} betreten", name.clone())}</A>
+                                        </dd>
+                                    }
+                                })
+                                .collect_view()
                         }}
                     </KeyValueList>
                 </div>
                 <Show when=move || edit_profile_open.get()>
-                    <UpdateProfileDialog on_close=close_edit_profile />
+                    <UpdateProfileDialog on_saved=saved_edit_profile on_close=close_edit_profile />
                 </Show>
                 <Show when=move || enable_totp_open.get()>
                     <EnableTotpDialog on_close=close_totp />

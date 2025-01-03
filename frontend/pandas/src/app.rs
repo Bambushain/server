@@ -1,14 +1,14 @@
 use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
-use bamboo_common::core::entities::User;
-use chrono::Utc;
+use bamboo_common::core::entities::BambooUser;
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
 use leptos_router::components::*;
 use leptos_router::path;
 use leptos_use::use_window;
+use std::future::IntoFuture;
 
 #[component]
 fn PandasMenu() -> impl IntoView {
@@ -32,22 +32,24 @@ fn PandasMenu() -> impl IntoView {
                 <MenuItem href="/pandas/final-fantasy/customization" label="Personalisierung" />
             </SubMenu>
             <SubMenu parent="/pandas/groves" slot>
-                <Await future=get_all_groves() let:groves>
-                    {groves.clone().ok().map(|groves| {
-                        groves_ctx.set(groves.clone());
-                        groves
-                            .iter()
-                            .map(|grove| {
-                                view! {
-                                    <MenuItem
-                                        href=format!("/pandas/groves/{}/{}", grove.id, grove.name)
-                                        label=grove.name.clone()
-                                    />
-                                }
-                            })
-                            .collect_view()
-                    })}
-                </Await>
+                {move || {
+                    groves_ctx
+                        .get()
+                        .into_iter()
+                        .map(|grove| {
+                            view! {
+                                <MenuItem
+                                    href=format!(
+                                        "/pandas/groves/{}/{}",
+                                        grove.id,
+                                        grove.name.clone(),
+                                    )
+                                    label=grove.name.clone()
+                                />
+                            }
+                        })
+                        .collect_view()
+                }}
                 <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
             </SubMenu>
         </Menu>
@@ -60,13 +62,7 @@ fn GrovesRoute() -> impl IntoView {
 
     let groves = groves.read();
     if let Some(grove) = groves.first() {
-        view! {
-            <Redirect path=format!(
-                "/pandas/groves/{}/{}",
-                grove.id,
-                grove.name.clone(),
-            ) />
-        }
+        view! { <Redirect path=format!("/pandas/groves/{}/{}", grove.id, grove.name.clone()) /> }
     } else {
         view! { <Redirect path="/pandas/groves/new" /> }
     }
@@ -94,13 +90,9 @@ fn PandasRoutes() -> impl IntoView {
 #[component]
 fn PandasTopBar() -> impl IntoView {
     let logout_action = ServerAction::<LogoutAction>::new();
-    let current_user_ctx = expect_context::<RwSignal<User>>();
+    let current_user_ctx = expect_context::<RwSignal<BambooUser>>();
 
-    let profile_picture = RwSignal::new(format!(
-        "/api/user/{}/picture?time={}",
-        current_user_ctx.read().id,
-        Utc::now().timestamp()
-    ));
+    let profile_picture = Memo::new(move |_| current_user_ctx.get().profile_picture);
 
     let logout = Callback::new(move |_| {
         logout_action.dispatch(LogoutAction {});
@@ -115,13 +107,6 @@ fn PandasTopBar() -> impl IntoView {
                 .location()
                 .set_href("/authentication");
         }
-    });
-    Effect::new(move |_| {
-        *profile_picture.write() = format!(
-            "/api/user/{}/picture?time={}",
-            current_user_ctx.read().id,
-            Utc::now().timestamp()
-        );
     });
 
     view! {
@@ -142,8 +127,11 @@ fn PandasTopBar() -> impl IntoView {
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
-    let current_user_ctx = RwSignal::new(User::default());
+    let current_user_ctx = RwSignal::new(BambooUser::default());
     let groves_ctx = RwSignal::new(AllGroves::new());
+
+    let groves_resource = Resource::new(|| (), move |_| async move { get_all_groves().await });
+    let profile_resource = Resource::new(|| (), move |_| async move { get_current_user().await });
 
     provide_context(current_user_ctx);
     provide_context(groves_ctx);
@@ -159,19 +147,27 @@ pub fn App() -> impl IntoView {
         <Meta content="#598c79" name="msapplication-TileColor" />
         <Meta content="#598c79" name="theme-color" />
         <Meta content="width=device-width, initial-scale=1" name="viewport" />
-        <Await future=get_current_user() let:current_user>
-            {if let Ok(current_user) = current_user.clone() {
-                current_user_ctx.set(current_user);
-            }}
-        </Await>
         <PageLayout
             primary_color=Color::new(89, 140, 121, 0.0)
             primary_color_dark=Color::new(89, 140, 121, 0.0)
         >
             <Router>
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
-                <PandasTopBar />
-                <PandasMenu />
+                <Transition>
+                    {move || Suspend::new(async move {
+                        if let (Ok(groves), Ok(profile)) = futures_util::join!(
+                            groves_resource.into_future(), profile_resource.into_future()
+                        ) {
+                            groves_ctx.set(groves.clone());
+                            current_user_ctx.set(profile);
+                        }
+
+                        view! {
+                            <PandasTopBar />
+                            <PandasMenu />
+                        }
+                    })}
+                </Transition>
                 <PandasRoutes />
             </Router>
         </PageLayout>

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::notifier::event::EventBroadcaster;
 use actix_web::{web, Responder};
 use bamboo_common::core::entities::grove::Model;
-use bamboo_common::core::entities::User;
+use bamboo_common::core::entities::user::BambooUser;
 use bamboo_common::core::queueing::EventAction;
 
 #[derive(Clone)]
@@ -26,7 +26,7 @@ impl NotifierState {
         Self { event_broadcaster }
     }
 
-    pub async fn new_client(&self, user: User) -> impl Responder {
+    pub async fn new_client(&self, user: BambooUser) -> impl Responder {
         log::info!("Wanted new client");
         self.event_broadcaster.new_client(user).await
     }

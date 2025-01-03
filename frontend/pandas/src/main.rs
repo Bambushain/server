@@ -1,20 +1,18 @@
 use crate::authentication::authenticate_user;
+use actix_files::Files;
+use actix_web::*;
 use bamboo_common::backend::database::get_database;
 use bamboo_common::backend::services::DbConnection;
+use bamboo_frontend_pandas::app::App;
+use leptos::prelude::*;
+use leptos_actix::{generate_route_list, LeptosRoutes};
 use leptos_meta::MetaTags;
 
 mod authentication;
-mod state;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    use actix_files::Files;
-    use actix_web::*;
-    use bamboo_frontend_pandas::app::App;
-    use leptos::prelude::*;
-    use leptos_actix::{generate_route_list, LeptosRoutes};
-
     bamboo_common::backend::logging::init();
 
     let conf = get_configuration(None).unwrap();

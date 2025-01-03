@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 #[cfg(feature = "backend")]
 use sea_orm::ActiveValue::Set;
 #[cfg(feature = "backend")]
-use sea_orm::FromQueryResult;
+use sea_orm::{FromQueryResult, IntoActiveModel};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "backend")]
@@ -41,6 +41,58 @@ pub struct Model {
     pub forgot_password_code: Option<String>,
     #[serde(skip)]
     pub forgot_password_valid_until: Option<NaiveDate>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
+pub struct BambooUser {
+    #[serde(default)]
+    pub id: i32,
+    pub email: String,
+    #[cfg(feature = "backend")]
+    #[serde(skip)]
+    pub password: String,
+    pub display_name: String,
+    pub discord_name: String,
+    #[cfg(feature = "backend")]
+    #[serde(skip)]
+    pub totp_secret: Option<Vec<u8>>,
+    #[cfg(feature = "backend")]
+    #[serde(default)]
+    #[serde(skip)]
+    pub totp_secret_encrypted: bool,
+    #[serde(rename = "appTotpEnabled")]
+    pub totp_validated: Option<bool>,
+    #[serde(skip)]
+    pub forgot_password_code: Option<String>,
+    #[serde(skip)]
+    pub forgot_password_valid_until: Option<NaiveDate>,
+    pub profile_picture: String,
+}
+
+#[cfg(feature = "backend")]
+impl BambooUser {
+    pub fn into_user_active_model(self) -> ActiveModel {
+        Model {
+            id: self.id,
+            email: self.email,
+            password: self.password,
+            display_name: self.display_name,
+            discord_name: self.discord_name,
+            totp_secret: self.totp_secret,
+            totp_secret_encrypted: self.totp_secret_encrypted,
+            totp_validated: self.totp_validated,
+            forgot_password_code: self.forgot_password_code,
+            forgot_password_valid_until: self.forgot_password_valid_until,
+        }
+        .into_active_model()
+    }
+
+    pub fn validate_password(&self, password: String) -> bool {
+        let result = bcrypt::verify(password, self.password.as_str());
+        result.unwrap_or(false)
+    }
 }
 
 #[cfg(feature = "backend")]

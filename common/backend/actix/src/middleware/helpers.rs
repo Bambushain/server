@@ -2,7 +2,7 @@ use actix_web::web;
 use sea_orm::DatabaseConnection;
 
 use bamboo_common_backend_dbal as dbal;
-use bamboo_common_core::entities::*;
+use bamboo_common_core::entities::user::BambooUser;
 use bamboo_common_core::error::{BambooError, BambooResult};
 
 use crate::cookie;
@@ -11,7 +11,7 @@ use crate::header;
 pub async fn get_user_and_token_by_header(
     db: &DatabaseConnection,
     authorization: Option<web::Header<header::AuthorizationHeader>>,
-) -> BambooResult<(String, User)> {
+) -> BambooResult<(String, BambooUser)> {
     let unauthorized = BambooError::unauthorized("user", "Authorization failed");
     let token = authorization.map_or_else(
         || Err(unauthorized.clone()),
@@ -28,7 +28,7 @@ pub async fn get_user_and_token_by_header(
 pub async fn get_user_and_token_by_cookie(
     db: &DatabaseConnection,
     auth_cookie: Option<cookie::BambooAuthCookie>,
-) -> BambooResult<(String, User)> {
+) -> BambooResult<(String, BambooUser)> {
     let unauthorized = BambooError::unauthorized("user", "Authorization failed");
     let token = auth_cookie.ok_or(unauthorized.clone())?.token;
 

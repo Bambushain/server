@@ -4,6 +4,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, NotSet, QueryFilter,
 };
 
+use bamboo_common_core::entities::user::BambooUser;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 
@@ -104,7 +105,7 @@ pub async fn validate_two_factor_code(
 async fn validate_totp_token(
     code: String,
     password: String,
-    user: User,
+    user: BambooUser,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
     let totp_secret = if user.totp_secret_encrypted {

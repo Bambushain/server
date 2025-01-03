@@ -32,4 +32,5 @@ pub async fn authenticate_user(
     }
 }
 
+#[allow(dead_code)]
 pub type AuthState = actix_web::web::ReqData<AuthenticationState>;

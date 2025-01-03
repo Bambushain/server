@@ -248,26 +248,26 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                                 .map(|gatherers| {
                                     {
                                         let gatherers = gatherers.clone();
-
-                                        available_gatherer.update(move |old| {
-                                            let all_gatherers = GathererJob::iter().collect::<Vec<_>>();
-                                            let used_gatherer = gatherers
+                                        available_gatherer
+                                            .update(move |old| {
+                                                let all_gatherers = GathererJob::iter().collect::<Vec<_>>();
+                                                let used_gatherer = gatherers
                                                     .iter()
                                                     .map(|g| g.job)
                                                     .collect::<Vec<_>>();
-                                            let new = if gatherers.is_empty() {
-                                                all_gatherers.clone().to_vec()
-                                            } else {
-                                                GathererJob::iter()
-                                                    .filter(|job| !used_gatherer.contains(job))
-                                                    .collect::<Vec<_>>()
-                                            };
-                                            *old = new;
-                                        });
+                                                let new = if gatherers.is_empty() {
+                                                    all_gatherers.clone().to_vec()
+                                                } else {
+                                                    GathererJob::iter()
+                                                        .filter(|job| !used_gatherer.contains(job))
+                                                        .collect::<Vec<_>>()
+                                                };
+                                                *old = new;
+                                            });
                                     }
-
                                     (gatherers.len() != GathererJob::iter().count())
                                         .then_some(
+
                                             view! {
                                                 <CircleButton
                                                     size=CircleButtonSize::Large

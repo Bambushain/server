@@ -1,9 +1,9 @@
-use bamboo_common::core::entities::{TotpQrCode, User};
+use bamboo_common::core::entities::{BambooUser, TotpQrCode};
 use leptos::prelude::{server, ServerFnError};
 use serde::{Deserialize, Serialize};
 
 #[server(GetProfileAction, "/pandas/profile")]
-pub async fn get_profile() -> Result<User, ServerFnError> {
+pub async fn get_profile() -> Result<BambooUser, ServerFnError> {
     use leptos_actix::extract;
 
     use crate::authentication::AuthState;
@@ -51,7 +51,7 @@ pub struct UpdateProfileResult {
     pub success: bool,
     pub message: String,
     pub header: String,
-    pub user: Option<User>,
+    pub user: Option<BambooUser>,
 }
 
 #[server(UpdateProfileAction, "/pandas/profile/update")]

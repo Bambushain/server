@@ -2,7 +2,6 @@ use actix_web::middleware::Next;
 use actix_web::{body, dev, web, Error, HttpMessage};
 
 use bamboo_common_backend_services::DbConnection;
-use bamboo_common_core::entities::*;
 
 use crate::cookie;
 use crate::header;
@@ -11,7 +10,7 @@ use crate::middleware::helpers;
 #[derive(Clone)]
 pub struct AuthenticationState {
     pub token: String,
-    pub user: User,
+    pub user: BambooUser,
 }
 
 pub type Authentication = web::ReqData<AuthenticationState>;
@@ -43,3 +42,4 @@ macro_rules! authenticate {
 }
 
 pub use authenticate;
+use bamboo_common_core::entities::user::BambooUser;

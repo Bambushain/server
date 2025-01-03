@@ -1,5 +1,6 @@
 use bamboo_common_backend_dbal as dbal;
-use bamboo_common_core::entities::{TotpQrCode, User};
+use bamboo_common_core::entities::user::BambooUser;
+use bamboo_common_core::entities::TotpQrCode;
 use bamboo_common_core::error::BambooError;
 use base64::engine::Engine;
 use fast_qr::convert::svg::SvgBuilder;
@@ -23,7 +24,7 @@ impl TotpService {
 
     pub async fn get_totp_qr(
         &self,
-        user: User,
+        user: BambooUser,
         db: &DatabaseConnection,
     ) -> Result<TotpQrCode, BambooError> {
         let mut totp = totp_rs::TOTP::default();

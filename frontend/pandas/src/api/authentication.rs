@@ -1,8 +1,8 @@
-use bamboo_common::core::entities::User;
+use bamboo_common::core::entities::user::BambooUser;
 use leptos::prelude::{server, ServerFnError};
 
 #[server(GetCurrentUser, "/pandas/current-user")]
-pub async fn get_current_user() -> Result<User, ServerFnError> {
+pub async fn get_current_user() -> Result<BambooUser, ServerFnError> {
     use leptos_actix::extract;
 
     use crate::authentication::AuthState;

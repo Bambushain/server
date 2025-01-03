@@ -154,24 +154,27 @@ pub fn GroveAdminTab(
     });
 
     view! {
-        <Transition fallback=|| view! { <ProgressRing /> }>
+        <Transition fallback=|| {
+            view! { <ProgressRing /> }
+        }>
             {move || Suspend::new(async move {
                 if let Ok(pandas_in_grove) = pandas_resource.await {
-                    pandas.set(
-                        pandas_in_grove
-                            .iter()
-                            .map(|panda| (panda.id.to_string(), panda.display_name.clone()))
-                            .collect::<Vec<_>>(),
-                    );
-                    selected_mods.set(
-                        pandas_in_grove
-                            .iter()
-                            .filter_map(|panda| panda.is_mod.then_some(panda.id.to_string()))
-                            .collect::<Vec<_>>(),
-                    )
+                    pandas
+                        .set(
+                            pandas_in_grove
+                                .iter()
+                                .map(|panda| (panda.id.to_string(), panda.display_name.clone()))
+                                .collect::<Vec<_>>(),
+                        );
+                    selected_mods
+                        .set(
+                            pandas_in_grove
+                                .iter()
+                                .filter_map(|panda| panda.is_mod.then_some(panda.id.to_string()))
+                                .collect::<Vec<_>>(),
+                        )
                 }
-            })}
-            <div class="pandas-grove__management">
+            })} <div class="pandas-grove__management">
                 <h1>{move || format!("Willkommen in der Verwaltung von {}", grove_name.read())}</h1>
                 <p>
                     {"Hier hast du die Möglichkeit deinen Hain zu verwalten. Unten findest du den Einladungslink damit Leute deinem Hain beitreten können."}
@@ -204,23 +207,27 @@ pub fn GroveAdminTab(
                         <br />
                         {"Einfach kopieren und verschicken, anschließend können andere Pandas deinem Hain beitreten."}
                         <br />
-                        <a href=move || grove_resource
-                            .clone()
-                            .get()
-                            .unwrap()
-                            .unwrap()
-                            .get_invite_link()
-                            .unwrap()>
-                            {move || format!(
-                                "https://bambushain.app{}",
-                                grove_resource
-                                    .clone()
-                                    .get()
-                                    .unwrap()
-                                    .unwrap()
-                                    .get_invite_link()
-                                    .unwrap(),
-                            )}
+                        <a href=move || {
+                            grove_resource
+                                .clone()
+                                .get()
+                                .unwrap()
+                                .unwrap()
+                                .get_invite_link()
+                                .unwrap()
+                        }>
+                            {move || {
+                                format!(
+                                    "https://bambushain.app{}",
+                                    grove_resource
+                                        .clone()
+                                        .get()
+                                        .unwrap()
+                                        .unwrap()
+                                        .get_invite_link()
+                                        .unwrap(),
+                                )
+                            }}
                         </a>
                     </p>
                     <p>

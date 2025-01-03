@@ -1,6 +1,6 @@
 use crate::api::{get_events, CreateEventAction, DeleteEventAction, UpdateEventAction};
 use crate::state::AllGroves;
-use bamboo_common::core::entities::{GroveEvent, User};
+use bamboo_common::core::entities::{BambooUser, GroveEvent};
 #[cfg(any(feature = "csr", feature = "hydrate"))]
 use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
@@ -49,7 +49,7 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
 
     let color = Color::from_hex(event.color.as_str()).unwrap_or_default();
 
-    let me = expect_context::<RwSignal<User>>();
+    let me = expect_context::<RwSignal<BambooUser>>();
 
     let can_edit = {
         let event = event.clone();
