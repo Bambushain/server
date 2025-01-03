@@ -92,3 +92,62 @@ pub async fn create_character(
     .await
     .map_err(bamboo_error_to_serverfn_error)
 }
+
+#[server(UpdateCharacterAction, "/pandas/characters")]
+pub async fn update_character(
+    id: i32,
+    race: String,
+    name: String,
+    world: String,
+    datacenter: String,
+    free_company: Option<String>,
+    custom_fields: Option<BTreeMap<String, BTreeSet<String>>>,
+) -> Result<(), ServerFnError<BambooCodeError>> {
+    use crate::api::bamboo_error_to_serverfn_error;
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use bamboo_common::core::entities::{Character, CharacterRace, CustomField};
+    use bamboo_common::core::error::BambooErrorCode;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await.map_err(|_| {
+        ServerFnError::WrappedServerError(BambooCodeError {
+            code: BambooErrorCode::Unknown,
+        })
+    })?;
+
+    let free_company = if let Some(free_company) = free_company {
+        dbal::get_free_company_by_name(free_company, auth_state.user.id, &db)
+            .await
+            .map_err(bamboo_error_to_serverfn_error)?
+    } else {
+        None
+    };
+    let custom_fields = custom_fields
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(label, values)| CustomField {
+            label,
+            values,
+            ..CustomField::default()
+        })
+        .collect::<Vec<_>>();
+
+    dbal::update_character(
+        id,
+        auth_state.user.id,
+        Character::new(
+            CharacterRace::from(race),
+            name,
+            world,
+            datacenter,
+            custom_fields,
+            free_company,
+        ),
+        &db,
+    )
+    .await
+    .map_err(bamboo_error_to_serverfn_error)
+}

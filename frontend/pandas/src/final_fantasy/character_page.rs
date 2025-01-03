@@ -1,6 +1,7 @@
 use crate::api::ff;
 use crate::api::ff::{
     get_custom_fields, get_free_companies, CreateCharacterAction, DeleteCharacterAction,
+    UpdateCharacterAction,
 };
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
@@ -15,6 +16,174 @@ use leptos_cosmo::prelude::*;
 use rand::prelude::IteratorRandom;
 use std::collections::{BTreeMap, BTreeSet};
 use strum::IntoEnumIterator;
+
+#[component]
+fn EditCharacterDialog(
+    character: Character,
+    on_save: Callback<()>,
+    on_close: Callback<()>,
+) -> impl IntoView {
+    let action = ServerAction::<UpdateCharacterAction>::new();
+    let value = action.value();
+
+    let has_error = RwSignal::new(false);
+    let error_message = RwSignal::new("".to_string());
+    let error_message_header = RwSignal::new("".to_string());
+
+    let name = RwSignal::new(character.name);
+    let world = RwSignal::new(character.world);
+    let datacenter = RwSignal::new(character.datacenter.unwrap_or_default());
+    let race = RwSignal::new(Some(character.race.get_race_name()));
+    let free_company = RwSignal::new(character.free_company.map(|fc| fc.name));
+    let custom_fields = RwSignal::new(
+        character
+            .custom_fields
+            .into_iter()
+            .map(|f| {
+                (
+                    f.label.clone(),
+                    RwSignal::new(f.values.into_iter().collect::<Vec<_>>()),
+                )
+            })
+            .collect::<BTreeMap<_, _>>(),
+    );
+
+    let custom_fields_resource =
+        Resource::new(|| (), move |_| async move { get_custom_fields().await });
+    let free_companies_resource =
+        Resource::new(|| (), move |_| async move { get_free_companies().await });
+
+    let races = CharacterRace::iter()
+        .map(|race| (Some(race.get_race_name()), race.to_string()))
+        .collect::<Vec<_>>();
+
+    Effect::new(move |_| {
+        if let Some(Ok(char)) = value.get() {
+            has_error.set(false);
+            on_save.run(char)
+        } else if let Some(Err(ServerFnError::WrappedServerError(err))) = value.get() {
+            has_error.set(true);
+            if err.code == BambooErrorCode::ExistsAlready {
+                *error_message.write() = format!(
+                    "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
+                    world.read(),
+                    name.read()
+                );
+                *error_message_header.write() = "Charakter existiert bereits".into();
+            } else {
+                *error_message.write() =
+                    "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport"
+                        .into();
+                *error_message_header.write() = "Unbekannter Fehler".into();
+            }
+        }
+    });
+
+    let update_character = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        let custom_fields = custom_fields
+            .get_untracked()
+            .into_iter()
+            .map(|(field, values)| {
+                (
+                    field,
+                    values.get_untracked().into_iter().collect::<BTreeSet<_>>(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+        action.dispatch(UpdateCharacterAction {
+            id: character.id,
+            race: race.get_untracked().unwrap(),
+            name: name.get_untracked(),
+            world: world.get_untracked(),
+            datacenter: datacenter.get_untracked(),
+            free_company: free_company.get_untracked(),
+            custom_fields: Some(custom_fields),
+        });
+    };
+
+    view! {
+        <FormModal
+            classes="is--character"
+            title="Charakter bearbeiten"
+            has_error
+            error_message
+            error_message_header
+            on:submit=update_character
+        >
+            <ModalContent slot>
+                <Textbox maxlength=20 label="Name" value=name />
+                <SingleSelect label="Rasse" items=races.clone() selected=race />
+                <Textbox label="Datenzentrum" required=false value=datacenter />
+                <Textbox label="Stammwelt" value=world />
+                <Transition>
+                    {move || {
+                        Suspend::new(async move {
+                            free_companies_resource
+                                .await
+                                .map(|fc| {
+                                    let mut items = fc
+                                        .iter()
+                                        .map(|fc| (Some(fc.name.clone()), fc.name.clone()))
+                                        .collect::<Vec<_>>();
+                                    let mut with_none = vec![
+                                        (None, "Keine freie Gesellschaft".to_string()),
+                                    ];
+                                    with_none.append(&mut items);
+
+                                    view! {
+                                        <SingleSelect
+                                            label="Freie Gesellschaft"
+                                            items=with_none.clone()
+                                            selected=free_company
+                                        />
+                                    }
+                                })
+                        })
+                    }}
+                </Transition>
+                <Transition>
+                    {move || {
+                        Suspend::new(async move {
+                            custom_fields_resource
+                                .await
+                                .map(|fields| {
+                                    fields
+                                        .iter()
+                                        .map(|field| {
+                                            let items = field
+                                                .options
+                                                .iter()
+                                                .cloned()
+                                                .map(|option| (option.label.clone(), option.label.clone()))
+                                                .collect::<Vec<_>>();
+                                            custom_fields
+                                                .try_update(|fields| {
+                                                    let new_item = RwSignal::new(vec![]);
+                                                    let entry = fields.entry(field.label.clone());
+                                                    entry.or_insert(new_item).clone()
+                                                })
+                                                .map(|selected| {
+                                                    view! {
+                                                        <MultiSelect
+                                                            label=field.label.clone()
+                                                            items=items
+                                                            selected=selected
+                                                        />
+                                                    }
+                                                })
+                                        })
+                                        .collect_view()
+                                })
+                        })
+                    }}
+                </Transition>
+            </ModalContent>
+            <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
+            <ModalButton is_submit=true label="Charakter speichern" slot />
+        </FormModal>
+    }
+}
 
 #[component]
 fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -> impl IntoView {
@@ -100,10 +269,10 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
             on:submit=create_character
         >
             <ModalContent slot>
-                <Textbox maxlength=20 name="name" label="Name" value=name />
-                <SingleSelect name="race" label="Rasse" items=races.clone() selected=race />
-                <Textbox name="datacenter" label="Datenzentrum" required=false value=datacenter />
-                <Textbox name="world" label="Stammwelt" value=world />
+                <Textbox maxlength=20 label="Name" value=name />
+                <SingleSelect label="Rasse" items=races.clone() selected=race />
+                <Textbox label="Datenzentrum" required=false value=datacenter />
+                <Textbox label="Stammwelt" value=world />
                 <Transition>
                     {move || {
                         Suspend::new(async move {
@@ -121,7 +290,6 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
 
                                     view! {
                                         <SingleSelect
-                                            name="free_company"
                                             label="Freie Gesellschaft"
                                             items=with_none.clone()
                                             selected=free_company
@@ -156,7 +324,6 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
 
                                                     view! {
                                                         <MultiSelect
-                                                            name=format!("custom_fields[{}]", field.label.clone())
                                                             label=field.label.clone()
                                                             items=items
                                                             selected=selected
@@ -180,6 +347,7 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
 fn DetailsTab(
     character: Signal<Option<Character>>,
     delete_success: Callback<(), ()>,
+    update_success: Callback<(), ()>,
 ) -> impl IntoView {
     let custom_fields = Memo::new(move |_| {
         character
@@ -230,6 +398,8 @@ fn DetailsTab(
             .unwrap_or_default()
     });
 
+    let edit_open = RwSignal::new(false);
+
     let delete_character_action = ServerAction::<DeleteCharacterAction>::new();
 
     let delete_character = {
@@ -253,6 +423,12 @@ fn DetailsTab(
         }
     };
 
+    let update_success = Callback::from(move || {
+        edit_open.set(false);
+        update_success.run(());
+    });
+    let update_close = Callback::from(move || edit_open.set(false));
+
     Effect::new(move |_| {
         if delete_character_action
             .value()
@@ -267,7 +443,7 @@ fn DetailsTab(
         <div class="pandas-character-tab">
             <Toolbar>
                 <ToolbarGroup>
-                    <Button label="Bearbeiten" />
+                    <Button label="Bearbeiten" on:click=move |_| edit_open.set(true) />
                     <Button label="Löschen" on:click=move |_| delete_character() />
                 </ToolbarGroup>
             </Toolbar>
@@ -302,6 +478,9 @@ fn DetailsTab(
                             .collect_view()
                     }}
                 </KeyValueList>
+                <Show when=move || edit_open.get()>
+                    <EditCharacterDialog character=character.get().unwrap() on_save=update_success on_close=update_close />
+                </Show>
             </div>
         </div>
     }
@@ -368,6 +547,7 @@ pub fn Characters() -> impl IntoView {
     let selected_tab = RwSignal::new(0);
 
     let delete_success = Callback::new(move |_| characters_resource.refetch());
+    let update_success = Callback::new(move |_| characters_resource.refetch());
 
     let add_saved = Callback::new(move |_| {
         characters_resource.refetch();
@@ -483,6 +663,7 @@ pub fn Characters() -> impl IntoView {
                                                         <DetailsTab
                                                             character=selected_character.into()
                                                             delete_success=delete_success
+                                                            update_success=update_success
                                                         />
                                                     </TabItem>
                                                     <TabItem slot label="Kämpfer">
