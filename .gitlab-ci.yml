@@ -262,6 +262,8 @@ deploy-review:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG-review.bambushain.app
     on_stop: stop-review
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 stop-review:
   image:
