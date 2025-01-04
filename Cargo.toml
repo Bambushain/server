@@ -26,7 +26,7 @@ name = "bamboo-mailer"
 
 [[bin]]
 path = "src/bin/migrator.rs"
-name = "bamboo-migrate"
+name = "bamboo-migrator"
 
 [workspace]
 members = [
