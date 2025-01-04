@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-sync-commands
+  namespace: bamboo-review-web-1
+data:
+  dump-live.sh: |
+    #!/usr/bin/env sh
+    pg_dump app_bambushain_pandas > /data/app_bambushain_pandas.sql
+
+    sed 's/app_bambushain_pandas/bamboo/g' /data/app_bambushain_pandas.sql > /data/bamboo.sql
+  sync-database.sh: |
+    #!/usr/bin/env sh
+    psql --file=/scripts/clear-database.sql --echo-error bamboo
+    psql --file=/data/bamboo.sql --echo-error bamboo
+  clear-database.sql: |
+    DROP SCHEMA IF EXISTS authentication CASCADE;
+    DROP SCHEMA IF EXISTS bamboo CASCADE;
+    DROP SCHEMA IF EXISTS final_fantasy CASCADE;
+    DROP SCHEMA IF EXISTS grove CASCADE;
+    DROP TABLE IF EXISTS public.seaql_migrations CASCADE;
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sync-database
+  namespace: bamboo-review-web-1
+spec:
+  parallelism: 1
+  template:
+    spec:
+      initContainers:
+        - name: export-database
+          image: library/postgres:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGHOST
+              value: postgres.ulbricht.casa
+            - name: PGPASSWORD
+              value: app_bambushain_pandas
+            - name: PGUSER
+              value: app_bambushain_pandas
+          command:
+            - /bin/sh
+            - -c
+            - /scripts/dump-live.sh
+          volumeMounts:
+            - mountPath: /scripts
+              name: scripts
+            - mountPath: /data
+              name: data
+      containers:
+        - name: sync-testsystem
+          image: library/postgres:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGPASSWORD
+              value: bamboo
+            - name: PGUSER
+              value: bamboo
+          command:
+            - /bin/sh
+            - -c
+            - /scripts/sync-database.sh
+          volumeMounts:
+            - mountPath: /scripts
+              name: scripts
+            - mountPath: /data
+              name: data
+      volumes:
+        - name: scripts
+          configMap:
+            name: database-sync-commands
+            defaultMode: 0777
+        - name: data
+          emptyDir:
+            medium: Memory
+      restartPolicy: Never

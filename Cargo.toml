@@ -7,20 +7,26 @@ license.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 bamboo-backend = { path = "backend" }
+bamboo-common = { path = "common" }
 
 actix = { workspace = true }
+log = { workspace = true }
 
 [[bin]]
-path = "src/bin/backend-api.rs"
+path = "src/bin/api.rs"
 name = "bamboo-api"
 
 [[bin]]
-path = "src/bin/backend-events.rs"
+path = "src/bin/events.rs"
 name = "bamboo-events"
 
 [[bin]]
-path = "src/bin/backend-mailer.rs"
+path = "src/bin/mailer.rs"
 name = "bamboo-mailer"
+
+[[bin]]
+path = "src/bin/migrator.rs"
+name = "bamboo-migrate"
 
 [workspace]
 members = [

@@ -1,3 +1,10 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME !~ "/^dependabot-.*/"
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+
 .base-cargo:
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -53,6 +60,7 @@
           - api
           - pandas
           - authentication
+          - migrator
         ARCH:
           - amd64
           - arm64
@@ -79,19 +87,36 @@
           - api
           - pandas
           - authentication
+          - migrator
+
+.base-review:
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [ '' ]
+  stage: deploy-testing
+  before_script:
+    - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
+    - echo $MAILER_PASSWORD > MAILER_PASSWORD
+    - echo $S3_ACCESS_KEY > S3_ACCESS_KEY
+    - echo $S3_SECRET_KEY > S3_SECRET_KEY
+    - kubectl kustomize > manifest.yaml
+    - sed -i "s/\$BRANCH/${CI_COMMIT_BRANCH,,}/g" manifest.yaml
+  tags:
+    - kube
 
 stages:
   - lint
   - build
   - docker
   - deploy
+  - deploy-testing
 
 lint-backend:
   extends:
     - .base-backend-cache
   stage: lint
   script:
-    - cargo clippy --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer
+    - cargo clippy --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator
 
 lint-frontend:
   extends:
@@ -111,16 +136,18 @@ build-backend:
     - .base-backend-cache
   stage: build
   script:
-    - cargo build --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer
+    - cargo build --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator
     - mkdir -p $CI_PROJECT_DIR/$ARCH
     - cp $CI_PROJECT_DIR/target/release/bamboo-mailer $CI_PROJECT_DIR/$ARCH/bamboo-mailer
     - cp $CI_PROJECT_DIR/target/release/bamboo-api $CI_PROJECT_DIR/$ARCH/bamboo-api
     - cp $CI_PROJECT_DIR/target/release/bamboo-events $CI_PROJECT_DIR/$ARCH/bamboo-events
+    - cp $CI_PROJECT_DIR/target/release/bamboo-migrator $CI_PROJECT_DIR/$ARCH/bamboo-migrator
   artifacts:
     paths:
       - $ARCH/bamboo-mailer
       - $ARCH/bamboo-api
       - $ARCH/bamboo-events
+      - $ARCH/bamboo-migrator
   parallel:
     matrix:
       - ARCH:
@@ -157,6 +184,15 @@ build-docker-test:
   variables:
     KANIKO_FLAGS: --no-push
 
+build-docker-mr:
+  extends:
+    - .base-docker
+  stage: docker
+  variables:
+    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}/${ARCH}:latest"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
 build-docker-main:
   extends:
     - .base-docker
@@ -183,6 +219,23 @@ merge-manifests-tag:
   rules:
     - if: $CI_COMMIT_TAG
 
+merge-manifests-mr:
+  extends:
+    - .base-merge-manifests
+  variables:
+    TAG: $CI_COMMIT_TAG
+  script:
+    - >-
+      manifest-tool
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
+      push from-args
+      --platforms linux/amd64,linux/arm64
+      --template ${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}/ARCH:latest
+      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
 merge-manifests-main:
   extends:
     - .base-merge-manifests
@@ -190,6 +243,39 @@ merge-manifests-main:
     TAG: 4.0.0-alpha.$CI_PIPELINE_IID
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+
+deploy-review:
+  extends:
+    - .base-review
+  script:
+    - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
+    - kubectl create namespace bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
+    - kubectl apply -f manifest.yaml
+    - kubectl wait --for=condition=Ready -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} pods -l bambushain.app/app=postgres
+    - sed -i "s/\$POSTGRES_PANDAS/${LIVE_DATABASE}/g" sync-database.yaml
+    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" sync-database.yaml
+    - kubectl apply -f sync-database.yaml
+    - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
+    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" migrate.yaml
+    - kubectl apply -f migrate.yaml
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG-review.bambushain.app
+    on_stop: stop-review
+
+stop-review:
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [ '' ]
+  stage: deploy-testing
+  script:
+    - kubectl delete namespace bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
 
 pages:
   image: library/alpine:latest

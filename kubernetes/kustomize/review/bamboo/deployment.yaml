@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bamboo
+spec:
+  selector:
+    matchLabels:
+      bambushain.app/app: bamboo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        bambushain.app/app: bamboo
+    spec:
+      containers:
+        - name: authentication
+          image: registry.ulbricht.casa/bambushain/server/authentication/$BRANCH:latest
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4090
+        - name: pandas
+          image: registry.ulbricht.casa/bambushain/server/pandas/$BRANCH:latest
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4080
+        - name: events
+          image: registry.ulbricht.casa/bambushain/server/events/$BRANCH:latest
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4020
+        - name: api
+          image: registry.ulbricht.casa/bambushain/server/api/$BRANCH:latest
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4010
+        - name: mailer
+          image: registry.ulbricht.casa/bambushain/server/mailer/$BRANCH:latest
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords

@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-database
+  namespace: bamboo-review-web-1
+spec:
+  parallelism: 1
+  template:
+    spec:
+      containers:
+        - name: export-database
+          image: registry.ulbricht.casa/bambushain/server/migrator/web-1:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: bamboo
+      restartPolicy: Never

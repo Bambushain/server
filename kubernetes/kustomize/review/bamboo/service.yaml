@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bamboo
+spec:
+  selector:
+    bambushain.app/app: bamboo
+  ports:
+    - protocol: TCP
+      port: 4010
+      name: api
+    - protocol: TCP
+      port: 4020
+      name: events
+    - protocol: TCP
+      port: 4080
+      name: pandas
+    - protocol: TCP
+      port: 4090
+      name: authentication

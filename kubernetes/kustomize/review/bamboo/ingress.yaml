@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bamboo
+spec:
+  rules:
+    - host: $BRANCH-review.bambushain.app
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: pandas
+            pathType: Prefix
+            path: /pandas
+    - host: $BRANCH-review.bambushain.app
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: api
+            pathType: Prefix
+            path: /api
+    - host: $BRANCH-review.bambushain.app
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: authentication
+            pathType: Prefix
+            path: /authentication
+    - host: $BRANCH-review.bambushain.app
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: events
+            pathType: Prefix
+            path: /sse/event
