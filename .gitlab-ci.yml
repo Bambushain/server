@@ -189,7 +189,7 @@ build-docker-mr:
     - .base-docker
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}/${ARCH}:latest"
+    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/${ARCH}:latest"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
@@ -231,8 +231,8 @@ merge-manifests-mr:
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
-      --template ${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}/ARCH:latest
-      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_COMMIT_BRANCH}:latest
+      --template ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/ARCH:latest
+      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
