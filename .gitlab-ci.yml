@@ -271,7 +271,7 @@ stop-review:
   script:
     - kubectl delete namespace bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
   environment:
-    name: review/$CI_COMMIT_REF_SLUG
+    name: review/$CI_COMMIT_REF_NAME
     action: stop
   rules:
     - if: $CI_MERGE_REQUEST_ID
