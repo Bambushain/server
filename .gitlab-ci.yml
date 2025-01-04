@@ -232,7 +232,7 @@ merge-manifests-mr:
       push from-args
       --platforms linux/amd64,linux/arm64
       --template ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/ARCH:latest
-      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}:latest
+      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
