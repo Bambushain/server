@@ -7,7 +7,9 @@ data:
     #!/usr/bin/env sh
     pg_dump app_bambushain_pandas > /data/app_bambushain_pandas.sql
 
-    sed 's/app_bambushain_pandas/bamboo/g' /data/app_bambushain_pandas.sql > /data/bamboo.sql
+    sed 's/app_bambushain_pandas/bamboo/g' /data/app_bambushain_pandas.sql > /data/bamboo.sql    
+    sed -i 's/ALTER SCHEMA public OWNER TO postgres/ALTER SCHEMA public OWNER TO bamboo/g' /data/bamboo.sql
+    echo 'ALTER ROLE bamboo SET search_path TO public;' >> /data/bamboo.sql
   sync-database.sh: |
     #!/usr/bin/env sh
     psql --file=/scripts/clear-database.sql --echo-error bamboo
