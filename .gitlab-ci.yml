@@ -94,14 +94,6 @@ workflow:
     name: registry.ulbricht.casa/docker-images/kubectl:latest
     entrypoint: [ '' ]
   stage: deploy-testing
-  before_script:
-    - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
-    - echo $MAILER_PASSWORD > secrets/MAILER_PASSWORD
-    - echo $S3_ACCESS_KEY > secrets/S3_ACCESS_KEY
-    - echo $S3_SECRET_KEY > secrets/S3_SECRET_KEY
-    - kubectl kustomize > manifest.yaml
-    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" manifest.yaml
-    - sed -i "s/\$TAG/4\\.0\\.0-alpha\\.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}\\.${CI_PIPELINE_IID}/g" manifest.yaml
   tags:
     - kube
 
@@ -241,7 +233,7 @@ merge-manifests-main:
   extends:
     - .base-merge-manifests
   variables:
-    TAG: 4.0.0-alpha.$CI_PIPELINE_IID
+    TAG: 4.0.0-beta.$CI_PIPELINE_IID
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -249,19 +241,34 @@ deploy-review:
   extends:
     - .base-review
   script:
+    # Prepare the manifest
+    - export BRANCH=`echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" | awk '{print tolower($0)}'`
     - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
-    - kubectl create namespace bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
-    - kubectl apply -f manifest.yaml
+    - echo $MAILER_PASSWORD > secrets/MAILER_PASSWORD
+    - echo $S3_ACCESS_KEY > secrets/S3_ACCESS_KEY
+    - echo $S3_SECRET_KEY > secrets/S3_SECRET_KEY
+    - kubectl kustomize > manifest.yaml
+    - sed -i "s/\$BRANCH/${BRANCH}/g" manifest.yaml
+    - sed -i "s/\$TAG/4\\.0\\.0-alpha\\.${$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}\\.${CI_PIPELINE_IID}/g" manifest.yaml
+    # Create the namespace and apply the manifest
+    - kubectl create namespace bamboo-review-${BRANCH}
+    - kubectl apply -n bamboo-review-${BRANCH} -f manifest.yaml
+    # Wait for the postgres container to be ready
     - sleep 30
-    - kubectl wait --for=condition=Ready -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} pods -l bambushain.app/app=postgres --timeout=90s
+    - kubectl wait --for=condition=Ready -n bamboo-review-${BRANCH} pods -l bambushain.app/app=postgres --timeout=90s
+    # Synchronize the production database to the local test database
     - sed -i "s/\$POSTGRES_PANDAS/${LIVE_DATABASE}/g" sync-database.yaml
-    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" sync-database.yaml
-    - kubectl apply -f sync-database.yaml
+    - sed -i "s/\$BRANCH/${BRANCH}/g" sync-database.yaml
+    - kubectl apply -n bamboo-review-${BRANCH} -f sync-database.yaml
+    # Wait for the database to be synchronized
     - sleep 30
-    - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} --timeout=90s
-    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" migrate.yaml
-    - kubectl apply -f migrate.yaml
+    - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-${BRANCH} --timeout=90s
+    # Migrate the database to the current development version
+    - sed -i "s/\$TAG/4\\.0\\.0-alpha\\.${$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}\\.${CI_PIPELINE_IID}/g" migrate.yaml
+    - kubectl apply -n bamboo-review-${BRANCH} -f migrate.yaml
+    # Wait for the database to be migrated
     - sleep 30
+    - kubectl wait --for=condition=complete job/migrate-database -n bamboo-review-${BRANCH} --timeout=90s
     - "curl -H 'Content-Type: application/json' -X POST -d '{\"content\":\"Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$CI_ENVIRONMENT_SLUG-review.bambushain.app erreichen.\"}' $DISCORD_WEBHOOK"
   environment:
     name: review/$CI_COMMIT_REF_NAME
