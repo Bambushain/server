@@ -91,7 +91,7 @@ workflow:
 
 .base-review:
   image:
-    name: bitnami/kubectl:latest
+    name: registry.ulbricht.casa/docker-images/kubectl:latest
     entrypoint: [ '' ]
   stage: deploy-testing
   before_script:
@@ -100,7 +100,8 @@ workflow:
     - echo $S3_ACCESS_KEY > S3_ACCESS_KEY
     - echo $S3_SECRET_KEY > S3_SECRET_KEY
     - kubectl kustomize > manifest.yaml
-    - sed -i "s/\$BRANCH/${CI_COMMIT_BRANCH,,}/g" manifest.yaml
+    - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" manifest.yaml
+    - sed -i "s/\$TAG/4\\.0\\.0-alpha\\.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}\\.${CI_PIPELINE_IID}/g" manifest.yaml
   tags:
     - kube
 
@@ -189,7 +190,7 @@ build-docker-mr:
     - .base-docker
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/${ARCH}:latest"
+    KANIKO_FLAGS: --destination ${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
@@ -198,7 +199,7 @@ build-docker-main:
     - .base-docker
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:4.0.0-alpha.$CI_PIPELINE_IID"
+    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:4.0.0-beta.$CI_PIPELINE_IID"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -231,8 +232,8 @@ merge-manifests-mr:
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
-      --template ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/ARCH:latest
-      --target ${CI_REGISTRY_IMAGE}/${APP}/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}:latest
+      --template ${CI_REGISTRY_IMAGE}/${APP}/ARCH:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
+      --target ${CI_REGISTRY_IMAGE}/${APP}:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
@@ -251,13 +252,17 @@ deploy-review:
     - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
     - kubectl create namespace bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
     - kubectl apply -f manifest.yaml
-    - kubectl wait --for=condition=Ready -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} pods -l bambushain.app/app=postgres
+    - sleep 30
+    - kubectl wait --for=condition=Ready -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} pods -l bambushain.app/app=postgres --timeout=90s
     - sed -i "s/\$POSTGRES_PANDAS/${LIVE_DATABASE}/g" sync-database.yaml
     - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" sync-database.yaml
     - kubectl apply -f sync-database.yaml
-    - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}
+    - sleep 30
+    - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,} --timeout=90s
     - sed -i "s/\$BRANCH/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME,,}/g" migrate.yaml
     - kubectl apply -f migrate.yaml
+    - sleep 30
+    - "curl -H 'Content-Type: application/json' -X POST -d '{\"content\":\"Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$CI_ENVIRONMENT_SLUG-review.bambushain.app erreichen.\"}' $DISCORD_WEBHOOK"
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG-review.bambushain.app

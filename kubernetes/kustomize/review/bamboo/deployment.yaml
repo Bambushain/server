@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: authentication
-          image: registry.ulbricht.casa/bambushain/server/authentication/$BRANCH:latest
+          image: registry.ulbricht.casa/bambushain/server/authentication:$TAG
           envFrom:
             - secretRef:
                 name: bamboo
@@ -23,7 +23,7 @@ spec:
           ports:
             - containerPort: 4090
         - name: pandas
-          image: registry.ulbricht.casa/bambushain/server/pandas/$BRANCH:latest
+          image: registry.ulbricht.casa/bambushain/server/pandas:$TAG
           envFrom:
             - secretRef:
                 name: bamboo
@@ -32,7 +32,7 @@ spec:
           ports:
             - containerPort: 4080
         - name: events
-          image: registry.ulbricht.casa/bambushain/server/events/$BRANCH:latest
+          image: registry.ulbricht.casa/bambushain/server/events:$TAG
           envFrom:
             - secretRef:
                 name: bamboo
@@ -41,7 +41,7 @@ spec:
           ports:
             - containerPort: 4020
         - name: api
-          image: registry.ulbricht.casa/bambushain/server/api/$BRANCH:latest
+          image: registry.ulbricht.casa/bambushain/server/api:$TAG
           envFrom:
             - secretRef:
                 name: bamboo
@@ -50,7 +50,7 @@ spec:
           ports:
             - containerPort: 4010
         - name: mailer
-          image: registry.ulbricht.casa/bambushain/server/mailer/$BRANCH:latest
+          image: registry.ulbricht.casa/bambushain/server/mailer:$TAG
           envFrom:
             - secretRef:
                 name: bamboo
