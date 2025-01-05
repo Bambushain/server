@@ -252,7 +252,7 @@ deploy-review:
     - sed -i "s/\$BRANCH/$BRANCH/g" manifest.yaml
     - sed -i "s/\$TAG/$TAG/g" manifest.yaml
     # Create the namespace and apply the manifest
-    - kubectl create namespace bamboo-review-$BRANCH
+    - kubectl create namespace bamboo-review-$BRANCH --dry-run=client -o yaml | kubectl apply -f -
     - kubectl apply -n bamboo-review-$BRANCH -f manifest.yaml
     # Wait for the postgres container to be ready
     - sleep 30
