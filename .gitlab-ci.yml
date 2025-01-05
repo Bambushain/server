@@ -166,7 +166,7 @@ build-frontend:
     - cargo leptos build --release
     - mkdir -p $CI_PROJECT_DIR/$ARCH
     - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $CI_PROJECT_DIR/$ARCH/bamboo-$APP
-    - cp -r $CI_PROJECT_DIR/frontend-$APP $CI_PROJECT_DIR/$ARCH/$APP/pkg
+    - cp -r $CI_PROJECT_DIR/target/frontend-$APP $CI_PROJECT_DIR/$ARCH/$APP/pkg
   artifacts:
     paths:
       - $CI_PROJECT_DIR/$ARCH/bamboo-$APP
