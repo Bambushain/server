@@ -59,7 +59,7 @@ impl MigrationTrait for Migration {
             )
             .await?;
         txn
-            .execute(Statement::from_string(manager.get_database_backend(), "insert into final_fantasy.gatherer select id, job, level, character_id from final_fantasy.crafter where job in ('culinarian', 'miner', 'botanist', 'fisher')"))
+            .execute(Statement::from_string(manager.get_database_backend(), "INSERT INTO final_fantasy.gatherer SELECT id, job::text::final_fantasy.gatherer_job, level, character_id FROM final_fantasy.crafter WHERE job IN ('culinarian', 'miner', 'botanist', 'fisher')"))
             .await?;
         txn
             .execute(Statement::from_string(manager.get_database_backend(), "delete from final_fantasy.crafter where job in ('culinarian', 'miner', 'botanist', 'fisher')"))
