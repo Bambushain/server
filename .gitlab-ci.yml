@@ -305,6 +305,8 @@ stop-review:
   rules:
     - if: $CI_MERGE_REQUEST_ID
       when: manual
+  tags:
+    - kube
 
 pages:
   image: library/alpine:latest
