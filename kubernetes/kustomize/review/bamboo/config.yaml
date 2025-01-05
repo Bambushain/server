@@ -3,7 +3,7 @@ kind: Secret
 metadata:
   name: bamboo
 stringData:
-  DATABASE_URL: "postgres://bamboo:bamboo@postgres:5434/bamboo"
+  DATABASE_URL: "postgres://bamboo:bamboo@postgres:5432/bamboo"
   MAILER_ENCRYPTION: "ssl"
   MAILER_FROM: "panda.helferlein@bambushain.app"
   MAILER_PORT: "465"
