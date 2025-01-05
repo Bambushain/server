@@ -51,16 +51,24 @@ workflow:
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"https://index.docker.io/v1/\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
   stage: docker
   script:
-    - /kaniko/executor --build-arg "APP=$ARCH/bamboo-$APP" --context "dir://${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" $KANIKO_FLAGS
+    - /kaniko/executor --build-arg "APP=$ARCH/bamboo-$APP" --build-arg "PKG_DIR=$ARCH/$APP/pkg" --context "dir://${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/${TYPE}.dockerfile" $KANIKO_FLAGS
   parallel:
     matrix:
       - APP:
           - mailer
           - events
           - api
+          - migrator
+        TYPE:
+          - backend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
           - pandas
           - authentication
-          - migrator
+        TYPE:
+          - frontend
         ARCH:
           - amd64
           - arm64
@@ -158,9 +166,11 @@ build-frontend:
     - cargo leptos build --release
     - mkdir -p $CI_PROJECT_DIR/$ARCH
     - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $CI_PROJECT_DIR/$ARCH/bamboo-$APP
+    - cp -r $CI_PROJECT_DIR/frontend-$APP $CI_PROJECT_DIR/$ARCH/$APP/pkg
   artifacts:
     paths:
       - $CI_PROJECT_DIR/$ARCH/bamboo-$APP
+      - $CI_PROJECT_DIR/$ARCH/$APP/pkg
   parallel:
     matrix:
       - APP:

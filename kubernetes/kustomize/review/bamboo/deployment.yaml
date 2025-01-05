@@ -20,6 +20,9 @@ spec:
                 name: bamboo
             - secretRef:
                 name: passwords
+          env:
+            - name: LEPTOS_SITE_ADDR
+              value: 0.0.0.0:4090
           ports:
             - containerPort: 4090
         - name: pandas
@@ -29,6 +32,9 @@ spec:
                 name: bamboo
             - secretRef:
                 name: passwords
+          env:
+            - name: LEPTOS_SITE_ADDR
+              value: 0.0.0.0:4080
           ports:
             - containerPort: 4080
         - name: events
