@@ -267,20 +267,20 @@ deploy-review:
     - sed -i "s/\$TAG/$TAG/g" manifest.yaml
     # Create the namespace and apply the manifest
     - kubectl create namespace bamboo-review-$BRANCH --dry-run=client -o yaml | kubectl apply -f -
-    - kubectl apply -n bamboo-review-$BRANCH -f manifest.yaml
+    - kubectl replace -n bamboo-review-$BRANCH -f manifest.yaml
     # Wait for the postgres container to be ready
     - sleep 30
     - kubectl wait --for=condition=Ready -n bamboo-review-$BRANCH pods -l bambushain.app/app=postgres --timeout=90s
     # Synchronize the production database to the local test database
     - sed -i "s/\$POSTGRES_PANDAS/$LIVE_DATABASE/g" sync-database.yaml
     - sed -i "s/\$BRANCH/$BRANCH/g" sync-database.yaml
-    - kubectl apply -n bamboo-review-$BRANCH -f sync-database.yaml
+    - kubectl replace -n bamboo-review-$BRANCH -f sync-database.yaml
     # Wait for the database to be synchronized
     - sleep 30
     - kubectl wait --for=condition=complete job/sync-database -n bamboo-review-$BRANCH --timeout=90s
     # Migrate the database to the current development version
     - sed -i "s/\$TAG/$TAG/g" migrate.yaml
-    - kubectl apply -n bamboo-review-$BRANCH -f migrate.yaml
+    - kubectl replace -n bamboo-review-$BRANCH -f migrate.yaml
     # Wait for the database to be migrated
     - sleep 30
     - kubectl wait --for=condition=complete job/migrate-database -n bamboo-review-$BRANCH --timeout=90s
