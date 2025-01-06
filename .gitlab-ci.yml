@@ -284,7 +284,8 @@ deploy-review:
     # Wait for the database to be migrated
     - sleep 30
     - kubectl wait --for=condition=complete job/migrate-database -n bamboo-review-$BRANCH --timeout=90s
-    - "curl -H 'Content-Type: application/json' -X POST -d '{\"content\":\"Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$BRANCH-review.bambushain.app erreichen.\"}' $DISCORD_WEBHOOK"
+    - export MESSAGE="Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$BRANCH-review.bambushain.app erreichen."
+    - "curl -H 'Content-Type: application/json' -X POST -d '{\"content\":\"$MESSAGE\"}' $DISCORD_WEBHOOK"
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_COMMIT_REF_NAME-review.bambushain.app
