@@ -49,10 +49,10 @@
 
   &-list {
     display: flex;
-    margin-top: 2rem;
     flex-flow: row wrap;
     gap: 1rem;
     justify-content: flex-start;
     align-content: flex-start;
+    padding-bottom: 0.5rem;
   }
 }

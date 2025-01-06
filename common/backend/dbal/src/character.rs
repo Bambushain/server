@@ -176,14 +176,14 @@ fn fill_custom_fields(character_id: i32, custom_fields: Vec<FillCustomField>) ->
     custom_fields
         .iter()
         .filter(|field| field.character_id == character_id)
-        .chunk_by(|field| (field.field_label.clone(), field.position))
+        .chunk_by(|field| (field.field_label.clone(), field.position as usize))
         .into_iter()
-        .map(|((label, _), group)| CustomField {
+        .map(|((label, position), group)| CustomField {
             values: group
                 .map(|item| item.option_label.clone())
                 .collect::<BTreeSet<String>>(),
             label,
-            ..Default::default()
+            position,
         })
         .collect_vec()
 }

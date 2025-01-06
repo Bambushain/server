@@ -13,8 +13,11 @@ use leptos::either::Either;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
+use leptos_router::components::A;
+use leptos_router::hooks::use_query_map;
 use rand::prelude::IteratorRandom;
 use std::collections::{BTreeMap, BTreeSet};
+use std::str::FromStr;
 use strum::IntoEnumIterator;
 
 #[component]
@@ -161,7 +164,7 @@ fn EditCharacterDialog(
                                                 .try_update(|fields| {
                                                     let new_item = RwSignal::new(vec![]);
                                                     let entry = fields.entry(field.label.clone());
-                                                    entry.or_insert(new_item).clone()
+                                                    entry.or_insert(new_item).to_owned()
                                                 })
                                                 .map(|selected| {
                                                     view! {
@@ -479,7 +482,11 @@ fn DetailsTab(
                     }}
                 </KeyValueList>
                 <Show when=move || edit_open.get()>
-                    <EditCharacterDialog character=character.get().unwrap() on_save=update_success on_close=update_close />
+                    <EditCharacterDialog
+                        character=character.get().unwrap()
+                        on_save=update_success
+                        on_close=update_close
+                    />
                 </Show>
             </div>
         </div>
@@ -504,8 +511,16 @@ pub fn Characters() -> impl IntoView {
     });
 
     let add_open = RwSignal::new(false);
+    let query = use_query_map();
 
-    let selected_character_id = RwSignal::new(-1);
+    let selected_character_id = Memo::new(move |_| {
+        let first = characters.get().first().map(|first| first.id).unwrap_or(-1);
+        query
+            .get()
+            .get("id")
+            .map(|id| i32::from_str(id.as_str()).unwrap_or(first))
+            .unwrap_or(first)
+    });
     let selected_character = Memo::new(move |_| {
         let selected_char = filtered_characters
             .get()
@@ -625,21 +640,21 @@ pub fn Characters() -> impl IntoView {
                                                                 let race = character.race.to_string();
                                                                 let world = character.world.clone();
                                                                 view! {
-                                                                    <div
-                                                                class="pandas-characters-list__item"
+                                                                    <A
+                                                                attr:class="pandas-characters-list__item"
                                                                 class:is--active=move || selected_character
                                                                             .get()
                                                                             .is_some_and(|char| char.id == character.id)
-                                                                on:click={
+                                                                href={
                                                                     let character = character.clone();
-                                                                    move |_| selected_character_id.set(character.id)
+                                                                    move || format!("/pandas/final-fantasy?id={}", character.id)
                                                                 }
                                                             >
                                                                 <span class="pandas-characters-title">{name}</span>
                                                                 <span class="pandas-characters-subtitle">
                                                                     {format!("{race} auf {world}")}
                                                                 </span>
-                                                            </div>
+                                                            </A>
                                                                 }
                                                             })
                                                             .collect_view()

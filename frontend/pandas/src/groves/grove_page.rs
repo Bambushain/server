@@ -78,7 +78,7 @@ pub fn GrovePage() -> impl IntoView {
                                 <TabControl selected_index>
                                     <TabItem label="Event Kalender" slot>
                                         <div class="pandas-grove__content">
-                                            <components::Calendar grove_id=id />
+                                            <components::Calendar grove_id=id grove_name=name />
                                         </div>
                                     </TabItem>
                                     <TabItem label="Pandas" slot>

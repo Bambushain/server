@@ -9,6 +9,8 @@ use date_range::DateRange;
 use leptos::prelude::*;
 use leptos_cosmo::icons::Icon;
 use leptos_cosmo::prelude::*;
+use leptos_router::components::A;
+use leptos_router::hooks::use_query_map;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Not, Sub};
 #[cfg(any(feature = "csr", feature = "hydrate"))]
@@ -367,8 +369,20 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 }
 
 #[component]
-pub fn Calendar(#[prop(optional, into)] grove_id: Signal<Option<i32>>) -> impl IntoView {
-    let date = RwSignal::new(Local::now().date_naive().with_day(1).unwrap());
+pub fn Calendar(
+    #[prop(optional, into)] grove_id: Signal<Option<i32>>,
+    #[prop(optional, into)] grove_name: Signal<String>,
+) -> impl IntoView {
+    let query = use_query_map();
+
+    let date = Memo::new(move |_| {
+        let today = Local::now().date_naive().with_day(1).unwrap();
+        if let Some(month) = query.get().get("month") {
+            NaiveDate::parse_from_str(month.as_str(), "%Y-%m-%d").unwrap_or(today)
+        } else {
+            today
+        }
+    });
 
     let prev_month = Memo::new(move |_| date.read().sub(Months::new(1)));
     let current_month = Memo::new(move |_| date.read().month());
@@ -424,10 +438,16 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Signal<Option<i32>>) -> impl I
         |(end, start, grove_id)| async move { get_events(start, end, grove_id).await },
     );
 
-    let prev =
-        move |_| date.update(|date| *date = date.checked_sub_months(Months::new(1)).unwrap());
-    let next =
-        move |_| date.update(|date| *date = date.checked_add_months(Months::new(1)).unwrap());
+    let base_url = Memo::new(move |_| {
+        if let Some(id) = grove_id.get() {
+            format!("/pandas/groves/{id}/{}", grove_name.get())
+        } else {
+            "/pandas/bamboo".to_string()
+        }
+    });
+
+    let prev_href = Memo::new(move |_| format!("{}?month={}", base_url.get(), prev_month.get()));
+    let next_href = Memo::new(move |_| format!("{}?month={}", base_url.get(), next_month.get()));
 
     #[cfg(any(feature = "csr", feature = "hydrate"))]
     {
@@ -479,29 +499,29 @@ pub fn Calendar(#[prop(optional, into)] grove_id: Signal<Option<i32>>) -> impl I
                     .map_or_else(|_| events.set(vec![]), move |evts| events.set(evts.clone()));
             })} <div class="pandas-calendar">
                 <div class="pandas-calendar__header">
-                    <span class="pandas-calendar__action is--prev">
-                        <a on:click=prev>
+                    <A href=move || prev_href.get() attr:class="pandas-calendar__action is--prev">
+                        <>
                             {move || {
                                 prev_month
                                     .read()
                                     .format_localized("%B %Y", Locale::de_DE)
                                     .to_string()
                             }}
-                        </a>
-                    </span>
+                        </>
+                    </A>
                     <h2>
                         {move || date.read().format_localized("%B %Y", Locale::de_DE).to_string()}
                     </h2>
-                    <span class="pandas-calendar__action is--next">
-                        <a on:click=next>
+                    <A href=move || next_href.get() attr:class="pandas-calendar__action is--next">
+                        <>
                             {move || {
                                 next_month
                                     .read()
                                     .format_localized("%B %Y", Locale::de_DE)
                                     .to_string()
                             }}
-                        </a>
-                    </span>
+                        </>
+                    </A>
                 </div>
                 <div class="pandas-calendar__container">
                     <div class="pandas-calendar__weekday">Montag</div>

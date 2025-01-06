@@ -46,6 +46,8 @@
       grid-template-rows: auto auto;
       padding: 1rem;
       transition: all 0.3s;
+      text-decoration: none;
+      color: var(--text-color);
 
       &:hover {
         background: var(--primary-color-alpha-25);
@@ -118,10 +120,10 @@
   display: grid;
   grid-template-rows: [toolbar] auto [content] 1fr;
   gap: 1rem;
-  height: 100%;
+  height: calc(var(--page-height) - var(--tab-links-height) - var(--title-font-size) - 4.75rem);
 
   &__content {
-    height: calc(var(--page-height) - var(--tab-links-height) - var(--title-font-size) - 4.75rem);
+    height: calc(var(--page-height) - var(--tab-links-height) - var(--title-font-size) - 5.75rem);
     overflow: auto;
 
     .pandas-card-list {
