@@ -94,7 +94,7 @@ fn EditFighterDialog(
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
             <ModalButton
                 is_submit=true
-                label=format!("{} bearbeiten", job.read().to_string())
+                label=format!("{} speichern", job.read().to_string())
                 slot
             />
         </ActionFormModal>

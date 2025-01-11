@@ -34,7 +34,7 @@ fn CreateCrafterDialog(
     });
 
     view! {
-        <ActionFormModal action=action title="Sammler hinzufügen">
+        <ActionFormModal action=action title="Handwerker hinzufügen">
             <ModalContent slot>
                 <input type="hidden" value=character_id name="character_id" />
                 <SingleSelect
@@ -46,7 +46,7 @@ fn CreateCrafterDialog(
                 <Textbox required=false label="Level" name="level" />
             </ModalContent>
             <ModalButton on_click=on_close label="Schließen" slot />
-            <ModalButton is_submit=true label="Sammler hinzufügen" slot />
+            <ModalButton is_submit=true label="Handwerker hinzufügen" slot />
         </ActionFormModal>
     }
 }
@@ -88,7 +88,7 @@ fn EditCrafterDialog(
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
             <ModalButton
                 is_submit=true
-                label=format!("{} bearbeiten", job.read().to_string())
+                label=format!("{} speichern", job.read().to_string())
                 slot
             />
         </ActionFormModal>

@@ -29,7 +29,11 @@ fn PandasMenu() -> impl IntoView {
             </SubMenu>
             <SubMenu parent="/pandas/final-fantasy" slot>
                 <MenuItem href="/pandas/final-fantasy" label="Charaktere" />
-                <MenuItem href="/pandas/final-fantasy/customization" label="Personalisierung" />
+                <MenuItem
+                    href="/pandas/final-fantasy/free-companies"
+                    label="Freie Gesellschaften"
+                />
+                <MenuItem href="/pandas/final-fantasy/custom-fields" label="Eigene Felder" />
             </SubMenu>
             <SubMenu parent="/pandas/groves" slot>
                 {move || {
@@ -76,6 +80,14 @@ fn PandasRoutes() -> impl IntoView {
                 <Route path=path!("/pandas") view=|| view! { <Redirect path="/pandas/bamboo" /> } />
                 <Route path=path!("/pandas/bamboo") view=bamboo::Calendar />
                 <Route path=path!("/pandas/bamboo/pandas") view=bamboo::Pandas />
+                <Route
+                    path=path!("/pandas/final-fantasy/free-companies")
+                    view=final_fantasy::FreeCompanies
+                />
+                <Route
+                    path=path!("/pandas/final-fantasy/custom-fields")
+                    view=final_fantasy::CustomFields
+                />
                 <Route path=path!("/pandas/final-fantasy") view=final_fantasy::Characters />
                 <Route path=path!("/pandas/groves/:id/:name") view=groves::GrovePage />
                 <Route path=path!("/pandas/groves") view=GrovesRoute />
