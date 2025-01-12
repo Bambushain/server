@@ -1,0 +1,23 @@
+.cosmo-menu__collection.is--bamboo {
+  grid-template-columns: [menu] 1fr [profilepicture] calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height));
+  grid-template-areas: "main-menu profilepicture" "sub-menu profilepicture";
+}
+
+.pandas-profilepicture {
+  display: block;
+  background-color: var(--primary-color);
+  height: calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height));
+  width: calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height));
+  margin-top: calc(-1 * var(--top-menu-height));
+  border-bottom-left-radius: var(--border-radius);
+}
+
+.cosmo-menu:not(.is--top)::before {
+  height: calc(100% + var(--top-menu-height)) !important;
+  border-top-right-radius: 0 !important;
+  top: calc(-1 * var(--top-menu-height));
+}
+
+.cosmo-menu__item {
+  cursor: pointer;
+}

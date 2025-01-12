@@ -6,6 +6,7 @@ use leptos::prelude::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
 use leptos_router::components::*;
+use leptos_router::hooks::use_location;
 use leptos_router::path;
 use leptos_use::use_window;
 use std::future::IntoFuture;
@@ -13,50 +14,86 @@ use std::future::IntoFuture;
 #[component]
 fn PandasMenu() -> impl IntoView {
     let groves_ctx = expect_context::<RwSignal<AllGroves>>();
+    let current_user_ctx = expect_context::<RwSignal<BambooUser>>();
+
+    let logout_action = ServerAction::<LogoutAction>::new();
+
+    let logout = move |_| {
+        logout_action.dispatch(LogoutAction {});
+    };
+
+    let router = use_location();
+    let profile_picture = Memo::new(move |_| current_user_ctx.get().profile_picture);
+
+    Effect::new(move |_| {
+        if logout_action.value().get().is_some_and(|res| res.is_ok()) {
+            let window = use_window();
+            let _ = window
+                .as_ref()
+                .unwrap()
+                .location()
+                .set_href("/authentication");
+        }
+    });
 
     view! {
-        <Menu>
-            <MainMenu slot>
-                <MenuItem main=true href="/pandas/bamboo" label="Bambushain" />
-                <MenuItem main=true href="/pandas/final-fantasy" label="Final Fantasy" />
-                <MenuItem main=true href="/pandas/groves" label="Meine Haine" />
-                <MenuItem main=true href="/pandas/profile" label="Mein Profil" />
-                <MenuItem main=true href="/pandas/support" label="Bambussupport" />
-            </MainMenu>
-            <SubMenu parent="/pandas/bamboo" slot>
-                <MenuItem href="/pandas/bamboo" label="Event Kalender" />
-                <MenuItem href="/pandas/bamboo/pandas" label="Pandas" />
-            </SubMenu>
-            <SubMenu parent="/pandas/final-fantasy" slot>
-                <MenuItem href="/pandas/final-fantasy" label="Charaktere" />
-                <MenuItem
-                    href="/pandas/final-fantasy/free-companies"
-                    label="Freie Gesellschaften"
-                />
-                <MenuItem href="/pandas/final-fantasy/custom-fields" label="Eigene Felder" />
-            </SubMenu>
-            <SubMenu parent="/pandas/groves" slot>
-                {move || {
-                    groves_ctx
-                        .get()
-                        .into_iter()
-                        .map(|grove| {
-                            view! {
-                                <MenuItem
-                                    href=format!(
-                                        "/pandas/groves/{}/{}",
-                                        grove.id,
-                                        grove.name.clone(),
-                                    )
-                                    label=grove.name.clone()
-                                />
-                            }
-                        })
-                        .collect_view()
-                }}
-                <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
-            </SubMenu>
-        </Menu>
+        <div class="cosmo-menu">
+            <BackButton />
+            <nav class="cosmo-menu__collection is--bamboo">
+                <div class="cosmo-menu__row is--main">
+                    <MenuItem main=true href="/pandas/bamboo" label="Bambushain" />
+                    <MenuItem main=true href="/pandas/final-fantasy" label="Final Fantasy" />
+                    <MenuItem main=true href="/pandas/groves" label="Meine Haine" />
+                    <MenuItem main=true href="/pandas/profile" label="Mein Profil" />
+                    <MenuItem main=true href="/pandas/support" label="Bambussupport" />
+                    <a class="cosmo-menu__item" on:click=logout>
+                        Abmelden
+                    </a>
+                </div>
+                <div class="cosmo-menu__row is--sub">
+                    <Show when=move || { router.pathname.read().starts_with("/pandas/bamboo") }>
+                        <MenuItem href="/pandas/bamboo" label="Event Kalender" />
+                        <MenuItem href="/pandas/bamboo/pandas" label="Pandas" />
+                    </Show>
+                    <Show when=move || {
+                        router.pathname.read().starts_with("/pandas/final-fantasy")
+                    }>
+                        <MenuItem href="/pandas/final-fantasy" label="Charaktere" />
+                        <MenuItem
+                            href="/pandas/final-fantasy/free-companies"
+                            label="Freie Gesellschaften"
+                        />
+                        <MenuItem
+                            href="/pandas/final-fantasy/custom-fields"
+                            label="Eigene Felder"
+                        />
+                    </Show>
+                    <Show when=move || {
+                        router.pathname.read().starts_with("/pandas/groves")
+                    }>
+                        {move || {
+                            groves_ctx
+                                .get()
+                                .into_iter()
+                                .map(|grove| {
+                                    view! {
+                                        <MenuItem
+                                            href=format!(
+                                                "/pandas/groves/{}/{}",
+                                                grove.id,
+                                                grove.name.clone(),
+                                            )
+                                            label=grove.name.clone()
+                                        />
+                                    }
+                                })
+                                .collect_view()
+                        }} <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
+                    </Show>
+                </div>
+                <img class="pandas-profilepicture" src=profile_picture aria-hidden />
+            </nav>
+        </div>
     }
 }
 
@@ -174,14 +211,18 @@ pub fn App() -> impl IntoView {
                             current_user_ctx.set(profile);
                         }
 
-                        view! {
-                            <PandasTopBar />
-                            <PandasMenu />
-                        }
+                        view! { <PandasMenu /> }
                     })}
                 </Transition>
                 <PandasRoutes />
             </Router>
+            <div class="cosmo-bottom-bar">
+                <div class="cosmo-bottom-bar__item is--left">
+                    <a>Lizenzen</a>
+                    <a>Impressum</a>
+                    <a>Datenschutz</a>
+                </div>
+            </div>
         </PageLayout>
     }
 }
