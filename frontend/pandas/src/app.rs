@@ -3,6 +3,7 @@ use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
 use bamboo_common::core::entities::BambooUser;
 use leptos::prelude::*;
+use leptos_cosmo::icons::*;
 use leptos_cosmo::prelude::*;
 use leptos_meta::*;
 use leptos_router::components::*;
@@ -37,8 +38,8 @@ fn PandasMenu() -> impl IntoView {
     });
 
     view! {
-        <div class="cosmo-menu">
-            <BackButton />
+        <div class="cosmo-menu is--bamboo">
+            <img class="pandas-profilepicture" src=profile_picture aria-hidden />
             <nav class="cosmo-menu__collection is--bamboo">
                 <div class="cosmo-menu__row is--main">
                     <MenuItem main=true href="/pandas/bamboo" label="Bambushain" />
@@ -46,9 +47,6 @@ fn PandasMenu() -> impl IntoView {
                     <MenuItem main=true href="/pandas/groves" label="Meine Haine" />
                     <MenuItem main=true href="/pandas/profile" label="Mein Profil" />
                     <MenuItem main=true href="/pandas/support" label="Bambussupport" />
-                    <a class="cosmo-menu__item" on:click=logout>
-                        Abmelden
-                    </a>
                 </div>
                 <div class="cosmo-menu__row is--sub">
                     <Show when=move || { router.pathname.read().starts_with("/pandas/bamboo") }>
@@ -91,8 +89,10 @@ fn PandasMenu() -> impl IntoView {
                         }} <MenuItem href="/pandas/groves/new" label="Neuer Hain" />
                     </Show>
                 </div>
-                <img class="pandas-profilepicture" src=profile_picture aria-hidden />
             </nav>
+            <button on:click=logout class="pandas-logout" aria-label="Abmelden">
+                <Icon icon=LuLogOut width="2rem" height="2rem" />
+            </button>
         </div>
     }
 }
