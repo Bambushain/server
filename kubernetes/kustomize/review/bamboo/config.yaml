@@ -4,14 +4,14 @@ metadata:
   name: bamboo
 stringData:
   DATABASE_URL: "postgres://bamboo:bamboo@postgres:5432/bamboo"
-  MAILER_ENCRYPTION: "ssl"
+  MAILER_ENCRYPTION: "tls"
   MAILER_FROM: "panda.helferlein@bambushain.app"
-  MAILER_PORT: "465"
+  MAILER_PORT: "587"
   MAILER_SERVER: "mail.ulbricht.cloud"
-  MAILER_STARTTLS: "false"
+  MAILER_STARTTLS: "true"
   MAILER_USERNAME: "panda.helferlein@bambushain.app"
   NATS_SERVER: "nats:4222"
-  RUST_LOG: "debug"
+  RUST_LOG: "info"
   S3_BUCKET: "bambushain-review"
   S3_ENDPOINT: "https://storage.ulbricht.casa"
   S3_REGION: "eu"
