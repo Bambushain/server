@@ -4,11 +4,11 @@ metadata:
   name: bamboo
 stringData:
   DATABASE_URL: "postgres://bamboo:bamboo@postgres:5432/bamboo"
-  MAILER_ENCRYPTION: "tls"
+  MAILER_ENCRYPTION: "ssl"
   MAILER_FROM: "panda.helferlein@bambushain.app"
-  MAILER_PORT: "587"
+  MAILER_PORT: "465"
   MAILER_SERVER: "mail.ulbricht.cloud"
-  MAILER_STARTTLS: "true"
+  MAILER_STARTTLS: "false"
   MAILER_USERNAME: "panda.helferlein@bambushain.app"
   NATS_SERVER: "nats:4222"
   RUST_LOG: "info"
