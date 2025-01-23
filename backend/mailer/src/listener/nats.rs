@@ -32,6 +32,7 @@ pub async fn start_listening() -> Result<(), NotificationError> {
 
         while let Some(message) = subscriber.next().await {
             if let Ok(message) = message {
+                log::info!("Got a new message");
                 if let Err(err) = message
                     .double_ack()
                     .await
@@ -39,6 +40,7 @@ pub async fn start_listening() -> Result<(), NotificationError> {
                 {
                     log::error!("Failed to ack message {err}")
                 } else if let Ok(mail) = Mail::from_jetstream_message(message) {
+                    log::info!("The message contains the following mail: {mail:#?}");
                     if let Err(err) = mailer::send_mail(mail, EnvironmentService::new()).await {
                         log::error!("Failed to send email: {err}");
                     }

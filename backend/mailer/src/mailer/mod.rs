@@ -154,5 +154,5 @@ pub async fn send_mail(mail: Mail, env_service: EnvironmentService) -> BambooErr
             log::error!("{err:#?}");
             BambooError::mailing("Failed to send email")
         })
-        .map(|_| ())
+        .map(|response| log::info!("Got mailing response: {response:#?}"))
 }
