@@ -1,7 +1,7 @@
 use crate::api::ff;
 use crate::api::ff::{
-    get_custom_fields, get_free_companies, CreateCharacterAction, DeleteCharacterAction,
-    UpdateCharacterAction,
+    create_character, get_custom_fields, get_free_companies, update_character
+    , DeleteCharacterAction,
 };
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
@@ -12,6 +12,7 @@ use bamboo_common::core::error::BambooErrorCode;
 use leptos::either::Either;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
+use leptos::task::spawn_local;
 use leptos_cosmo::prelude::*;
 use leptos_router::components::A;
 use leptos_router::hooks::use_query_map;
@@ -26,9 +27,6 @@ fn EditCharacterDialog(
     on_save: Callback<()>,
     on_close: Callback<()>,
 ) -> impl IntoView {
-    let action = ServerAction::<UpdateCharacterAction>::new();
-    let value = action.value();
-
     let has_error = RwSignal::new(false);
     let error_message = RwSignal::new("".to_string());
     let error_message_header = RwSignal::new("".to_string());
@@ -60,28 +58,6 @@ fn EditCharacterDialog(
         .map(|race| (Some(race.get_race_name()), race.to_string()))
         .collect::<Vec<_>>();
 
-    Effect::new(move |_| {
-        if let Some(Ok(char)) = value.get() {
-            has_error.set(false);
-            on_save.run(char)
-        } else if let Some(Err(ServerFnError::WrappedServerError(err))) = value.get() {
-            has_error.set(true);
-            if err.code == BambooErrorCode::ExistsAlready {
-                *error_message.write() = format!(
-                    "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
-                    world.read(),
-                    name.read()
-                );
-                *error_message_header.write() = "Charakter existiert bereits".into();
-            } else {
-                *error_message.write() =
-                    "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport"
-                        .into();
-                *error_message_header.write() = "Unbekannter Fehler".into();
-            }
-        }
-    });
-
     let update_character = move |ev: SubmitEvent| {
         ev.prevent_default();
         let custom_fields = custom_fields
@@ -94,14 +70,41 @@ fn EditCharacterDialog(
                 )
             })
             .collect::<BTreeMap<_, _>>();
-        action.dispatch(UpdateCharacterAction {
-            id: character.id,
-            race: race.get_untracked().unwrap(),
-            name: name.get_untracked(),
-            world: world.get_untracked(),
-            datacenter: datacenter.get_untracked(),
-            free_company: free_company.get_untracked(),
-            custom_fields: Some(custom_fields),
+
+        let id = character.id;
+        spawn_local(async move {
+            *has_error.write() = match update_character(
+                id,
+                race.get_untracked().unwrap(),
+                name.get_untracked(),
+                world.get_untracked(),
+                datacenter.get_untracked(),
+                free_company.get_untracked(),
+                Some(custom_fields),
+            )
+            .await
+            {
+                Err(ServerFnError::WrappedServerError(err))
+                    if err.code == BambooErrorCode::ExistsAlready =>
+                {
+                    *error_message_header.write() = "Charakter existiert bereits".to_string();
+                    *error_message.write() = format!(
+                        "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
+                        world.read(),
+                        name.read()
+                    );
+                    false
+                }
+                Err(_) => {
+                    *error_message_header.write() = "Fehler beim Erstellen".to_string();
+                    *error_message.write() = "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport".to_string();
+                    false
+                }
+                Ok(_) => {
+                    on_save.run(());
+                    true
+                }
+            }
         });
     };
 
@@ -189,10 +192,7 @@ fn EditCharacterDialog(
 }
 
 #[component]
-fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -> impl IntoView {
-    let action = ServerAction::<CreateCharacterAction>::new();
-    let value = action.value();
-
+fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl IntoView {
     let has_error = RwSignal::new(false);
     let error_message = RwSignal::new("".to_string());
     let error_message_header = RwSignal::new("".to_string());
@@ -218,28 +218,6 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
         .map(|race| (Some(race.get_race_name()), race.to_string()))
         .collect::<Vec<_>>();
 
-    Effect::new(move |_| {
-        if let Some(Ok(char)) = value.get() {
-            has_error.set(false);
-            on_save.run(char)
-        } else if let Some(Err(ServerFnError::WrappedServerError(err))) = value.get() {
-            has_error.set(true);
-            if err.code == BambooErrorCode::ExistsAlready {
-                *error_message.write() = format!(
-                    "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
-                    world.read(),
-                    name.read()
-                );
-                *error_message_header.write() = "Charakter existiert bereits".into();
-            } else {
-                *error_message.write() =
-                    "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport"
-                        .into();
-                *error_message_header.write() = "Unbekannter Fehler".into();
-            }
-        }
-    });
-
     let create_character = move |ev: SubmitEvent| {
         ev.prevent_default();
         let custom_fields = custom_fields
@@ -252,13 +230,39 @@ fn CreateCharacterDialog(on_save: Callback<Character>, on_close: Callback<()>) -
                 )
             })
             .collect::<BTreeMap<_, _>>();
-        action.dispatch(CreateCharacterAction {
-            race: race.get_untracked().unwrap(),
-            name: name.get_untracked(),
-            world: world.get_untracked(),
-            datacenter: datacenter.get_untracked(),
-            free_company: free_company.get_untracked(),
-            custom_fields: Some(custom_fields),
+
+        spawn_local(async move {
+            *has_error.write() = match create_character(
+                race.get_untracked().unwrap(),
+                name.get_untracked(),
+                world.get_untracked(),
+                datacenter.get_untracked(),
+                free_company.get_untracked(),
+                Some(custom_fields),
+            )
+            .await
+            {
+                Err(ServerFnError::WrappedServerError(err))
+                    if err.code == BambooErrorCode::ExistsAlready =>
+                {
+                    *error_message_header.write() = "Charakter existiert bereits".to_string();
+                    *error_message.write() = format!(
+                        "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
+                        world.read(),
+                        name.read()
+                    );
+                    false
+                }
+                Err(_) => {
+                    *error_message_header.write() = "Fehler beim Erstellen".to_string();
+                    *error_message.write() = "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport".to_string();
+                    false
+                }
+                Ok(_) => {
+                    on_save.run(());
+                    true
+                }
+            }
         });
     };
 

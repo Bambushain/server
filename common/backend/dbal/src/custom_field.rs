@@ -1,17 +1,17 @@
+use crate::error_tag;
+use bamboo_common_core::entities::*;
+use bamboo_common_core::entities::{custom_character_field, custom_character_field_option};
+use bamboo_common_core::error::*;
 use itertools::Itertools;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::Expr;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    IntoActiveModel, IntoSimpleExpr, NotSet, QueryOrder, QuerySelect, TransactionError,
+    IntoActiveModel, IntoSimpleExpr, JoinType, NotSet, QueryOrder, QuerySelect, TransactionError,
     TransactionTrait,
 };
 use std::cmp::Ordering;
-
-use crate::error_tag;
-use bamboo_common_core::entities::*;
-use bamboo_common_core::entities::{custom_character_field, custom_character_field_option};
-use bamboo_common_core::error::*;
+use std::collections::BTreeSet;
 
 pub async fn get_custom_fields(
     user_id: i32,
@@ -20,23 +20,27 @@ pub async fn get_custom_fields(
     custom_character_field::Entity::find()
         .find_with_related(custom_character_field_option::Entity)
         .filter(custom_character_field::Column::UserId.eq(user_id))
-        .order_by_asc(custom_character_field::Column::Position)
-        .order_by_asc(custom_character_field::Column::Label)
         .all(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to load character custom fields"))
         .map(|fields| {
             let mut res = fields
-                .iter()
-                .map(|(field, options)| CustomCharacterField {
-                    options: options.clone(),
-                    label: field.label.clone(),
-                    id: field.id,
-                    user_id: field.user_id,
-                    position: field.position,
+                .into_iter()
+                .map(|(field, options)| {
+                    let mut options = options;
+                    options.sort_by(|a, b| a.label.cmp(&b.label));
+
+                    CustomCharacterField {
+                        options: options.clone(),
+                        label: field.label.clone(),
+                        id: field.id,
+                        user_id: field.user_id,
+                        position: field.position,
+                    }
                 })
                 .collect_vec();
-            res.sort_by(|a, b| b.position.cmp(&a.position));
+            res.sort_by(|a, b| a.position.cmp(&b.position));
+
             res
         })
 }
@@ -179,6 +183,49 @@ pub async fn update_custom_field(
         .map(|_| ())
 }
 
+pub async fn update_custom_field_with_options(
+    id: i32,
+    user_id: i32,
+    custom_field: CustomField,
+    options: BTreeSet<(i32, String)>,
+    deleted_options: BTreeSet<i32>,
+    db: &DatabaseConnection,
+) -> BambooErrorResult {
+    if custom_field_exists_by_id(user_id, id, custom_field.label.clone(), db).await? {
+        return Err(BambooError::exists_already(
+            error_tag!(),
+            "The custom field exists already",
+        ));
+    }
+
+    custom_character_field::Entity::update_many()
+        .filter(custom_character_field::Column::Id.eq(id))
+        .filter(custom_character_field::Column::UserId.eq(user_id))
+        .col_expr(
+            custom_character_field::Column::Label,
+            Expr::value(custom_field.label),
+        )
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update custom field"))
+        .map(|_| ())?;
+
+    let field_id = id;
+    for (id, label) in options.clone() {
+        if id > 0 {
+            update_custom_field_option(id, user_id, field_id, label, db).await?;
+        } else {
+            create_custom_field_option(user_id, field_id, label, db).await?;
+        }
+    }
+
+    for id in deleted_options {
+        delete_custom_field_option(id, field_id, db).await?;
+    }
+
+    Ok(())
+}
+
 pub async fn delete_custom_field(
     id: i32,
     user_id: i32,
@@ -201,6 +248,10 @@ pub async fn get_custom_field_options(
     custom_character_field_option::Entity::find()
         .filter(custom_character_field_option::Column::CustomCharacterFieldId.eq(custom_field_id))
         .filter(custom_character_field::Column::UserId.eq(user_id))
+        .join(
+            JoinType::InnerJoin,
+            custom_character_field_option::Relation::CustomCharacterField.def(),
+        )
         .all(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to load custom field options"))
