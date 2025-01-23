@@ -1,3 +1,4 @@
+#![recursion_limit = "1024"]
 pub mod api;
 pub mod app;
 #[cfg(feature = "ssr")]
