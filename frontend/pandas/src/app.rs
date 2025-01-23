@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
