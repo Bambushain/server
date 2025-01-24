@@ -13,7 +13,5 @@ labels:
 
 secretGenerator:
   - name: passwords
-    files:
-      - secrets/MAILER_PASSWORD
-      - secrets/S3_ACCESS_KEY
-      - secrets/S3_SECRET_KEY
+    envs:
+      - secrets/env.txt

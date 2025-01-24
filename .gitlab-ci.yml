@@ -259,9 +259,9 @@ deploy-review:
     - export BRANCH=`echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" | awk '{print tolower($0)}'`
     - export TAG="4\\.0\\.0-alpha\\.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME\\.$CI_PIPELINE_IID"
     - cd $CI_PROJECT_DIR/kubernetes/kustomize/review/
-    - echo $MAILER_PASSWORD > secrets/MAILER_PASSWORD
-    - echo $S3_ACCESS_KEY > secrets/S3_ACCESS_KEY
-    - echo $S3_SECRET_KEY > secrets/S3_SECRET_KEY
+    - echo "MAILER_PASSWORD=$MAILER_PASSWORD" > secrets/env.txt
+    - echo "S3_ACCESS_KEY=$S3_ACCESS_KEY" >> secrets/env.txt
+    - echo "S3_SECRET_KEY=$S3_SECRET_KEY" >> secrets/env.txt
     - kubectl kustomize > manifest.yaml
     - sed -i "s/\$BRANCH/$BRANCH/g" manifest.yaml
     - sed -i "s/\$TAG/$TAG/g" manifest.yaml
