@@ -17,6 +17,9 @@ http:
     authentication-ui:
       rule: PathPrefix(`/authentication`)
       service: authentication-ui
+    public-ui:
+      rule: PathPrefix(`/`)
+      service: public-ui
   services:
     services-api:
       loadBalancer:
@@ -26,6 +29,10 @@ http:
       loadBalancer:
         servers:
           - url: "http://host.docker.internal:4020"
+    public-ui:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:4070"
     pandas-ui:
       loadBalancer:
         servers:

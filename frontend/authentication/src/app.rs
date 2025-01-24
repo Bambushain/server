@@ -25,10 +25,11 @@ pub fn App() -> impl IntoView {
         <Meta content="width=device-width, initial-scale=1" name="viewport" />
 
         <Router>
-            <Routes fallback=|| view! { <Login /> }>
+            <Routes fallback=|| view! { <Redirect path="/authentication" /> }>
                 <Route path=path!("/authentication") view=Login />
                 <Route path=path!("/authentication/forgot-password") view=ForgotPassword />
                 <Route path=path!("/authentication/reset-password") view=ResetPassword />
+                <Route path=path!("/authentication/*any") view=|| view! { <Redirect path="/authentication" /> } />
             </Routes>
         </Router>
     }
@@ -90,8 +91,9 @@ fn Login() -> impl IntoView {
                     </div>
                 </ActionForm>
                 <footer class="auth-footer">
-                    <a href="/legal/imprint">Impressum</a>
-                    <a href="/legal/data-protection">Datenschutz</a>
+                    <a href="/legal/licenses" target="_blank">Lizenzen</a>
+                    <a href="/legal/imprint" target="_blank">Impressum</a>
+                    <a href="/legal/privacy" target="_blank">Datenschutz</a>
                 </footer>
             </div>
         </div>
