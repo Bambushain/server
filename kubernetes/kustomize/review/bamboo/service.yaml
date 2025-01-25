@@ -13,6 +13,9 @@ spec:
       port: 4020
       name: events
     - protocol: TCP
+      port: 4070
+      name: public
+    - protocol: TCP
       port: 4080
       name: pandas
     - protocol: TCP

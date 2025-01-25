@@ -44,3 +44,13 @@ spec:
                   name: events
             pathType: Prefix
             path: /sse/event
+    - host: $BRANCH-review.bambushain.app
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: public
+            pathType: Prefix
+            path: /
