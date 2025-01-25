@@ -1,3 +1,4 @@
+mod banner_page;
 mod imprint;
 mod licenses;
 mod privacy;

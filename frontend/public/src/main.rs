@@ -41,7 +41,7 @@ async fn main() -> std::io::Result<()> {
                                     content="width=device-width, initial-scale=1"
                                 />
                                 <AutoReload options=leptos_options.clone() />
-                                <HydrationScripts options=leptos_options.clone() />
+                                <HydrationScripts options=leptos_options.clone() islands=true />
                                 <MetaTags />
                             </head>
                             <body>

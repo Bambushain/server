@@ -1,6 +1,40 @@
+#[cfg(feature = "ssr")]
+use actix_web::http::header;
+#[cfg(feature = "ssr")]
+use actix_web::middleware::Next;
+#[cfg(feature = "ssr")]
+use actix_web::{body, dev, Error, HttpResponse};
+#[cfg(feature = "ssr")]
+use bamboo_common::backend::actix::cookie;
+#[cfg(feature = "ssr")]
+use bamboo_common::backend::actix::middleware::get_user_and_token_by_cookie;
+#[cfg(feature = "ssr")]
 use bamboo_common::backend::database::get_database;
+#[cfg(feature = "ssr")]
 use bamboo_common::backend::services::DbConnection;
 use leptos_meta::MetaTags;
+
+#[cfg(feature = "ssr")]
+async fn redirect_if_authenticated(
+    db: DbConnection,
+    auth_cookie: Option<cookie::BambooAuthCookie>,
+    req: dev::ServiceRequest,
+    next: Next<impl body::MessageBody>,
+) -> Result<dev::ServiceResponse<body::EitherBody<impl body::MessageBody, ()>>, Error> {
+    if get_user_and_token_by_cookie(&db, auth_cookie).await.is_ok() {
+        let req = req.request().to_owned();
+
+        Ok(dev::ServiceResponse::new(
+            req,
+            HttpResponse::SeeOther()
+                .insert_header((header::LOCATION, "/pandas"))
+                .message_body(())?,
+        )
+        .map_into_right_body())
+    } else {
+        Ok(next.call(req).await?.map_into_left_body())
+    }
+}
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
@@ -34,7 +68,7 @@ async fn main() -> std::io::Result<()> {
             ))
             // serve other assets from the `assets` directory
             .service(Files::new("/authentication/assets", site_root.as_ref()))
-            .leptos_routes(routes.to_owned(),{
+            .leptos_routes(routes.to_owned(), {
                 let leptos_options = leptos_options.clone();
                 move || {
                     use leptos::prelude::*;
@@ -61,6 +95,7 @@ async fn main() -> std::io::Result<()> {
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
             .app_data(db.clone())
+            .wrap(middleware::from_fn(redirect_if_authenticated))
             .wrap(middleware::Compress::default())
     })
     .bind(&addr)?

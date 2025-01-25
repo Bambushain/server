@@ -1,7 +1,8 @@
+use crate::pages::banner_page::BannerPage;
 use bamboo_common::core::entities::get_dependencies;
 use chrono::Datelike;
 use leptos::prelude::*;
-use leptos_meta::Title;
+use std::ops::Not;
 
 #[component]
 pub fn Licenses() -> impl IntoView {
@@ -9,19 +10,18 @@ pub fn Licenses() -> impl IntoView {
     let year = chrono::Local::now().year();
 
     view! {
-        <Title text="Lizenzen" />
-        <h1>"Lizenzen"</h1>
-        <p>"Bambushain verwendet diverse Bilder, Schriften und Softwarekomponenten, hier findest du eine Liste mit den Lizenzen"</p>
-        <h2>"Bambushains Lizenz"</h2>
-        <p>
-            "Bambushain ist unter der Open Source MIT Lizenz veröffentlicht, den Code kannst du dir hier anschauen: "
-            <a href="https://github.com/Creastina/bambushain">"Github"</a>
-        </p>
-        <details>
-            <summary>"Lizenztext"</summary>
-            <pre>
-                {format!("MIT License
-
+        <BannerPage title="Lizenzen">
+            <p>"Bambushain verwendet diverse Bilder, Schriften und Softwarekomponenten, hier findest du eine Liste mit den Lizenzen"</p>
+            <h2>"Bambushains Lizenz"</h2>
+            <p>
+                "Bambushain ist unter der Open Source MIT Lizenz veröffentlicht, den Code kannst du dir hier anschauen: "
+                <a href="https://github.com/Creastina/bambushain">"Github"</a>
+            </p>
+            <details>
+                <summary>"Lizenztext"</summary>
+                <pre>
+                    {format!("MIT License
+    
 Copyright (c) {year} Imanuel Ulbricht, Christina Ruebsam and Hans-Jürgen Wandschneider
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,109 +41,109 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.")}</pre>
-        </details>
-        <h2>"Bildlizenzen"</h2>
-        <h3>"Hintergrundbild"</h3>
-        <p>
-            "Bambushain hat ein Hintergrundbild von "<a href="https://unsplash.com">"Unsplash"</a>". Das Bild steht unter der Unsplash Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
-        </p>
-        <h4>"Bild"</h4>
-        <figure>
-            <img src="/public/assets/background-pandas.webp" />
-            <figcaption>
-                <a href="https://unsplash.com/de/fotos/ein-holzsteg-mit-pflanzen-und-baumen-l3lxbhkTApM">"Bildherkunft"</a>
-            </figcaption>
-        </figure>
-        <h4>"Lizenz"</h4>
-        <p>
-            "Unsplash gewährt Ihnen eine unwiderrufliche, nicht-exklusive, weltweite Urheberrechtslizenz, um Fotos von Unsplash kostenlos herunterzuladen, zu kopieren, zu verändern, zu verbreiten, aufzuführen und zu nutzen, auch für kommerzielle Zwecke, ohne Genehmigung oder Nennung des Fotografen oder Unsplash. Diese Lizenz umfasst nicht das Recht, Fotos von Unsplash zu kompilieren, um einen ähnlichen oder konkurrierenden Service zu replizieren."
-        </p>
-        <p>
-            "Du findest die Unsplash Lizenz hier: "<a href="https://unsplash.com/de/lizenz">"Unsplash Lizenz"</a>
-        </p>
-        <h3>"Login Hintergrundbild"</h3>
-        <p>
-            "Bambushain hat ein Login Hintergrundbild von "<a href="https://unsplash.com">"Unsplash"</a>". Das Bild steht unter der Unsplash Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
-        </p>
-        <h4>"Bild"</h4>
-        <figure>
-            <img src="/authentication/assets/background.webp" />
-            <figcaption>
-                <a href="https://unsplash.com/de/fotos/haus-zwischen-wald-F-6rwMp1M-Q">"Bildherkunft"</a>
-            </figcaption>
-        </figure>
-        <h4>"Lizenz"</h4>
-        <p>
-            "Unsplash gewährt Ihnen eine unwiderrufliche, nicht-exklusive, weltweite Urheberrechtslizenz, um Fotos von Unsplash kostenlos herunterzuladen, zu kopieren, zu verändern, zu verbreiten, aufzuführen und zu nutzen, auch für kommerzielle Zwecke, ohne Genehmigung oder Nennung des Fotografen oder Unsplash. Diese Lizenz umfasst nicht das Recht, Fotos von Unsplash zu kompilieren, um einen ähnlichen oder konkurrierenden Service zu replizieren."
-        </p>
-        <p>
-            "Du findest die Unsplash Lizenz hier: "<a href="https://unsplash.com/de/lizenz">"Unsplash Lizenz"</a>
-        </p>
-        <h3>"Logo"</h3>
-        <p>
-            "Das aktuelle Bambushain Logo ist von "<a href="https://www.svgrepo.com/">"SVG Repo"</a>". Das Bild steht unter der CC0 Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
-        </p>
-        <h4>"Bild"</h4>
-        <figure>
-            <img src="/public/assets/favicon.svg" />
-            <figcaption>
-                <a href="https://www.svgrepo.com/svg/220234/bamboo">
-                    "Bildherkunft"
-                </a>
-            </figcaption>
-        </figure>
-        <details>
-            <summary>"Lizenz"</summary>
-            <h4>"Public Domain"</h4>
+            </details>
+            <h2>"Bildlizenzen"</h2>
+            <h3>"Hintergrundbild"</h3>
             <p>
-                <em>
-                    "(As visual work) This license also might be referred as No copyright or CC0 1.0 Universal PD Dedication on our website."
-                </em>
+                "Bambushain hat ein Hintergrundbild von "<a href="https://unsplash.com">"Unsplash"</a>". Das Bild steht unter der Unsplash Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
+            </p>
+            <h4>"Bild"</h4>
+            <figure class="bamboo-preview is--license">
+                <img class="bamboo-preview__image is--license" src="/public/assets/background-pandas.webp" />
+                <figcaption class="bamboo-preview__caption is--license">
+                    <a href="https://unsplash.com/de/fotos/ein-holzsteg-mit-pflanzen-und-baumen-l3lxbhkTApM">"Bildherkunft"</a>
+                </figcaption>
+            </figure>
+            <h4>"Lizenz"</h4>
+            <p>
+                "Unsplash gewährt Ihnen eine unwiderrufliche, nicht-exklusive, weltweite Urheberrechtslizenz, um Fotos von Unsplash kostenlos herunterzuladen, zu kopieren, zu verändern, zu verbreiten, aufzuführen und zu nutzen, auch für kommerzielle Zwecke, ohne Genehmigung oder Nennung des Fotografen oder Unsplash. Diese Lizenz umfasst nicht das Recht, Fotos von Unsplash zu kompilieren, um einen ähnlichen oder konkurrierenden Service zu replizieren."
             </p>
             <p>
-                "The person who associated a work with this deed has dedicated the work to the public domain by waiving all of his or her rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law."
+                "Du findest die Unsplash Lizenz hier: "<a href="https://unsplash.com/de/lizenz">"Unsplash Lizenz"</a>
+            </p>
+            <h3>"Login Hintergrundbild"</h3>
+            <p>
+                "Bambushain hat ein Login Hintergrundbild von "<a href="https://unsplash.com">"Unsplash"</a>". Das Bild steht unter der Unsplash Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
+            </p>
+            <h4>"Bild"</h4>
+            <figure class="bamboo-preview is--license">
+                <img class="bamboo-preview__image is--license" src="/public/assets/background.webp" />
+                <figcaption class="bamboo-preview__caption is--license">
+                    <a href="https://unsplash.com/de/fotos/haus-zwischen-wald-F-6rwMp1M-Q">"Bildherkunft"</a>
+                </figcaption>
+            </figure>
+            <h4>"Lizenz"</h4>
+            <p>
+                "Unsplash gewährt Ihnen eine unwiderrufliche, nicht-exklusive, weltweite Urheberrechtslizenz, um Fotos von Unsplash kostenlos herunterzuladen, zu kopieren, zu verändern, zu verbreiten, aufzuführen und zu nutzen, auch für kommerzielle Zwecke, ohne Genehmigung oder Nennung des Fotografen oder Unsplash. Diese Lizenz umfasst nicht das Recht, Fotos von Unsplash zu kompilieren, um einen ähnlichen oder konkurrierenden Service zu replizieren."
             </p>
             <p>
-                "Or, the work consists of simple geometry and is not ineligable for copyright due to Threshold of originality (this threshold might vary depending on different country laws). For an example \"A stick figure, where the head is represented by a circle and other parts represented by straight lines\" is not copyrightable or falls into public domain."
+                "Du findest die Unsplash Lizenz hier: "<a href="https://unsplash.com/de/lizenz">"Unsplash Lizenz"</a>
             </p>
-            <p>"You are free:"</p>
-            <ul>
-                <li>
-                    <strong>"to share"</strong>" – to copy, distribute and transmit the work"
-                </li>
-                <li>
-                    <strong>"to remix"</strong>" – to adapt the work"
-                </li>
-            </ul>
-            <p>"Under the following terms:"</p>
-            <ul>
-                <li>
-                    <strong>"attribution"</strong>" – there is no author or author waived their right, no attribution"
-                </li>
-                <li>
-                    <strong>"share alike"</strong>" – If you remix, transform, or build upon the material, you can distribute your work under any license."
-                </li>
-            </ul>
+            <h3>"Logo"</h3>
             <p>
-                "Unless in the single pages of icons indexed on this website indicates differently, simple icons distributed on this website is subject to public domain or open source."
+                "Das aktuelle Bambushain Logo ist von "<a href="https://www.svgrepo.com/">"SVG Repo"</a>". Das Bild steht unter der CC0 Lizenz, die wir unten verlinkt und kopiert haben. Das Bild haben wir auch verlinkt und noch einmal ohne Filter gezeigt."
             </p>
+            <h4>"Bild"</h4>
+            <figure class="bamboo-preview is--license">
+                <img class="bamboo-preview__image is--license is--small" src="/public/assets/favicon.svg" />
+                <figcaption class="bamboo-preview__caption is--license">
+                    <a href="https://www.svgrepo.com/svg/220234/bamboo">
+                        "Bildherkunft"
+                    </a>
+                </figcaption>
+            </figure>
+            <details>
+                <summary>"Lizenztext"</summary>
+                <h4>"Public Domain"</h4>
+                <p>
+                    <em>
+                        "(As visual work) This license also might be referred as No copyright or CC0 1.0 Universal PD Dedication on our website."
+                    </em>
+                </p>
+                <p>
+                    "The person who associated a work with this deed has dedicated the work to the public domain by waiving all of his or her rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law."
+                </p>
+                <p>
+                    "Or, the work consists of simple geometry and is not ineligable for copyright due to Threshold of originality (this threshold might vary depending on different country laws). For an example \"A stick figure, where the head is represented by a circle and other parts represented by straight lines\" is not copyrightable or falls into public domain."
+                </p>
+                <p>"You are free:"</p>
+                <ul>
+                    <li>
+                        <strong>"to share"</strong>" – to copy, distribute and transmit the work"
+                    </li>
+                    <li>
+                        <strong>"to remix"</strong>" – to adapt the work"
+                    </li>
+                </ul>
+                <p>"Under the following terms:"</p>
+                <ul>
+                    <li>
+                        <strong>"attribution"</strong>" – there is no author or author waived their right, no attribution"
+                    </li>
+                    <li>
+                        <strong>"share alike"</strong>" – If you remix, transform, or build upon the material, you can distribute your work under any license."
+                    </li>
+                </ul>
+                <p>
+                    "Unless in the single pages of icons indexed on this website indicates differently, simple icons distributed on this website is subject to public domain or open source."
+                </p>
+                <p>
+                    "To learn more about this license, "<a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">"check out this page"</a>"."
+                </p>
+                <p>
+                    "Du findest die CC0 Lizenz hier: "<a href="https://www.svgrepo.com/page/licensing/#CC0">"CC0 Lizenz"</a>
+                </p>
+            </details>
+            <h2>"Schriftlizenzen"</h2>
+            <h3>"Albert Sans"</h3>
             <p>
-                "To learn more about this license, "<a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">"check out this page"</a>"."
+                "Die Standardschrift von Bambushain ist "<a href="https://github.com/usted/Albert-Sans">"Albert Sans"</a> ". Albert Sans ist unter der SIL Open Font License lizensiert. Details dazu unten."
             </p>
-            <p>
-                "Du findest die CC0 Lizenz hier: "<a href="https://www.svgrepo.com/page/licensing/#CC0">"CC0 Lizenz"</a>
-            </p>
-        </details>
-        <h2>"Schriftlizenzen"</h2>
-        <h3>"Albert Sans"</h3>
-        <p>
-            "Die Standardschrift von Bambushain ist "<a href="https://github.com/usted/Albert-Sans">"Albert Sans"</a> ". Albert Sans ist unter der SIL Open Font License lizensiert. Details dazu unten."
-        </p>
-        <details>
-            <summary>"Lizenztext"</summary>
-            <pre>
-                "Copyright 2021 The Albert Sans Project Authors (https://github.com/usted/Albert-Sans)
-
+            <details>
+                <summary>"Lizenztext"</summary>
+                <pre>
+                    "Copyright 2021 The Albert Sans Project Authors (https://github.com/usted/Albert-Sans)
+    
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 https://scripts.sil.org/OFL
@@ -235,17 +235,17 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE."
-            </pre>
-        </details>
-        <h3>"Urbanist"</h3>
-        <p>
-            "Für Menüs, Überschriften und ähnliches benutzt Bambushain "<a href="https://github.com/coreyhu/Urbanist">"Urbanist"</a>". Urbanist ist unter der SIL Open Font License lizensiert. Details dazu unten."
-        </p>
-        <details>
-            <summary>"Lizenztext"</summary>
-            <pre>
-                "Copyright 2024 The Urbanist Project Authors (https://github.com/coreyhu/Urbanist)
-
+                </pre>
+            </details>
+            <h3>"Urbanist"</h3>
+            <p>
+                "Für Menüs, Überschriften und ähnliches benutzt Bambushain "<a href="https://github.com/coreyhu/Urbanist">"Urbanist"</a>". Urbanist ist unter der SIL Open Font License lizensiert. Details dazu unten."
+            </p>
+            <details>
+                <summary>"Lizenztext"</summary>
+                <pre>
+                    "Copyright 2024 The Urbanist Project Authors (https://github.com/coreyhu/Urbanist)
+    
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 https://scripts.sil.org/OFL
@@ -337,21 +337,30 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE."
-            </pre>
-        </details>
-        <h2>"Softwarelizenzen"</h2>
-        {dependencies.into_iter().map(|dependency| view! {
-            <h3>{dependency.name}</h3>
-            <dl>
-                <dt>"Beschreibung"</dt>
-                <dd>{dependency.description}</dd>
-                <dt>"Autoren"</dt>
-                <dd>{dependency.authors}</dd>
-                <dt>"Quelle"</dt>
-                <dd><a href=dependency.repository>{dependency.repository.clone()}</a></dd>
-                <dt>"Lizenz"</dt>
-                <dd>{dependency.license}</dd>
-            </dl>
-        }).collect_view()}
+                </pre>
+            </details>
+            <h2>"Softwarelizenzen"</h2>
+            {dependencies.into_iter().map(|dependency| view! {
+                <h3>{dependency.name}</h3>
+                <dl>
+                    {dependency.description.is_empty().not().then_some(view! {
+                        <dt>"Beschreibung"</dt>
+                        <dd>{dependency.description}</dd>
+                    })}
+                    {dependency.authors.is_empty().not().then_some(view! {
+                        <dt>"Autoren"</dt>
+                        <dd>{dependency.authors}</dd>
+                    })}
+                    {dependency.repository.is_empty().not().then_some(view! {
+                        <dt>"Quelle"</dt>
+                        <dd><a href=dependency.repository>{dependency.repository.clone()}</a></dd>
+                    })}
+                    {dependency.license.is_empty().not().then_some(view! {
+                        <dt>"Lizenz"</dt>
+                        <dd>{dependency.license}</dd>
+                    })}
+                </dl>
+            }).collect_view()}
+        </BannerPage>
     }
 }

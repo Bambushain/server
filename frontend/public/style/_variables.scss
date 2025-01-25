@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --transition-duration: 0.3s;
+
+  --font-family: "Albert Sans", sans-serif;
+  --font-weight-light: 300;
+
+  --font-family-heading: Urbanist, sans-serif;
+  --font-weight-heading: 600;
+
+  --font-weight-bold: 500;
+
+  --border-radius: 0.25rem;
+
+  --primary-color: hsl(158 22% 45%);
+  --primary-color-light: hsl(158 22% 55%);
+  --primary-color-lighter: hsl(158 22% 65%);
+  --primary-color-lightest: hsl(158 22% 95%);
+
+  --primary-color-dark: hsl(158 22% 35%);
+  --primary-color-darker: hsl(158 22% 25%);
+  --primary-color-darkest: hsl(158 22% 15%);
+
+  --primary-color-alpha-50: hsl(158 22% 45% / 50%);
+
+  --white: #ffffff;
+
+  --page-spacing: 20vw;
+
+  font-family: var(--font-family);
+  font-weight: 400;
+}
