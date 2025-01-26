@@ -43,7 +43,7 @@ spec:
             - name: LEPTOS_SITE_ADDR
               value: 0.0.0.0:4070
           ports:
-            - containerPort: 4080
+            - containerPort: 4070
         - name: events
           image: registry.ulbricht.casa/bambushain/server/events:$TAG
           envFrom:
