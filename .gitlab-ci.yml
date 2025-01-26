@@ -176,6 +176,7 @@ build-frontend:
   parallel:
     matrix:
       - APP:
+          - public
           - pandas
           - authentication
         ARCH:
