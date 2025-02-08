@@ -65,6 +65,7 @@ workflow:
           - amd64
           - arm64
       - APP:
+          - public
           - pandas
           - authentication
         TYPE:
@@ -95,6 +96,7 @@ workflow:
           - mailer
           - events
           - api
+          - public
           - pandas
           - authentication
           - migrator
