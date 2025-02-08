@@ -76,5 +76,4 @@ spec:
             defaultMode: 0777
         - name: data
           emptyDir:
-            medium: Memory
       restartPolicy: Never
