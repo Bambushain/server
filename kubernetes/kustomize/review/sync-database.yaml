@@ -31,7 +31,7 @@ spec:
     spec:
       initContainers:
         - name: export-database
-          image: library/postgres:latest
+          image: library/postgres:17
           imagePullPolicy: IfNotPresent
           env:
             - name: PGHOST
@@ -51,7 +51,7 @@ spec:
               name: data
       containers:
         - name: sync-testsystem
-          image: library/postgres:latest
+          image: library/postgres:17
           imagePullPolicy: IfNotPresent
           env:
             - name: PGHOST
