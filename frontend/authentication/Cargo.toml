@@ -21,6 +21,7 @@ leptos_router = { workspace = true }
 leptos-use = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
+uuid = { workspace = true, features = ["js"] }
 wasm-bindgen = { workspace = true }
 
 [features]
