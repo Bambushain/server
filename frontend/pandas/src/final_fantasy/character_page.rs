@@ -1,7 +1,7 @@
 use crate::api::ff;
 use crate::api::ff::{
-    create_character, get_custom_fields, get_free_companies, update_character
-    , DeleteCharacterAction,
+    create_character, get_custom_fields, get_free_companies, update_character,
+    DeleteCharacterAction,
 };
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
@@ -202,7 +202,7 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
     let datacenter = RwSignal::new("".to_string());
     let race = RwSignal::new(Some(
         CharacterRace::iter()
-            .choose(&mut rand::thread_rng())
+            .choose(&mut rand::rng())
             .unwrap_or_default()
             .get_race_name(),
     ));
