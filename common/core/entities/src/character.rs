@@ -7,7 +7,7 @@ use std::fmt::{Display, Formatter};
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
 use crate::{CustomField, FreeCompany};
 

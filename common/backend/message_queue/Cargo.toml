@@ -9,4 +9,3 @@ bamboo-common-core = { path = "../../core" }
 
 async-nats = { workspace = true }
 strum = { workspace = true }
-strum_macros = { workspace = true }

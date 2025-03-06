@@ -66,6 +66,7 @@ pub async fn mail(
     mrml::async_parse(template)
         .await
         .map_err(|err| BambooError::mailing(format!("Failed to parse mail {err}")))?
+        .element
         .render(&RenderOptions::default())
         .map_err(|err| BambooError::mailing(format!("Failed to render mail {err}")))
 }

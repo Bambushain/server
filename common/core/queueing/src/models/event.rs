@@ -2,7 +2,7 @@ use bamboo_common_core_entities::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::str::FromStr;
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub enum EventAction {

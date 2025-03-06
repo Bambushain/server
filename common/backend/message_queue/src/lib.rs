@@ -4,8 +4,8 @@ use async_nats::subject::ToSubject;
 use async_nats::{jetstream, Subject};
 use bamboo_common_core::queueing::{IntoBytes, NotificationError};
 use std::fmt::{Display, Formatter};
+use strum::EnumIter;
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 pub async fn get_nats() -> Result<async_nats::Client, NotificationError> {
     let client = async_nats::connect(

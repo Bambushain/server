@@ -202,7 +202,7 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
     let datacenter = RwSignal::new("".to_string());
     let race = RwSignal::new(Some(
         CharacterRace::iter()
-            .choose(&mut rand::rng())
+            .choose(&mut rand::thread_rng())
             .unwrap_or_default()
             .get_race_name(),
     ));
