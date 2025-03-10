@@ -20,7 +20,6 @@ workflow:
     paths:
       - $CI_PROJECT_DIR/target/
       - $CI_PROJECT_DIR/.cargo/
-      - $CI_PROJECT_DIR/Cargo.lock
 
 .base-frontend-cache:
   image:
@@ -40,7 +39,6 @@ workflow:
     paths:
       - $CI_PROJECT_DIR/target/
       - $CI_PROJECT_DIR/.cargo/
-      - $CI_PROJECT_DIR/Cargo.lock
 
 .base-docker:
   image:
