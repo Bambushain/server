@@ -204,43 +204,48 @@ pub fn CrafterTab(character_id: Signal<i32>) -> impl IntoView {
                                                         .collect::<Vec<_>>()
                                                 }
                                             });
-                                        crafters
-                                            .iter()
-                                            .cloned()
-                                            .map(|crafter| {
-                                                let crafter_to_edit = crafter.clone();
 
-                                                view! {
-                                                    <Card
-                                                        title=crafter.job.to_string()
-                                                        prepend=format!(
-                                                            "/pandas/assets/crafter_jobs/{}",
-                                                            crafter.job.get_file_name(),
-                                                        )
-                                                    >
-                                                        {if crafter
-                                                            .level
-                                                            .clone()
-                                                            .is_none_or(|level| level.is_empty())
-                                                        {
-                                                            "Kein Level angegeben".to_string()
-                                                        } else {
-                                                            format!("Level {}", crafter.level.unwrap())
-                                                        }}
-                                                        <CardBottom slot>
-                                                            <Button
-                                                                label="Bearbeiten"
-                                                                on:click=move |_| edit_crafter(crafter_to_edit.clone())
-                                                            />
-                                                            <Button
-                                                                label="Löschen"
-                                                                on:click=move |_| delete_crafter(crafter.id)
-                                                            />
-                                                        </CardBottom>
-                                                    </Card>
+                                        view! {
+                                            <For
+                                                each=move || crafters.clone()
+                                                key=move |crafter| crafter.clone()
+                                                let(crafter)
+                                            >
+                                                {
+                                                    let crafter_to_edit = crafter.clone();
+
+                                                    view! {
+                                                        <Card
+                                                            title=crafter.job.to_string()
+                                                            prepend=format!(
+                                                                "/pandas/assets/crafter_jobs/{}",
+                                                                crafter.job.get_file_name(),
+                                                            )
+                                                        >
+                                                            {if crafter
+                                                                .level
+                                                                .clone()
+                                                                .is_none_or(|level| level.is_empty())
+                                                            {
+                                                                "Kein Level angegeben".to_string()
+                                                            } else {
+                                                                format!("Level {}", crafter.level.unwrap())
+                                                            }}
+                                                            <CardBottom slot>
+                                                                <Button
+                                                                    label="Bearbeiten"
+                                                                    on:click=move |_| edit_crafter(crafter_to_edit.clone())
+                                                                />
+                                                                <Button
+                                                                    label="Löschen"
+                                                                    on:click=move |_| delete_crafter(crafter.id)
+                                                                />
+                                                            </CardBottom>
+                                                        </Card>
+                                                    }
                                                 }
-                                            })
-                                            .collect_view()
+                                            </For>
+                                        }
                                     })
                             })
                         }}

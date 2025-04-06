@@ -211,53 +211,58 @@ pub fn FighterTab(character_id: Signal<i32>) -> impl IntoView {
                                                         .collect::<Vec<_>>()
                                                 }
                                             });
-                                        fighters
-                                            .iter()
-                                            .cloned()
-                                            .map(|fighter| {
-                                                let fighter_to_edit = fighter.clone();
 
-                                                view! {
-                                                    <Card
-                                                        title=fighter.job.to_string()
-                                                        prepend=format!(
-                                                            "/pandas/assets/fighter_jobs/{}",
-                                                            fighter.job.get_file_name(),
-                                                        )
-                                                    >
-                                                        {if fighter
-                                                            .level
-                                                            .clone()
-                                                            .is_none_or(|level| level.is_empty())
-                                                        {
-                                                            "Kein Level angegeben".to_string()
-                                                        } else {
-                                                            format!("Level {}", fighter.level.unwrap())
-                                                        }}
-                                                        <br />
-                                                        {if fighter
-                                                            .gear_score
-                                                            .clone()
-                                                            .is_none_or(|level| level.is_empty())
-                                                        {
-                                                            "Kein Gear Score angegeben".to_string()
-                                                        } else {
-                                                            format!("Gear Score {}", fighter.gear_score.unwrap())
-                                                        }}
-                                                        <CardBottom slot>
-                                                            <Button
-                                                                label="Bearbeiten"
-                                                                on:click=move |_| edit_fighter(fighter_to_edit.clone())
-                                                            />
-                                                            <Button
-                                                                label="Löschen"
-                                                                on:click=move |_| delete_fighter(fighter.id)
-                                                            />
-                                                        </CardBottom>
-                                                    </Card>
+                                        view! {
+                                            <For
+                                                each=move || fighters.clone()
+                                                key=move |fighter| fighter.clone()
+                                                let(fighter)
+                                            >
+                                                {
+                                                    let fighter_to_edit = fighter.clone();
+
+                                                    view! {
+                                                        <Card
+                                                            title=fighter.job.to_string()
+                                                            prepend=format!(
+                                                                "/pandas/assets/fighter_jobs/{}",
+                                                                fighter.job.get_file_name(),
+                                                            )
+                                                        >
+                                                            {if fighter
+                                                                .level
+                                                                .clone()
+                                                                .is_none_or(|level| level.is_empty())
+                                                            {
+                                                                "Kein Level angegeben".to_string()
+                                                            } else {
+                                                                format!("Level {}", fighter.level.unwrap())
+                                                            }}
+                                                            <br />
+                                                            {if fighter
+                                                                .gear_score
+                                                                .clone()
+                                                                .is_none_or(|level| level.is_empty())
+                                                            {
+                                                                "Kein Gear Score angegeben".to_string()
+                                                            } else {
+                                                                format!("Gear Score {}", fighter.gear_score.unwrap())
+                                                            }}
+                                                            <CardBottom slot>
+                                                                <Button
+                                                                    label="Bearbeiten"
+                                                                    on:click=move |_| edit_fighter(fighter_to_edit.clone())
+                                                                />
+                                                                <Button
+                                                                    label="Löschen"
+                                                                    on:click=move |_| delete_fighter(fighter.id)
+                                                                />
+                                                            </CardBottom>
+                                                        </Card>
+                                                    }
                                                 }
-                                            })
-                                            .collect_view()
+                                            </For>
+                                        }
                                     })
                             })
                         }}

@@ -179,27 +179,27 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                                 housing_resource
                                     .await
                                     .map(|housings| {
-                                        housings
-                                            .iter()
-                                            .cloned()
-                                            .map(|housing| {
 
-                                                view! {
-                                                    <Card title=housing
-                                                        .district
-                                                        .to_string()>
-                                                        {housing.housing_type.to_string()}<br />
-                                                        {format!("Bezirk {}", housing.ward)}<br />
-                                                        {format!("Nr. {}", housing.plot)} <CardBottom slot>
-                                                            <Button
-                                                                label="Löschen"
-                                                                on:click=move |_| delete_housing(housing.id)
-                                                            />
-                                                        </CardBottom>
-                                                    </Card>
-                                                }
-                                            })
-                                            .collect_view()
+                                        view! {
+                                            <For
+                                                each=move || housings.clone()
+                                                key=move |housing| housing.clone()
+                                                let(housing)
+                                            >
+                                                <Card title=housing
+                                                    .district
+                                                    .to_string()>
+                                                    {housing.housing_type.to_string()}<br />
+                                                    {format!("Bezirk {}", housing.ward)}<br />
+                                                    {format!("Nr. {}", housing.plot)} <CardBottom slot>
+                                                        <Button
+                                                            label="Löschen"
+                                                            on:click=move |_| delete_housing(housing.id)
+                                                        />
+                                                    </CardBottom>
+                                                </Card>
+                                            </For>
+                                        }
                                     })
                             })
                         }}

@@ -131,7 +131,10 @@ fn PandasRoutes() -> impl IntoView {
                 <Route path=path!("/pandas/groves/new") view=groves::NewGrovePage />
                 <Route path=path!("/pandas/profile") view=my::MyProfilePage />
                 <Route path=path!("/pandas/support") view=support::BambooSupportPage />
-                <Route path=path!("/pandas/*any") view=|| view! { <Redirect path="/pandas/bamboo" /> } />
+                <Route
+                    path=path!("/pandas/*any")
+                    view=|| view! { <Redirect path="/pandas/bamboo" /> }
+                />
             </Routes>
         </PageBody>
     }
@@ -219,9 +222,15 @@ pub fn App() -> impl IntoView {
             </Router>
             <div class="cosmo-bottom-bar">
                 <div class="cosmo-bottom-bar__item is--left">
-                    <a href="/legal/licenses" target="_blank">Lizenzen</a>
-                    <a href="/legal/imprint" target="_blank">Impressum</a>
-                    <a href="/legal/privacy" target="_blank">Datenschutz</a>
+                    <a href="/legal/licenses" target="_blank">
+                        Lizenzen
+                    </a>
+                    <a href="/legal/imprint" target="_blank">
+                        Impressum
+                    </a>
+                    <a href="/legal/privacy" target="_blank">
+                        Datenschutz
+                    </a>
                 </div>
             </div>
         </PageLayout>

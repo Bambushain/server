@@ -104,7 +104,7 @@ fn Day(
     month: u32,
     year: i32,
     #[prop(into)] selected_month: Signal<u32>,
-    events: Vec<GroveEvent>,
+    #[prop(into)] events: Signal<Vec<GroveEvent>>,
     #[prop(into)] grove_id: Signal<Option<i32>>,
 ) -> impl IntoView {
     let add_event_open = RwSignal::new(false);
@@ -142,10 +142,9 @@ fn Day(
                     is_open=add_event_open
                 />
             </Show>
-            {events
-                .iter()
-                .map(move |evt| view! { <EventEntry event=evt.clone() /> })
-                .collect::<Vec<_>>()}
+            <For each=move || events.get() key=move |evt| evt.clone() let(evt)>
+                <EventEntry event=evt.clone() />
+            </For>
         </div>
     }
 }
@@ -426,6 +425,13 @@ pub fn Calendar(
             .unwrap()
     });
 
+    let calendar_range = Memo::new(move |_| {
+        DateRange::new(calendar_start_date.get(), calendar_end_date.get())
+            .unwrap()
+            .into_iter()
+            .collect::<Vec<_>>()
+    });
+
     let events = RwSignal::new(Vec::<GroveEvent>::default());
     let events_resource = Resource::new(
         move || {
@@ -531,34 +537,34 @@ pub fn Calendar(
                     <div class="pandas-calendar__weekday">Freitag</div>
                     <div class="pandas-calendar__weekday">Samstag</div>
                     <div class="pandas-calendar__weekday">Sonntag</div>
-                    {move || {
-                        DateRange::new(calendar_start_date.get(), calendar_end_date.get())
-                            .unwrap()
-                            .into_iter()
-                            .map(|day| {
-                                let events_for_day = move |day: NaiveDate| {
-                                    events
-                                        .read()
-                                        .iter()
-                                        .filter(move |event| {
-                                            event.start_date <= day && event.end_date >= day
-                                        })
-                                        .cloned()
-                                        .collect::<Vec<_>>()
-                                };
-                                view! {
-                                    <Day
-                                        grove_id=grove_id
-                                        events=events_for_day(day)
-                                        day=day.day()
-                                        month=day.month()
-                                        year=day.year()
-                                        selected_month=current_month
-                                    />
-                                }
-                            })
-                            .collect::<Vec<_>>()
-                    }}
+                    <For
+                        each=move || calendar_range.get()
+                        key=move |day| format!("{day}{}", current_month.read())
+                        let(day)
+                    >
+                        {
+                            let events_for_day = Memo::new(move |_| {
+                                events
+                                    .read()
+                                    .iter()
+                                    .filter(move |event| {
+                                        event.start_date <= day && event.end_date >= day
+                                    })
+                                    .cloned()
+                                    .collect::<Vec<_>>()
+                            });
+                            view! {
+                                <Day
+                                    grove_id=grove_id
+                                    events=events_for_day
+                                    day=day.day()
+                                    month=day.month()
+                                    year=day.year()
+                                    selected_month=current_month
+                                />
+                            }
+                        }
+                    </For>
                 </div>
             </div>
         </Transition>

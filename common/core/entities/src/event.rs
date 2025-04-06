@@ -87,7 +87,7 @@ impl Model {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
 pub struct GroveEvent {

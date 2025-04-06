@@ -122,22 +122,19 @@ pub fn PandasList(#[prop(into, optional)] grove_id: Signal<Option<i32>>) -> impl
                             Either::Left(
                                 view! {
                                     <CardList>
-                                        {move || {
-                                            pandas
-                                                .iter()
-                                                .map(move |panda| {
-                                                    view! {
-                                                        <PandaCard
-                                                            ban_callback=refetch
-                                                            panda=panda.clone()
-                                                            grove_id=grove_id
-                                                            me_id=current_user_id
-                                                            is_mod=is_mod
-                                                        />
-                                                    }
-                                                })
-                                                .collect::<Vec<_>>()
-                                        }}
+                                        <For
+                                            each=move || pandas.clone()
+                                            key=move |panda| panda.clone()
+                                            let(panda)
+                                        >
+                                            <PandaCard
+                                                ban_callback=refetch
+                                                panda=panda.clone()
+                                                grove_id=grove_id
+                                                me_id=current_user_id
+                                                is_mod=is_mod
+                                            />
+                                        </For>
                                     </CardList>
                                 },
                             )

@@ -8,6 +8,8 @@ use leptos_meta::MetaTags;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let _ = dotenvy::dotenv();
+
     bamboo_common::backend::logging::init();
 
     let conf = get_configuration(None).unwrap();

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha512_224};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),

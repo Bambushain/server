@@ -9,7 +9,7 @@ use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
 use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
@@ -196,7 +196,7 @@ impl From<String> for FighterJob {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),

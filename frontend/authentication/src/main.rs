@@ -45,6 +45,8 @@ async fn main() -> std::io::Result<()> {
     use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
 
+    let _ = dotenvy::dotenv();
+
     bamboo_common::backend::logging::init();
 
     let conf = get_configuration(None).unwrap();

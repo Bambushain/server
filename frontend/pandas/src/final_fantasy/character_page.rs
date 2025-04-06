@@ -328,7 +328,6 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
                                                     new_item
                                                 })
                                                 .map(|selected| {
-
                                                     view! {
                                                         <MultiSelect
                                                             label=field.label.clone()
@@ -472,18 +471,14 @@ fn DetailsTab(
                                 }
                             })
                     }}
-                    {move || {
-                        custom_fields
-                            .get()
-                            .into_values()
-                            .map(|(label, values)| {
-                                view! {
-                                    <dt>{label}</dt>
-                                    <dd>{values.join(", ")}</dd>
-                                }
-                            })
-                            .collect_view()
-                    }}
+                    <For
+                        each=move || custom_fields.get().into_values()
+                        key=move |(label, values)| format!("{label}{values:#?}")
+                        let((label, values))
+                    >
+                        <dt>{label}</dt>
+                        <dd>{values.join(", ")}</dd>
+                    </For>
                 </KeyValueList>
                 <Show when=move || edit_open.get()>
                     <EditCharacterDialog
@@ -513,6 +508,8 @@ pub fn Characters() -> impl IntoView {
             })
             .collect::<Vec<_>>()
     });
+
+    let loading = RwSignal::new(false);
 
     let add_open = RwSignal::new(false);
     let query = use_query_map();
@@ -566,7 +563,10 @@ pub fn Characters() -> impl IntoView {
     let selected_tab = RwSignal::new(0);
 
     let delete_success = Callback::new(move |_| characters_resource.refetch());
-    let update_success = Callback::new(move |_| characters_resource.refetch());
+    let update_success = Callback::new(move |_| {
+        loading.set(true);
+        characters_resource.refetch()
+    });
 
     let add_saved = Callback::new(move |_| {
         characters_resource.refetch();
@@ -584,6 +584,7 @@ pub fn Characters() -> impl IntoView {
             }>
                 {move || Suspend::new(async move {
                     if let Ok(chars) = characters_resource.await {
+                        loading.set(false);
                         characters.set(chars.clone());
                         Either::Left(
                             view! {
@@ -635,34 +636,42 @@ pub fn Characters() -> impl IntoView {
                                                         }
                                                     }
                                                 >
-                                                    {move || {
-                                                        filtered_characters
-                                                            .get()
-                                                            .into_iter()
-                                                            .map(move |character| {
-                                                                let name = character.name.clone();
-                                                                let race = character.race.to_string();
-                                                                let world = character.world.clone();
-                                                                view! {
-                                                                    <A
-                                                                attr:class="pandas-characters-list__item"
-                                                                class:is--active=move || selected_character
-                                                                            .get()
-                                                                            .is_some_and(|char| char.id == character.id)
-                                                                href={
-                                                                    let character = character.clone();
-                                                                    move || format!("/pandas/final-fantasy?id={}", character.id)
-                                                                }
-                                                            >
-                                                                <span class="pandas-characters-title">{name}</span>
-                                                                <span class="pandas-characters-subtitle">
-                                                                    {format!("{race} auf {world}")}
-                                                                </span>
-                                                            </A>
-                                                                }
-                                                            })
-                                                            .collect_view()
-                                                    }}
+                                                    <For
+                                                        each=move || filtered_characters.get()
+                                                        key=move |character| {
+                                                            format!(
+                                                                "id={}&race={}&name={}&world={}",
+                                                                character.id,
+                                                                character.race,
+                                                                character.name,
+                                                                character.world,
+                                                            )
+                                                        }
+                                                        let(character)
+                                                    >
+                                                        {
+                                                            let name = character.name.clone();
+                                                            let race = character.race.to_string();
+                                                            let world = character.world.clone();
+                                                            view! {
+                                                                <A
+                                                                    attr:class="pandas-characters-list__item"
+                                                                    class:is--active=move || selected_character
+                                                                                .get()
+                                                                                .is_some_and(|char| char.id == character.id)
+                                                                    href={
+                                                                        let character = character.clone();
+                                                                        move || format!("/pandas/final-fantasy?id={}", character.id)
+                                                                    }
+                                                                >
+                                                                    <span class="pandas-characters-title">{name}</span>
+                                                                    <span class="pandas-characters-subtitle">
+                                                                        {format!("{race} auf {world}")}
+                                                                    </span>
+                                                                </A>
+                                                            }
+                                                        }
+                                                    </For>
                                                 </Show>
                                             </div>
                                             <CircleButton
@@ -675,7 +684,9 @@ pub fn Characters() -> impl IntoView {
                                         </div>
                                         <div class="pandas-characters-list__separator"></div>
                                         <div class="pandas-characters-list__details">
-                                            <Show when=move || has_selected_character.get()>
+                                            <Show when=move || {
+                                                has_selected_character.get() && !loading.get()
+                                            }>
                                                 <Title title=character_name subtitle=character_race />
                                                 <TabControl selected_index=selected_tab>
                                                     <TabItem slot label=details_tab_label>

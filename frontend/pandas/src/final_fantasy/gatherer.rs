@@ -196,43 +196,48 @@ pub fn GathererTab(character_id: Signal<i32>) -> impl IntoView {
                                     gatherer_resource
                                         .await
                                         .map(|gatherers| {
-                                            gatherers
-                                                .iter()
-                                                .cloned()
-                                                .map(|gatherer| {
-                                                    let gatherer_to_edit = gatherer.clone();
 
-                                                    view! {
-                                                        <Card
-                                                            title=gatherer.job.to_string()
-                                                            prepend=format!(
-                                                                "/pandas/assets/gatherer_jobs/{}",
-                                                                gatherer.job.get_file_name(),
-                                                            )
-                                                        >
-                                                            {if gatherer
-                                                                .level
-                                                                .clone()
-                                                                .is_none_or(|level| level.is_empty())
-                                                            {
-                                                                "Kein Level angegeben".to_string()
-                                                            } else {
-                                                                format!("Level {}", gatherer.level.unwrap())
-                                                            }}
-                                                            <CardBottom slot>
-                                                                <Button
-                                                                    label="Bearbeiten"
-                                                                    on:click=move |_| edit_gatherer(gatherer_to_edit.clone())
-                                                                />
-                                                                <Button
-                                                                    label="Löschen"
-                                                                    on:click=move |_| delete_gatherer(gatherer.id)
-                                                                />
-                                                            </CardBottom>
-                                                        </Card>
+                                            view! {
+                                                <For
+                                                    each=move || gatherers.clone()
+                                                    key=move |gatherer| gatherer.clone()
+                                                    let(gatherer)
+                                                >
+                                                    {
+                                                        let gatherer_to_edit = gatherer.clone();
+
+                                                        view! {
+                                                            <Card
+                                                                title=gatherer.job.to_string()
+                                                                prepend=format!(
+                                                                    "/pandas/assets/gatherer_jobs/{}",
+                                                                    gatherer.job.get_file_name(),
+                                                                )
+                                                            >
+                                                                {if gatherer
+                                                                    .level
+                                                                    .clone()
+                                                                    .is_none_or(|level| level.is_empty())
+                                                                {
+                                                                    "Kein Level angegeben".to_string()
+                                                                } else {
+                                                                    format!("Level {}", gatherer.level.unwrap())
+                                                                }}
+                                                                <CardBottom slot>
+                                                                    <Button
+                                                                        label="Bearbeiten"
+                                                                        on:click=move |_| edit_gatherer(gatherer_to_edit.clone())
+                                                                    />
+                                                                    <Button
+                                                                        label="Löschen"
+                                                                        on:click=move |_| delete_gatherer(gatherer.id)
+                                                                    />
+                                                                </CardBottom>
+                                                            </Card>
+                                                        }
                                                     }
-                                                })
-                                                .collect_view()
+                                                </For>
+                                            }
                                         })
                                 })
                             }

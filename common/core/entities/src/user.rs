@@ -207,7 +207,7 @@ pub struct TotpQrCode {
     pub secret: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
 pub struct GroveUser {
@@ -221,7 +221,7 @@ pub struct GroveUser {
     pub is_banned: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
 pub struct WebUser {
