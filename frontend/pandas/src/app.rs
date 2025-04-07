@@ -203,6 +203,7 @@ pub fn App() -> impl IntoView {
         <PageLayout
             primary_color=Color::new(89, 140, 121, 0.0)
             primary_color_dark=Color::new(89, 140, 121, 0.0)
+            with_fonts=false
         >
             <Router>
                 <leptos_meta::Title formatter=|text| format!("{text} – Bambushain") />
