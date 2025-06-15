@@ -68,14 +68,14 @@ license = "MIT"
 [workspace.dependencies]
 actix = "0.13"
 actix-files = "0.6"
-actix-web = "4.9"
-actix-web-lab = { version = "0.23", features = ["spa"] }
-async-nats = "0.39"
+actix-web = "4"
+actix-web-lab = { version = "0.24", features = ["spa"] }
+async-nats = "0.42"
 base64 = "0.22"
 bcrypt = "0.17"
-bytes = "1.9"
-bytestring = "1.4"
-cargo_metadata = "0.19"
+bytes = "1"
+bytestring = "1"
+cargo_metadata = "0.20"
 chacha20poly1305 = "0.10"
 chrono = { version = "0.4", features = ["serde", "unstable-locales"] }
 ciborium = "0.2"
@@ -85,46 +85,46 @@ console_error_panic_hook = "0.1"
 date-range = "0.3"
 dotenvy = "0.15"
 env_logger = "0.11"
-fast_qr = { version = "0.12", features = ["svg"] }
+fast_qr = { version = "0.13", features = ["svg"] }
 futures = "0.3"
 futures-util = "0.3"
 getrandom = "0.2"
 gloo = "0.11"
 gloo-file = "0.3"
 hex = "0.4"
-html2text = "0.14"
-icondata_lu = "0.0"
+html2text = "0.15"
+icondata_lu = "0.1"
 itertools = "0.14"
-leptos = "0.7"
+leptos = "0.8"
 #leptos-cosmo = { path = "../jinya/leptos-cosmo" }
-leptos-cosmo = "1.0"
-leptos_actix = "0.7"
-leptos_meta = "0.7"
-leptos_router = "0.7"
-leptos-use = "0.15"
+leptos-cosmo = "2.0"
+leptos_actix = "0.8"
+leptos_meta = "0.8"
+leptos_router = "0.8"
+leptos-use = "0.16"
 lettre = { version = "0.11", features = ["tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"], default-features = false }
 log = "0.4"
 maud = "0.27"
 mrml = { version = "5.0", features = ["async", "parse", "render"] }
 parking_lot = "0.12"
 pbkdf2 = "0.12"
-quote = "1.0"
-rand = "0.8"
+quote = "1"
+rand = "0.9"
 rust-s3 = "0.35"
-sea-orm = { version = "1.1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
-sea-orm-migration = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-server_fn = { version = "0.7", features = ["multipart"] }
+sea-orm = { version = "1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
+sea-orm-migration = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+server_fn = { version = "0.8", features = ["multipart"] }
 sha2 = "0.10"
-strum = { version = "0.26", features = ["strum_macros", "derive"] }
-syn = "2.0"
-tokio = "1.43"
+strum = { version = "0.27", features = ["strum_macros", "derive"] }
+syn = "2"
+tokio = "1"
 tokio-stream = "0.1"
 tokio-util = "0.7"
-totp-rs = { version = "5.6", features = ["qr", "gen_secret"] }
-uuid = { version = "1.11", features = ["v4"] }
-walkdir = "2.5"
+totp-rs = { version = "5", features = ["qr", "gen_secret"] }
+uuid = { version = "1", features = ["v4"] }
+walkdir = "2"
 wasm-bindgen = "0.2"
 web-sys = "0.3"
 
