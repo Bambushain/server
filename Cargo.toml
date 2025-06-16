@@ -109,7 +109,7 @@ mrml = { version = "5.0", features = ["async", "parse", "render"] }
 parking_lot = "0.12"
 pbkdf2 = "0.12"
 quote = "1"
-rand = "0.9"
+rand = "0.8"
 rust-s3 = "0.35"
 sea-orm = { version = "1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
 sea-orm-migration = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
@@ -117,7 +117,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 server_fn = { version = "0.8", features = ["multipart"] }
 sha2 = "0.10"
-strum = { version = "0.27", features = ["strum_macros", "derive"] }
+strum = { version = "0.26", features = ["strum_macros", "derive", "default"] }
 syn = "2"
 tokio = "1"
 tokio-stream = "0.1"
@@ -132,6 +132,7 @@ web-sys = "0.3"
 inherits = "dev"
 # optimization for size (more aggressive)
 opt-level = "z"
+strip = false
 
 [profile.web-release]
 inherits = "release"
@@ -143,6 +144,7 @@ codegen-units = 1
 opt-level = "z"
 # link time optimization using whole-program analysis
 lto = true
+strip = false
 
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]
@@ -151,3 +153,4 @@ opt-level = 'z'
 lto = true
 codegen-units = 1
 panic = "abort"
+strip = false

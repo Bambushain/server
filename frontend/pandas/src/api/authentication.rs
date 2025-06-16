@@ -7,7 +7,10 @@ pub async fn get_current_user() -> Result<BambooUser, ServerFnError> {
 
     use crate::authentication::AuthState;
 
-    extract::<AuthState>().await.map(|state| state.user.clone())
+    extract::<AuthState>()
+        .await
+        .map(|state| state.user.clone())
+        .map_err(ServerFnError::new)
 }
 
 #[server(LogoutAction, "/pandas/logout")]
