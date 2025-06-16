@@ -14,7 +14,7 @@ fn get_dependencies_from_cargo_toml(toml: String) -> BTreeMap<String, Package> {
     metadata
         .packages
         .iter()
-        .map(|p| (p.name.clone(), p.clone()))
+        .map(|p| (p.name.to_string(), p.clone()))
         .collect()
 }
 
@@ -60,7 +60,7 @@ pub fn all_dependencies(_input: TokenStream) -> TokenStream {
             .unwrap_or_default();
         let license = p.license.as_ref().map(|s| normalize(s)).unwrap_or_default();
         let repository = p.repository.clone().unwrap_or_default();
-        let name = p.name.clone();
+        let name = p.name.to_string();
 
         quote! {
             DependencyDetails::new(
