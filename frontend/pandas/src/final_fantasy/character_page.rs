@@ -1,14 +1,13 @@
-use crate::api::ff;
 use crate::api::ff::{
     create_character, get_custom_fields, get_free_companies, update_character,
     DeleteCharacterAction,
 };
+use crate::api::{ff, BambooCodeError};
 use crate::final_fantasy::crafters::CrafterTab;
 use crate::final_fantasy::fighters::FighterTab;
 use crate::final_fantasy::gatherer::GathererTab;
 use crate::final_fantasy::housings::HousingTab;
 use bamboo_common::core::entities::{Character, CharacterRace};
-use bamboo_common::core::error::BambooErrorCode;
 use leptos::either::Either;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
@@ -84,9 +83,7 @@ fn EditCharacterDialog(
             )
             .await
             {
-                Err(ServerFnError::WrappedServerError(err))
-                    if err.code == BambooErrorCode::ExistsAlready =>
-                {
+                Err(BambooCodeError::ExistsAlready) => {
                     *error_message_header.write() = "Charakter existiert bereits".to_string();
                     *error_message.write() = format!(
                         "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",
@@ -242,9 +239,7 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
             )
             .await
             {
-                Err(ServerFnError::WrappedServerError(err))
-                    if err.code == BambooErrorCode::ExistsAlready =>
-                {
+                Err(BambooCodeError::ExistsAlready) => {
                     *error_message_header.write() = "Charakter existiert bereits".to_string();
                     *error_message.write() = format!(
                         "Auf der Welt {} existiert bereits ein Charakter mit dem Namen {}",

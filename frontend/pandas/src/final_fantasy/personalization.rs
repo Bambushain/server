@@ -3,11 +3,11 @@ use crate::api::ff::{
     update_custom_field, CreateFreeCompanyAction, DeleteCustomFieldAction, DeleteFreeCompanyAction,
     EditFreeCompanyAction,
 };
+use crate::api::BambooCodeError;
 use crate::components::{Card, CardBottom, CardList};
 use bamboo_common::core::entities::{
     CustomCharacterField, CustomCharacterFieldOption, FreeCompanyWithCharacterCount,
 };
-use bamboo_common::core::error::BambooErrorCode;
 use leptos::ev::{DragEvent, SubmitEvent};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
@@ -72,8 +72,7 @@ fn EditCustomFieldDialog(
                 )
                     .await
                 {
-                    Err(ServerFnError::WrappedServerError(err))
-                    if err.code == BambooErrorCode::ExistsAlready =>
+                    Err(BambooCodeError::ExistsAlready) =>
                         {
                             error_message_header.set("Feld existiert".to_string());
                             error_message.set("Du hast schon ein Feld mit diesem Namen".to_string());
@@ -199,8 +198,7 @@ fn CreateCustomFieldDialog(
 
         spawn_local(async move {
             has_error.set(match create_custom_field(position, label, values).await {
-                Err(ServerFnError::WrappedServerError(err))
-                    if err.code == BambooErrorCode::ExistsAlready =>
+                Err(BambooCodeError::ExistsAlready) =>
                 {
                     error_message_header.set("Feld existiert".to_string());
                     error_message.set("Du hast schon ein Feld mit diesem Namen".to_string());

@@ -24,7 +24,7 @@ impl MinioClient {
         let endpoint = std::env::var("S3_ENDPOINT").ok();
         let use_path_style = std::env::var("S3_USE_PATH_STYLE")
             .ok()
-            .map_or(false, |val| val.to_lowercase() == "true");
+            .is_some_and(|val| val.to_lowercase() == "true");
 
         let region = if let Some(endpoint) = endpoint {
             Region::Custom { region, endpoint }

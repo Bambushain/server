@@ -22,6 +22,8 @@ pub use crate::gatherer::Model as Gatherer;
 pub use crate::grove::Model as Grove;
 #[cfg(feature = "backend")]
 pub use crate::grove_user::Model as GroveUser;
+#[cfg(feature = "backend")]
+pub use crate::mail::Model as Mail;
 pub use crate::support::*;
 pub use crate::token::Model as Token;
 pub use crate::user::BambooUser;
@@ -45,6 +47,8 @@ pub mod gatherer;
 pub mod grove;
 #[cfg(feature = "backend")]
 pub mod grove_user;
+#[cfg(feature = "backend")]
+pub mod mail;
 pub mod support;
 pub mod token;
 pub mod user;
