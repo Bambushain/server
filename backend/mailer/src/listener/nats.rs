@@ -1,55 +1,42 @@
 use crate::mailer;
-use async_nats::jetstream::consumer::pull;
-use async_nats::subject::ToSubject;
-use bamboo_common::backend::mq::{get_once_stream, Queue};
 use bamboo_common::backend::services::EnvironmentService;
-use bamboo_common::core::queueing::{FromMessage, Mail, NotificationError};
-use futures_util::StreamExt;
-use std::time::Duration;
+use bamboo_common::backend::{database, mailing};
+use bamboo_common::core::queueing::NotificationError;
 
 pub async fn start_listening() -> Result<(), NotificationError> {
-    log::info!("Start listening to new mails on nats");
-    let consumer = get_once_stream()
-        .await?
-        .get_or_create_consumer(
-            std::env::var("NAME")
-                .unwrap_or("mailing-0".to_string())
-                .as_str(),
-            pull::Config {
-                filter_subject: Queue::Mails.to_subject().to_string(),
-                ..Default::default()
-            },
-        )
+    log::info!("Start mail handling");
+
+    let db = database::get_database()
         .await
-        .map_err(|err| NotificationError::new(format!("Failed to get consumer {err}")))?;
+        .map_err(|err| NotificationError::new(format!("Failed to connect to database: {err}")))?;
 
     loop {
-        let mut subscriber = consumer
-            .fetch()
-            .messages()
-            .await
-            .map_err(|_| NotificationError::new("Failed to start fetching"))?;
-
-        while let Some(message) = subscriber.next().await {
-            if let Ok(message) = message {
-                log::info!("Got a new message");
-                if let Err(err) = message
-                    .double_ack()
-                    .await
-                    .map_err(|err| NotificationError::new(format!("Failed to ack {err}")))
-                {
-                    log::error!("Failed to ack message {err}")
-                } else if let Ok(mail) = Mail::from_jetstream_message(message) {
-                    log::info!("The message contains the following mail: {mail:#?}");
-                    if let Err(err) = mailer::send_mail(mail, EnvironmentService::new()).await {
+        tokio::select! {
+            Ok(mails) = mailing::get_pending_mails(&db) => {
+                for mail in mails {
+                    log::info!("Received message: {}", &mail.id);
+                    mailing::mark_sending(&mail, &db).await;
+                    if let Err(err) = mailer::send_mail(&mail, EnvironmentService::new()).await {
                         log::error!("Failed to send email: {err}");
+                        mailing::mark_failed(&mail, &err, &db).await
+                    } else {
+                        mailing::mark_sent(&mail, &db).await
+                    }
+                    tokio::select! {
+                        _ = tokio::time::sleep(tokio::time::Duration::from_secs(3)) => {
+                            continue;
+                        }
+                        _ = tokio::signal::ctrl_c() => {
+                            break;
+                        }
                     }
                 }
-            } else if let Err(err) = message {
-                log::error!("Failed to receive message {err}")
+            }
+            _ = tokio::signal::ctrl_c() => {
+                break;
             }
         }
-
-        tokio::time::sleep(Duration::from_millis(1)).await
     }
+
+    Ok(())
 }

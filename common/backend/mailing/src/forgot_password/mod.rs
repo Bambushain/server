@@ -1,6 +1,6 @@
 use crate::enqueue_mail;
 use bamboo_common_backend_dbal as dbal;
-use bamboo_common_core::queueing::Mail;
+use bamboo_common_core::entities::Mail;
 use chrono::Locale;
 use maud::html;
 use sea_orm::DatabaseConnection;
@@ -28,17 +28,17 @@ pub async fn enqueue_forgot_password_mail(email: String, db: &DatabaseConnection
                 }
             }.into_string();
 
-            enqueue_mail(Mail::new_templated(
-                "Passwort vergessen",
-                user.email.clone(),
-                mail_body,
-                None as Option<String>,
-                "Passwort zurücksetzen",
-                format!(
-                    "https://bambushain.app/authentication/reset-password?token={token}&email={}",
-                    user.email
+            enqueue_mail(
+                Mail::new_templated(
+                    "Passwort vergessen",
+                    user.email.clone(),
+                    mail_body,
+                    None as Option<String>,
+                    "Passwort zurücksetzen",
+                    format!("https://bambushain.app/authentication/reset-password?token={token}&email={}", user.email),
                 ),
-            ))
+                db,
+            )
             .await;
         }
     }

@@ -1,7 +1,7 @@
 use crate::template;
 use bamboo_common::backend::services::EnvironmentService;
+use bamboo_common::core::entities::Mail;
 use bamboo_common::core::error::{BambooError, BambooErrorResult, BambooResult};
-use bamboo_common::core::queueing::Mail;
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, Body, Mailbox, MultiPart};
 use lettre::message::{MessageBuilder, SinglePart};
@@ -119,7 +119,7 @@ async fn convert_plain_body(mail: Mail) -> BambooResult<String> {
         .map_err(|_| BambooError::mailing("Failed to strip html tags"))
 }
 
-pub async fn send_mail(mail: Mail, env_service: EnvironmentService) -> BambooErrorResult {
+pub async fn send_mail(mail: &Mail, env_service: EnvironmentService) -> BambooErrorResult {
     let email = if let Some(reply_to) = mail.reply_to.clone() {
         build_message(&env_service, mail.subject.clone(), mail.to.clone())?.reply_to(
             reply_to
