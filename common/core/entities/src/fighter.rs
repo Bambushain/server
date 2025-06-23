@@ -22,48 +22,70 @@ use strum::EnumIter;
 pub enum FighterJob {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "paladin"))]
+    #[serde(rename = "paladin")]
     Paladin,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "warrior"))]
+    #[serde(rename = "warrior")]
     Warrior,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dark_knight"))]
+    #[serde(rename = "dark-knight")]
     DarkKnight,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "gunbreaker"))]
+    #[serde(rename = "gunbreaker")]
     Gunbreaker,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "white_mage"))]
+    #[serde(rename = "white-mage")]
     WhiteMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "scholar"))]
+    #[serde(rename = "scholar")]
     Scholar,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "astrologian"))]
+    #[serde(rename = "astrologian")]
     Astrologian,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "sage"))]
+    #[serde(rename = "sage")]
     Sage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "monk"))]
+    #[serde(rename = "monk")]
     Monk,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dragoon"))]
+    #[serde(rename = "dragoon")]
     Dragoon,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "ninja"))]
+    #[serde(rename = "ninja")]
     Ninja,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "samurai"))]
+    #[serde(rename = "samurai")]
     Samurai,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "reaper"))]
+    #[serde(rename = "reaper")]
     Reaper,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "bard"))]
+    #[serde(rename = "bard")]
     Bard,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "machinist"))]
+    #[serde(rename = "machinist")]
     Machinist,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dancer"))]
+    #[serde(rename = "dancer")]
     Dancer,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "black_mage"))]
+    #[serde(rename = "black-mage")]
     BlackMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "summoner"))]
+    #[serde(rename = "summoner")]
     Summoner,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "red_mage"))]
+    #[serde(rename = "red-mage")]
     RedMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "blue_mage"))]
+    #[serde(rename = "blue-mage")]
     BlueMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "viper"))]
+    #[serde(rename = "viper")]
     Viper,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "pictomancer"))]
+    #[serde(rename = "pictomancer")]
     Pictomancer,
 }
 

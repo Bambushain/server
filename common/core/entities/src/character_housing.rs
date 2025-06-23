@@ -22,14 +22,19 @@ use strum::EnumIter;
 pub enum HousingDistrict {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "the_lavender_beds"))]
+    #[serde(rename = "the-lavender-beds")]
     TheLavenderBeds,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "mist"))]
+    #[serde(rename = "mist")]
     Mist,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "the_goblet"))]
+    #[serde(rename = "the-goblet")]
     TheGoblet,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "shirogane"))]
+    #[serde(rename = "shirogane")]
     Shirogane,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "empyreum"))]
+    #[serde(rename = "empyreum")]
     Empyreum,
 }
 
@@ -96,10 +101,13 @@ impl Ord for HousingDistrict {
 pub enum HousingType {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "private"))]
+    #[serde(rename = "private")]
     Private,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "free_company"))]
+    #[serde(rename = "free-company")]
     FreeCompany,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "shared_apartment"))]
+    #[serde(rename = "shared-apartment")]
     SharedApartment,
 }
 

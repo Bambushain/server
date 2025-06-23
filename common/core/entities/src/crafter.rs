@@ -22,18 +22,25 @@ use strum::EnumIter;
 pub enum CrafterJob {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "carpenter"))]
+    #[serde(rename = "carpenter")]
     Carpenter,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "blacksmith"))]
+    #[serde(rename = "blacksmith")]
     Blacksmith,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "armorer"))]
+    #[serde(rename = "armorer")]
     Armorer,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "goldsmith"))]
+    #[serde(rename = "goldsmith")]
     Goldsmith,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "leatherworker"))]
+    #[serde(rename = "leatherworker")]
     Leatherworker,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "weaver"))]
+    #[serde(rename = "weaver")]
     Weaver,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "alchemist"))]
+    #[serde(rename = "alchemist")]
     Alchemist,
 }
 
