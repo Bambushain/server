@@ -54,21 +54,18 @@ pub async fn create_custom_field(
     position: usize,
     label: String,
     values: BTreeSet<String>,
-) -> Result<(), ServerFnError<BambooCodeError>> {
+) -> Result<(), BambooCodeError> {
     use crate::api::bamboo_error_to_serverfn_error;
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::CustomField;
-    use bamboo_common::core::error::BambooErrorCode;
     use leptos_actix::extract;
 
     use crate::authentication::AuthState;
 
-    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await.map_err(|_| {
-        ServerFnError::WrappedServerError(BambooCodeError {
-            code: BambooErrorCode::Unknown,
-        })
-    })?;
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>()
+        .await
+        .map_err(|_| BambooCodeError::Unknown)?;
 
     dbal::create_custom_field(
         auth_state.user.id,
@@ -91,21 +88,18 @@ pub async fn update_custom_field(
     label: String,
     values: Option<BTreeSet<(i32, String)>>,
     deleted_values: Option<BTreeSet<i32>>,
-) -> Result<(), ServerFnError<BambooCodeError>> {
+) -> Result<(), BambooCodeError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::CustomField;
-    use bamboo_common::core::error::BambooErrorCode;
     use leptos_actix::extract;
 
     use crate::api::bamboo_error_to_serverfn_error;
     use crate::authentication::AuthState;
 
-    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await.map_err(|_| {
-        ServerFnError::WrappedServerError(BambooCodeError {
-            code: BambooErrorCode::Unknown,
-        })
-    })?;
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>()
+        .await
+        .map_err(|_| BambooCodeError::Unknown)?;
 
     dbal::update_custom_field_with_options(
         id,
