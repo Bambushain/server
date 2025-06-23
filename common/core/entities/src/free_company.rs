@@ -1,5 +1,7 @@
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
+#[cfg(feature = "backend")]
+use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "backend")]
@@ -22,6 +24,15 @@ pub struct Model {
     pub user_id: i32,
 }
 
+#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default)]
+#[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
+#[serde(rename_all = "camelCase")]
+pub struct FreeCompanyWithCharacterCount {
+    pub id: i32,
+    pub name: String,
+    pub character_count: i64,
+}
+
 #[cfg(feature = "backend")]
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
@@ -33,12 +44,27 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     User,
+    #[sea_orm(
+        belongs_to = "super::character::Entity",
+        from = "Column::Id",
+        to = "super::character::Column::FreeCompanyId",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    Character,
 }
 
 #[cfg(feature = "backend")]
 impl Related<super::user::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::User.def()
+    }
+}
+
+#[cfg(feature = "backend")]
+impl Related<super::character::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Character.def()
     }
 }
 

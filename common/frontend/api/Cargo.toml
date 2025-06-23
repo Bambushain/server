@@ -9,7 +9,7 @@ license.workspace = true
 [dependencies]
 bamboo-common-core = { path = "../../core" }
 
-gloo-net = { workspace = true }
+gloo = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

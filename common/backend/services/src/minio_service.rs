@@ -8,22 +8,28 @@ use bamboo_common_core::error::{BambooError, BambooErrorResult, BambooResult};
 
 #[derive(Clone)]
 pub struct MinioClient {
-    bucket: Bucket,
+    bucket: Box<Bucket>,
 }
 
 impl MinioClient {
-    pub fn new(
-        bucket_name: String,
-        access_key: String,
-        secret_key: String,
-        region: String,
-        endpoint: Option<String>,
-        use_path_style: bool,
-    ) -> Result<MinioClient, S3Error> {
+    pub fn new() -> Result<MinioClient, S3Error> {
+        let bucket_name =
+            std::env::var("S3_BUCKET").map_err(|err| S3Error::Io(std::io::Error::other(err)))?;
+        let access_key = std::env::var("S3_ACCESS_KEY")
+            .map_err(|err| S3Error::Io(std::io::Error::other(err)))?;
+        let secret_key = std::env::var("S3_SECRET_KEY")
+            .map_err(|err| S3Error::Io(std::io::Error::other(err)))?;
+        let region =
+            std::env::var("S3_REGION").map_err(|err| S3Error::Io(std::io::Error::other(err)))?;
+        let endpoint = std::env::var("S3_ENDPOINT").ok();
+        let use_path_style = std::env::var("S3_USE_PATH_STYLE")
+            .ok()
+            .map_or(false, |val| val.to_lowercase() == "true");
+
         let region = if let Some(endpoint) = endpoint {
             Region::Custom { region, endpoint }
         } else {
-            Region::from_str(region.as_str()).unwrap()
+            Region::from_str(region.as_str())?
         };
         let credentials = Credentials::new(
             Some(access_key.as_str()),

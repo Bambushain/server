@@ -15,12 +15,16 @@ pub use crate::event::GroveEvent;
 pub use crate::event::Model as Event;
 pub use crate::fighter::FighterJob;
 pub use crate::fighter::Model as Fighter;
+pub use crate::free_company::FreeCompanyWithCharacterCount;
 pub use crate::free_company::Model as FreeCompany;
+pub use crate::gatherer::GathererJob;
+pub use crate::gatherer::Model as Gatherer;
 pub use crate::grove::Model as Grove;
 #[cfg(feature = "backend")]
 pub use crate::grove_user::Model as GroveUser;
 pub use crate::support::*;
 pub use crate::token::Model as Token;
+pub use crate::user::BambooUser;
 pub use crate::user::Model as User;
 pub use crate::user::TotpQrCode;
 pub use crate::user::UpdateProfile;
@@ -37,6 +41,7 @@ pub mod dependency;
 pub mod event;
 pub mod fighter;
 pub mod free_company;
+pub mod gatherer;
 pub mod grove;
 #[cfg(feature = "backend")]
 pub mod grove_user;

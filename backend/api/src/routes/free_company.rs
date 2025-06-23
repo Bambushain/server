@@ -27,7 +27,7 @@ pub async fn get_free_company(
     path: Option<path::FreeCompanyPath>,
     authentication: Authentication,
     db: DbConnection,
-) -> BambooApiResult<FreeCompany> {
+) -> BambooApiResult<FreeCompanyWithCharacterCount> {
     let path = check_invalid_path!(path, "free_company")?;
 
     dbal::get_free_company(Some(path.free_company_id), authentication.user.id, &db)

@@ -90,9 +90,12 @@ pub async fn create_crafter(
         ));
     }
 
-    let mut model = crafter.into_active_model();
+    let mut model = crafter.clone().into_active_model();
     model.character_id = Set(character_id);
     model.id = NotSet;
+    if crafter.level.is_some_and(|l| l.is_empty()) {
+        model.level = Set(None);
+    }
 
     model
         .insert(db)

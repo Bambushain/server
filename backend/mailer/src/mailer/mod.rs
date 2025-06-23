@@ -1,7 +1,7 @@
 use crate::template;
-use bamboo_common::backend::mailing::Mail;
 use bamboo_common::backend::services::EnvironmentService;
 use bamboo_common::core::error::{BambooError, BambooErrorResult, BambooResult};
+use bamboo_common::core::queueing::Mail;
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, Body, Mailbox, MultiPart};
 use lettre::message::{MessageBuilder, SinglePart};
@@ -29,23 +29,34 @@ fn get_transport(
         .get_env("MAILER_PORT", "25")
         .parse::<u16>()
         .unwrap_or(25u16);
-    let transport = if env_service.get_env("MAILER_ENCRYPTION", "false") == "false" {
-        builder.tls(smtp::client::Tls::None)
-    } else {
-        builder.tls(smtp::client::Tls::Required(
-            TlsParameters::new(mail_server).map_err(|err| {
-                log::error!("Failed to parse the server domain {err}");
+    let encryption = env_service.get_env("MAILER_ENCRYPTION", "none");
 
-                BambooError::mailing("Failed to parse the server domain")
-            })?,
+    let transport =
+        if encryption == "tls" && env_service.get_env("MAILER_STARTTLS", "false") == "true" {
+            builder.tls(smtp::client::Tls::Opportunistic(
+                TlsParameters::new(mail_server).map_err(|err| {
+                    log::error!("Failed to parse the server domain {err}");
+
+                    BambooError::mailing("Failed to parse the server domain")
+                })?,
+            ))
+        } else if encryption == "ssl" {
+            builder.tls(smtp::client::Tls::Wrapper(
+                TlsParameters::new(mail_server).map_err(|err| {
+                    log::error!("Failed to parse the server domain {err}");
+
+                    BambooError::mailing("Failed to parse the server domain")
+                })?,
+            ))
+        } else {
+            builder.tls(smtp::client::Tls::None)
+        }
+        .credentials(smtp::authentication::Credentials::new(
+            env_service.get_env("MAILER_USERNAME", ""),
+            env_service.get_env("MAILER_PASSWORD", ""),
         ))
-    }
-    .credentials(smtp::authentication::Credentials::new(
-        env_service.get_env("MAILER_USERNAME", ""),
-        env_service.get_env("MAILER_PASSWORD", ""),
-    ))
-    .port(port)
-    .build();
+        .port(port)
+        .build();
 
     Ok(transport)
 }
@@ -139,6 +150,9 @@ pub async fn send_mail(mail: Mail, env_service: EnvironmentService) -> BambooErr
     get_transport(&env_service)?
         .send(email)
         .await
-        .map_err(|_| BambooError::mailing("Failed to send email"))
-        .map(|_| ())
+        .map_err(|err| {
+            log::error!("{err:#?}");
+            BambooError::mailing("Failed to send email")
+        })
+        .map(|response| log::info!("Got mailing response: {response:#?}"))
 }

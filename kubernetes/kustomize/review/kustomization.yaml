@@ -1,0 +1,17 @@
+namespace: bamboo-review-$BRANCH
+
+resources:
+  - nats
+  - bamboo
+  - postgres
+
+labels:
+  - pairs:
+      bambushain.app/branch: $BRANCH
+    includeSelectors: true
+    includeTemplates: true
+
+secretGenerator:
+  - name: passwords
+    envs:
+      - secrets/env.txt

@@ -1,8 +1,7 @@
-// pub mod authentication;
-// pub mod support;
-// pub mod user;
-mod models;
+mod forgot_password;
+mod support;
 mod worker;
 
-pub use models::*;
+pub use forgot_password::*;
+pub use support::*;
 pub use worker::*;

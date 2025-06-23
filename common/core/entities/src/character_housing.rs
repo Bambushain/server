@@ -7,9 +7,9 @@ use std::fmt::{Display, Formatter};
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
@@ -36,11 +36,11 @@ pub enum HousingDistrict {
 impl HousingDistrict {
     pub fn get_name(self) -> String {
         match self {
-            HousingDistrict::TheLavenderBeds => "the_lavender_beds",
-            HousingDistrict::Mist => "mist",
-            HousingDistrict::TheGoblet => "the_goblet",
-            HousingDistrict::Shirogane => "shirogane",
-            HousingDistrict::Empyreum => "empyreum",
+            HousingDistrict::TheLavenderBeds => "TheLavenderBeds",
+            HousingDistrict::Mist => "Mist",
+            HousingDistrict::TheGoblet => "TheGoblet",
+            HousingDistrict::Shirogane => "Shirogane",
+            HousingDistrict::Empyreum => "Empyreum",
         }
         .to_string()
     }
@@ -60,10 +60,10 @@ impl Display for HousingDistrict {
 
 impl From<String> for HousingDistrict {
     fn from(value: String) -> Self {
-        match value.as_str() {
-            "the_lavender_beds" => HousingDistrict::TheLavenderBeds,
+        match value.to_lowercase().as_str() {
+            "the_lavender_beds" | "thelavenderbeds" => HousingDistrict::TheLavenderBeds,
+            "the_goblet" | "thegoblet" => HousingDistrict::TheGoblet,
             "mist" => HousingDistrict::Mist,
-            "the_goblet" => HousingDistrict::TheGoblet,
             "shirogane" => HousingDistrict::Shirogane,
             "empyreum" => HousingDistrict::Empyreum,
             _ => unreachable!(),
@@ -83,7 +83,7 @@ impl Ord for HousingDistrict {
     }
 }
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
@@ -106,9 +106,9 @@ pub enum HousingType {
 impl HousingType {
     pub fn get_name(self) -> String {
         match self {
-            HousingType::Private => "private",
-            HousingType::FreeCompany => "free_company",
-            HousingType::SharedApartment => "shared_appartment",
+            HousingType::Private => "Private",
+            HousingType::FreeCompany => "FreeCompany",
+            HousingType::SharedApartment => "SharedApartment",
         }
         .to_string()
     }
@@ -126,10 +126,10 @@ impl Display for HousingType {
 
 impl From<String> for HousingType {
     fn from(value: String) -> Self {
-        match value.as_str() {
+        match value.to_lowercase().as_str() {
             "private" => HousingType::Private,
-            "free_company" => HousingType::FreeCompany,
-            "shared_appartment" => HousingType::SharedApartment,
+            "free_company" | "freecompany" => HousingType::FreeCompany,
+            "shared_appartment" | "sharedapartment" => HousingType::SharedApartment,
             _ => unreachable!(),
         }
     }
@@ -147,7 +147,7 @@ impl Ord for HousingType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),

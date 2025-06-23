@@ -25,8 +25,9 @@ fn map_character(
         race: CharacterRace::from(character.race),
         name: character.name.clone(),
         world: character.world.clone(),
+        datacenter: character.datacenter.clone(),
         user_id,
-        custom_fields: fill_custom_fields(user_id, custom_fields),
+        custom_fields: fill_custom_fields(character.id, custom_fields),
         free_company_id: character.free_company_id,
         free_company: character.free_company_name.map(|name| FreeCompany {
             id: character.free_company_id.unwrap(),
@@ -41,6 +42,7 @@ struct CharacterWithFreeCompany {
     pub id: i32,
     pub user_id: i32,
     pub world: String,
+    pub datacenter: Option<String>,
     pub name: String,
     pub race: String,
     pub free_company_id: Option<i32>,
@@ -174,14 +176,14 @@ fn fill_custom_fields(character_id: i32, custom_fields: Vec<FillCustomField>) ->
     custom_fields
         .iter()
         .filter(|field| field.character_id == character_id)
-        .chunk_by(|field| (field.field_label.clone(), field.position))
+        .chunk_by(|field| (field.field_label.clone(), field.position as usize))
         .into_iter()
         .map(|((label, position), group)| CustomField {
             values: group
                 .map(|item| item.option_label.clone())
                 .collect::<BTreeSet<String>>(),
             label,
-            position: position as usize,
+            position,
         })
         .collect_vec()
 }
@@ -331,6 +333,7 @@ async fn create_custom_field_values(
 
             let fields = custom_character_field::Entity::find()
                 .select_only()
+                .select_column_as(Expr::value(0), custom_character_field_value::Column::Id)
                 .column_as(
                     custom_character_field::Column::Id,
                     custom_character_field_value::Column::CustomCharacterFieldId,
@@ -350,10 +353,16 @@ async fn create_custom_field_values(
                 .into_model::<CustomCharacterFieldValue>()
                 .all(tx)
                 .await
-                .map_err(|_| BambooError::database(error_tag!(), "Failed to set custom fields"))?
+                .map_err(|err| {
+                    log::error!("{err}");
+                    BambooError::database(error_tag!(), "Failed to set custom fields")
+                })?
                 .iter()
                 .cloned()
-                .map(|field| field.into_active_model())
+                .map(|field| custom_character_field_value::ActiveModel {
+                    id: NotSet,
+                    ..field.into_active_model()
+                })
                 .collect_vec();
 
             custom_character_field_value::Entity::insert_many(fields)
@@ -364,7 +373,8 @@ async fn create_custom_field_values(
         })
     })
     .await
-    .map_err(|_: TransactionError<BambooError>| {
+    .map_err(|err: TransactionError<BambooError>| {
+        log::error!("{err}");
         BambooError::database(error_tag!(), "Failed to update grove mods")
     })
     .map(|_| ())

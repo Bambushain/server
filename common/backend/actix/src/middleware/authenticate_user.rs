@@ -1,8 +1,7 @@
+use actix_web::middleware::Next;
 use actix_web::{body, dev, web, Error, HttpMessage};
-use actix_web_lab::middleware::Next;
 
 use bamboo_common_backend_services::DbConnection;
-use bamboo_common_core::entities::*;
 
 use crate::cookie;
 use crate::header;
@@ -11,7 +10,7 @@ use crate::middleware::helpers;
 #[derive(Clone)]
 pub struct AuthenticationState {
     pub token: String,
-    pub user: User,
+    pub user: BambooUser,
 }
 
 pub type Authentication = web::ReqData<AuthenticationState>;
@@ -38,10 +37,9 @@ pub async fn authenticate_user(
 #[macro_export]
 macro_rules! authenticate {
     () => {
-        actix_web_lab::middleware::from_fn(
-            bamboo_common::backend::actix::middleware::authenticate_user,
-        )
+        actix_web::middleware::from_fn(bamboo_common::backend::actix::middleware::authenticate_user)
     };
 }
 
 pub use authenticate;
+use bamboo_common_core::entities::user::BambooUser;

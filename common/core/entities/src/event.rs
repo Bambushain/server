@@ -87,7 +87,7 @@ impl Model {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
 pub struct GroveEvent {
@@ -127,53 +127,6 @@ impl GroveEvent {
             color: event.color,
             is_private: event.is_private,
             user,
-            grove,
-        }
-    }
-
-    #[cfg(feature = "backend")]
-    pub fn new(
-        title: String,
-        description: String,
-        start_date: NaiveDate,
-        end_date: NaiveDate,
-        color: String,
-        is_private: bool,
-        user: Option<WebUser>,
-        grove: Option<Grove>,
-    ) -> Self {
-        GroveEvent {
-            id: -1,
-            title,
-            description,
-            start_date,
-            end_date,
-            color,
-            is_private,
-            user,
-            grove,
-        }
-    }
-
-    #[cfg(feature = "frontend")]
-    pub fn new(
-        title: String,
-        description: String,
-        start_date: NaiveDate,
-        end_date: NaiveDate,
-        color: String,
-        is_private: bool,
-        grove: Option<Grove>,
-    ) -> Self {
-        GroveEvent {
-            id: -1,
-            title,
-            description,
-            start_date,
-            end_date,
-            color,
-            is_private,
-            user: None,
             grove,
         }
     }

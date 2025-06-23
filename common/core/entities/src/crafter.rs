@@ -7,9 +7,9 @@ use std::fmt::{Display, Formatter};
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
@@ -35,14 +35,6 @@ pub enum CrafterJob {
     Weaver,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "alchemist"))]
     Alchemist,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "culinarian"))]
-    Culinarian,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "miner"))]
-    Miner,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "botanist"))]
-    Botanist,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "fisher"))]
-    Fisher,
 }
 
 impl CrafterJob {
@@ -55,27 +47,19 @@ impl CrafterJob {
             CrafterJob::Leatherworker => "leatherworker.webp",
             CrafterJob::Weaver => "weaver.webp",
             CrafterJob::Alchemist => "alchemist.webp",
-            CrafterJob::Culinarian => "culinarian.webp",
-            CrafterJob::Miner => "miner.webp",
-            CrafterJob::Botanist => "botanist.webp",
-            CrafterJob::Fisher => "fisher.webp",
         }
         .to_string()
     }
 
     pub fn get_job_name(self) -> String {
         match self {
-            CrafterJob::Carpenter => "carpenter",
-            CrafterJob::Blacksmith => "blacksmith",
-            CrafterJob::Armorer => "armorer",
-            CrafterJob::Goldsmith => "goldsmith",
-            CrafterJob::Leatherworker => "leatherworker",
-            CrafterJob::Weaver => "weaver",
-            CrafterJob::Alchemist => "alchemist",
-            CrafterJob::Culinarian => "culinarian",
-            CrafterJob::Miner => "miner",
-            CrafterJob::Botanist => "botanist",
-            CrafterJob::Fisher => "fisher",
+            CrafterJob::Carpenter => "Carpenter",
+            CrafterJob::Blacksmith => "Blacksmith",
+            CrafterJob::Armorer => "Armorer",
+            CrafterJob::Goldsmith => "Goldsmith",
+            CrafterJob::Leatherworker => "Leatherworker",
+            CrafterJob::Weaver => "Weaver",
+            CrafterJob::Alchemist => "Alchemist",
         }
         .to_string()
     }
@@ -103,17 +87,13 @@ impl Display for CrafterJob {
             CrafterJob::Leatherworker => "Gerber",
             CrafterJob::Weaver => "Weber",
             CrafterJob::Alchemist => "Alchemist",
-            CrafterJob::Culinarian => "Gourmet",
-            CrafterJob::Miner => "Minenarbeiter",
-            CrafterJob::Botanist => "Gärtner",
-            CrafterJob::Fisher => "Fischer",
         })
     }
 }
 
 impl From<String> for CrafterJob {
     fn from(value: String) -> Self {
-        match value.as_str() {
+        match value.to_lowercase().as_str() {
             "carpenter" => CrafterJob::Carpenter,
             "blacksmith" => CrafterJob::Blacksmith,
             "armorer" => CrafterJob::Armorer,
@@ -121,16 +101,12 @@ impl From<String> for CrafterJob {
             "leatherworker" => CrafterJob::Leatherworker,
             "weaver" => CrafterJob::Weaver,
             "alchemist" => CrafterJob::Alchemist,
-            "culinarian" => CrafterJob::Culinarian,
-            "miner" => CrafterJob::Miner,
-            "botanist" => CrafterJob::Botanist,
-            "fisher" => CrafterJob::Fisher,
             _ => unreachable!(),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),

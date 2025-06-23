@@ -52,7 +52,11 @@ pub async fn change_my_password(
         .exec(db)
         .await
         .map_err(|_| PasswordError::Unknown)
-        .map(|_| ())
+        .map(|_| ())?;
+
+    dbal::delete_all_token(id, db)
+        .await
+        .map_err(|_| PasswordError::Unknown)
 }
 
 pub async fn enable_my_totp(
@@ -83,7 +87,9 @@ pub async fn disable_my_totp(id: i32, db: &DatabaseConnection) -> BambooErrorRes
         .exec(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to disable totp"))
-        .map(|_| ())
+        .map(|_| ())?;
+
+    dbal::delete_all_token(id, db).await
 }
 
 pub async fn validate_my_totp(

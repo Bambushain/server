@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::User;
+use crate::user::BambooUser;
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 
@@ -33,7 +33,7 @@ pub struct RequestTwoFactor {
 #[derive(Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 pub struct LoginResult {
-    pub user: User,
+    pub user: BambooUser,
     pub token: String,
 }
 
@@ -41,7 +41,7 @@ pub struct LoginResult {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "backend", derive(Responder))]
 pub struct TwoFactorResult {
-    pub user: User,
+    pub user: BambooUser,
     pub requires_two_factor_code: bool,
 }
 

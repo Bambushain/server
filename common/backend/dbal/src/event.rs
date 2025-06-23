@@ -1,10 +1,10 @@
 use crate::error_tag;
-use bamboo_common_backend_notification::EventAction;
 use bamboo_common_core::entities::event;
 use bamboo_common_core::entities::event::GroveEvent;
 use bamboo_common_core::entities::user::WebUser;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
+use bamboo_common_core::queueing::EventAction;
 use chrono::NaiveDate;
 use date_range::DateRange;
 use sea_orm::prelude::*;

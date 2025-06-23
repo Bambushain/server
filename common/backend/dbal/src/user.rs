@@ -1,18 +1,27 @@
 use crate::error_tag;
-use bamboo_common_core::entities::user::WebUser;
+use bamboo_common_core::entities::user::{BambooUser, WebUser};
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 use chrono::{Days, Local, NaiveDate};
 use sea_orm::prelude::*;
-use sea_orm::sea_query::{Alias, Expr, IntoCondition};
+use sea_orm::sea_query::extension::postgres::PgExpr;
+use sea_orm::sea_query::{Alias, ColumnRef, Expr, IntoCondition, IntoIden};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, FromQueryResult,
     IntoActiveModel, JoinType, NotSet, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
 };
 
-pub async fn get_user(id: i32, db: &DatabaseConnection) -> BambooResult<User> {
+pub async fn get_user(id: i32, db: &DatabaseConnection) -> BambooResult<BambooUser> {
     user::Entity::find_by_id(id)
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .into_model::<BambooUser>()
         .one(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
@@ -22,10 +31,21 @@ pub async fn get_user(id: i32, db: &DatabaseConnection) -> BambooResult<User> {
         ))
 }
 
-pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> BambooResult<User> {
+pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> BambooResult<BambooUser> {
     user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(ColumnRef::TableColumn(
+                    Alias::new("user").into_iden(),
+                    user::Column::Id.into_iden(),
+                )))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
         .filter(token::Column::Token.eq(token))
         .join(JoinType::InnerJoin, user::Relation::Token.def())
+        .into_model::<BambooUser>()
         .one(db)
         .await
         .map_err(|_| BambooError::unauthorized(error_tag!(), "Token or user not found"))?
@@ -38,13 +58,21 @@ pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> Bamboo
 pub async fn get_user_by_email_or_username(
     username: String,
     db: &DatabaseConnection,
-) -> BambooResult<User> {
+) -> BambooResult<BambooUser> {
     user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
         .filter(
             Condition::any()
                 .add(user::Column::Email.eq(username.clone()))
                 .add(user::Column::DisplayName.eq(username)),
         )
+        .into_model::<BambooUser>()
         .one(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
@@ -95,6 +123,13 @@ where
         .column_as(user::Column::DisplayName, "display_name")
         .column_as(grove_user::Column::IsMod, "is_mod")
         .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
         .join_rev(
             JoinType::LeftJoin,
             grove_user::Entity::belongs_to(user::Entity)
@@ -127,6 +162,22 @@ pub async fn get_users_by_grove(
         db,
     )
     .await
+}
+
+pub async fn user_is_banned_from_grove(
+    user_id: i32,
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> bool {
+    grove_user::Entity::find()
+        .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::GroveId.eq(grove_id))
+        .filter(grove_user::Column::IsBanned.eq(true))
+        .all(db)
+        .await
+        .map(|x| !x.is_empty())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
+        .unwrap_or(true)
 }
 
 pub(crate) async fn user_exists_by_id(
@@ -228,12 +279,13 @@ pub async fn set_forgot_password_token(
     db: &DatabaseConnection,
 ) -> BambooResult<(String, NaiveDate)> {
     let user = get_user(id, db).await?;
-    let valid_until = chrono::prelude::Local::now()
-        .checked_add_days(Days::new(7))
-        .ok_or(BambooError::invalid_data(
-            error_tag!(),
-            "Failed to add a week to the date",
-        ))?;
+    let valid_until =
+        Local::now()
+            .checked_add_days(Days::new(7))
+            .ok_or(BambooError::invalid_data(
+                error_tag!(),
+                "Failed to add a week to the date",
+            ))?;
     let mut token = [0u8; 32];
     getrandom::getrandom(&mut token)
         .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
@@ -242,7 +294,7 @@ pub async fn set_forgot_password_token(
     let hashed_token = bcrypt::hash(token.clone(), 12)
         .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
 
-    let mut active_user = user.into_active_model();
+    let mut active_user = user.into_user_active_model();
     active_user.forgot_password_valid_until = Set(Some(valid_until.date_naive()));
     active_user.forgot_password_code = Set(Some(hashed_token));
     active_user
@@ -262,12 +314,12 @@ pub async fn reset_password_by_token(
     let user = get_user_by_email_or_username(email, db).await?;
     if let (Some(code), Some(until)) = (
         user.forgot_password_code.clone(),
-        user.forgot_password_valid_until.clone(),
+        user.forgot_password_valid_until,
     ) {
         if until >= Local::now().date_naive()
             && bcrypt::verify(token, code.as_str()).unwrap_or(false)
         {
-            let mut active_user = user.clone().into_active_model();
+            let mut active_user = user.clone().into_user_active_model();
             active_user
                 .set_password(&password)
                 .map_err(|_| BambooError::crypto(error_tag!(), "Failed to hash password"))?;

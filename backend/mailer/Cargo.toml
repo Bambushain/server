@@ -12,5 +12,6 @@ futures-util = { workspace = true }
 html2text = { workspace = true }
 lettre = { workspace = true }
 log = { workspace = true }
-mrml = { workspace = true }
 maud = { workspace = true }
+mrml = { workspace = true }
+tokio = { workspace = true }

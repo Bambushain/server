@@ -1,0 +1,58 @@
+.pandas-card {
+  display: flex;
+  flex-flow: column;
+  background: var(--modal-backdrop);
+  backdrop-filter: var(--modal-container-backdrop-filter);
+  box-shadow: rgb(var(--black-base) var(--black-base) var(--black-base) / 0.3) 2px 2px 4px 0;
+  border-radius: var(--border-radius);
+
+  button {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    width: 100%;
+  }
+
+  &__content {
+    border-radius: var(--border-radius);
+    display: grid;
+    grid-template-columns: [prepend] auto [text] 1fr;
+    border: var(--input-border-width) solid var(--control-border-color);
+
+    &.has--buttons {
+      margin-bottom: calc(var(--input-border-width) * -1 * 2);
+    }
+  }
+
+  &__content-text {
+    padding: 0.5rem 1rem;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    gap: 0.25rem;
+    grid-column: text;
+
+    h5 {
+      margin-top: 0;
+    }
+  }
+
+  &__prepend {
+    grid-column: prepend;
+    display: flex;
+
+    img {
+      object-fit: cover;
+      border-top-left-radius: var(--border-radius);
+      border-bottom-left-radius: var(--border-radius);
+    }
+  }
+
+  &-list {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 1rem;
+    justify-content: flex-start;
+    align-content: flex-start;
+    padding-bottom: 0.5rem;
+  }
+}

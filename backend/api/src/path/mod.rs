@@ -12,6 +12,11 @@ pub struct CrafterPathInfo {
 }
 
 #[derive(Deserialize)]
+pub struct GathererPathInfo {
+    pub gatherer_id: i32,
+}
+
+#[derive(Deserialize)]
 pub struct CharacterHousingPathInfo {
     pub character_housing_id: i32,
 }
@@ -73,6 +78,7 @@ pub type CustomFieldPositionPath = web::Path<CustomFieldPositionPathInfo>;
 pub type EventPath = web::Path<EventPathInfo>;
 pub type FighterPath = web::Path<FighterPathInfo>;
 pub type FreeCompanyPath = web::Path<FreeCompanyPathInfo>;
-pub type UserPath = web::Path<UserPathInfo>;
+pub type GathererPath = web::Path<GathererPathInfo>;
 pub type GrovePath = web::Path<GrovePathInfo>;
 pub type GroveUserPath = web::Path<GroveUserPathInfo>;
+pub type UserPath = web::Path<UserPathInfo>;

@@ -1,0 +1,93 @@
+{
+    "configurations": [
+        {
+            "type": "cargo",
+            "name": "api",
+            "environment": {
+                "DATABASE_URL": "postgres://bamboo:bamboo@localhost:5434/bamboo",
+                "NATS_SERVER": "localhost:4222",
+                "S3_ACCESS_KEY": "bambushain",
+                "S3_BUCKET": "bambushain-production",
+                "S3_ENDPOINT": "https://storage.ulbricht.casa",
+                "S3_REGION": "eu",
+                "S3_SECRET_KEY": "4J9v5dWqb3plFldh3ABYKv0YRgyFAM7W9JZC252CW1b3PRvWbw",
+                "S3_USE_PATH_STYLE": "true",
+            },
+            "cargoArgs": [
+                "watch",
+                "--features",
+                "backend-api",
+                "-x",
+                "run --package bamboo --bin backend-api --features backend-api",
+            ],
+        },
+        {
+            "type": "cargo",
+            "name": "events",
+            "environment": {
+                "DATABASE_URL": "postgres://bamboo:bamboo@localhost:5434/bamboo",
+                "NATS_SERVER": "localhost:4222",
+            },
+            "cargoArgs": [
+                "watch",
+                "--features",
+                "backend-events",
+                "-x",
+                "run --package bamboo --bin backend-events --features backend-events",
+            ],
+        },
+        {
+            "type": "cargo",
+            "name": "mailer",
+            "environment": {
+                "MAILER_ENCRYPTION": "ssl",
+                "MAILER_FROM": "panda.helferlein@bambushain.app",
+                "MAILER_PASSWORD": "4I5DWpnV6E6jm5Pd",
+                "MAILER_PORT": "465",
+                "MAILER_SERVER": "mail.ulbricht.cloud",
+                "MAILER_STARTTLS": "false",
+                "MAILER_USERNAME": "panda.helferlein@bambushain.app",
+                "NATS_SERVER": "localhost:4222",
+            },
+            "cargoArgs": [
+                "watch",
+                "--features",
+                "backend-mailer",
+                "-x",
+                "run --package bamboo --bin backend-mailer --features backend-mailer",
+            ],
+        },
+        {
+            "type": "cargo",
+            "name": "authentication",
+            "workingDir": "frontend/authentication",
+            "environment": {
+                "DATABASE_URL": "postgres://bamboo:bamboo@localhost:5434/bamboo",
+                "NATS_SERVER": "localhost:4222",
+            },
+            "cargoArgs": [
+                "leptos",
+                "watch",
+            ],
+        },
+        {
+            "type": "cargo",
+            "name": "pandas",
+            "workingDir": "frontend/pandas",
+            "environment": {
+                "DATABASE_URL": "postgres://bamboo:bamboo@localhost:5434/bamboo",
+                "NATS_SERVER": "localhost:4222",
+                "S3_ACCESS_KEY": "bambushain",
+                "S3_BUCKET": "bambushain-production",
+                "S3_ENDPOINT": "https://storage.ulbricht.casa",
+                "S3_REGION": "eu",
+                "S3_SECRET_KEY": "4J9v5dWqb3plFldh3ABYKv0YRgyFAM7W9JZC252CW1b3PRvWbw",
+                "S3_USE_PATH_STYLE": "true",
+            },
+            "cargoArgs": [
+                "leptos",
+                "watch",
+            ],
+        },
+    ]
+}

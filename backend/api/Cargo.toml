@@ -10,7 +10,6 @@ license.workspace = true
 bamboo-common = { path = "../../common", features = ["backend"] }
 
 actix-web = { workspace = true }
-actix-web-lab = { workspace = true }
 base64 = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
@@ -21,10 +20,3 @@ maud = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }
 totp-rs = { workspace = true }
-
-[build-dependencies]
-bamboo-common = { path = "../../common", features = ["core", "backend"] }
-
-cargo_metadata = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }

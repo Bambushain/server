@@ -7,7 +7,7 @@ use std::fmt::{Display, Formatter};
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
 use crate::{CustomField, FreeCompany};
 
@@ -114,6 +114,7 @@ pub struct Model {
     pub race: CharacterRace,
     pub name: String,
     pub world: String,
+    pub datacenter: Option<String>,
     #[cfg(feature = "backend")]
     #[serde(skip)]
     pub user_id: i32,
@@ -179,6 +180,7 @@ impl Model {
         race: CharacterRace,
         name: String,
         world: String,
+        datacenter: String,
         custom_fields: Vec<CustomField>,
         free_company: Option<FreeCompany>,
     ) -> Self {
@@ -187,6 +189,7 @@ impl Model {
             race,
             name,
             world,
+            datacenter: Some(datacenter),
             #[cfg(feature = "backend")]
             user_id: i32::default(),
             #[cfg(feature = "backend")]
