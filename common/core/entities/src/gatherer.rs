@@ -22,12 +22,16 @@ use strum::EnumIter;
 pub enum GathererJob {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "culinarian"))]
+    #[serde(rename = "culinarian")]
     Culinarian,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "miner"))]
+    #[serde(rename = "miner")]
     Miner,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "botanist"))]
+    #[serde(rename = "botanist")]
     Botanist,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "fisher"))]
+    #[serde(rename = "fisher")]
     Fisher,
 }
 
