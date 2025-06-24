@@ -3,6 +3,10 @@ info:
   title: Bambushain API
   description: API for Bambushain application
   version: 4.0.0
+  contact:
+    name: Panda Helferlein
+    url: https://pandas.bambushain.app
+    email: panda.helferlein@bambushain.app
   x-logo:
     url: >-
       /assets/bamboo.webp
