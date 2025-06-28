@@ -13,6 +13,6 @@ stringData:
   NATS_SERVER: "nats:4222"
   RUST_LOG: "info"
   S3_BUCKET: "bambushain-review"
-  S3_ENDPOINT: "https://storage.ulbricht.casa"
+  S3_ENDPOINT: "https://ceph.storage.ulbricht.casa"
   S3_REGION: "eu"
   S3_USE_PATH_STYLE: "true"
