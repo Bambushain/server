@@ -159,6 +159,8 @@ build-backend:
       - $ARCH/bamboo-api
       - $ARCH/bamboo-events
       - $ARCH/bamboo-migrator
+      - $ARCH/bamboo-public
+      - $ARCH/public
   parallel:
     matrix:
       - ARCH:
