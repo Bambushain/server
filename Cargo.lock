@@ -674,6 +674,7 @@ dependencies = [
  "actix",
  "bamboo-backend",
  "bamboo-common",
+ "bamboo-frontend",
  "log",
 ]
 
@@ -966,7 +967,7 @@ dependencies = [
 name = "bamboo-frontend"
 version = "4.0.0"
 dependencies = [
- "bamboo-frontend-pandas",
+ "bamboo-frontend-public",
 ]
 
 [[package]]
@@ -1030,16 +1031,9 @@ dependencies = [
  "actix-web",
  "bamboo-common",
  "chrono",
- "console_error_panic_hook",
  "dotenvy",
- "getrandom 0.2.16",
- "leptos",
- "leptos_actix",
- "leptos_meta",
- "leptos_router",
  "log",
- "uuid",
- "wasm-bindgen",
+ "maud",
 ]
 
 [[package]]
@@ -3380,7 +3374,6 @@ dependencies = [
  "rustc_version",
  "send_wrapper",
  "serde",
- "serde_json",
  "serde_qs",
  "server_fn",
  "slotmap",
@@ -3803,6 +3796,8 @@ version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8156733e27020ea5c684db5beac5d1d611e1272ab17901a49466294b84fc217e"
 dependencies = [
+ "actix-web",
+ "futures-util",
  "itoa",
  "maud_macros",
 ]

@@ -8,6 +8,7 @@ license.workspace = true
 [dependencies]
 bamboo-backend = { path = "backend" }
 bamboo-common = { path = "common" }
+bamboo-frontend = { path = "frontend" }
 
 actix = { workspace = true }
 log = { workspace = true }
@@ -19,6 +20,10 @@ name = "bamboo-api"
 [[bin]]
 path = "src/bin/events.rs"
 name = "bamboo-events"
+
+[[bin]]
+path = "src/bin/public.rs"
+name = "bamboo-public"
 
 [[bin]]
 path = "src/bin/mailer.rs"
