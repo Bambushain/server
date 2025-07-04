@@ -2,7 +2,6 @@ use cargo_metadata::{MetadataCommand, Package};
 use proc_macro::TokenStream;
 use quote::quote;
 use std::collections::BTreeMap;
-use std::ops::Not;
 use std::path;
 use walkdir::WalkDir;
 
@@ -47,12 +46,11 @@ pub fn all_dependencies(_input: TokenStream) -> TokenStream {
     .collect::<BTreeMap<_, _>>()
     .into_values()
     .map(|p| {
-        let authors = p
-            .authors
-            .is_empty()
-            .not()
-            .then_some(p.authors.join(", "))
-            .unwrap_or_default();
+        let authors = if p.authors.is_empty() {
+            String::default()
+        } else {
+            p.authors.join(", ")
+        };
         let description = p
             .description
             .clone()
