@@ -10,4 +10,4 @@ COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY bamboo-public /app/bamboo
 COPY public /app/
 
-ENTRYPOINT ["/bamboo"]
+ENTRYPOINT ["/app/bamboo"]
