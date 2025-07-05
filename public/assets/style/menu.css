@@ -1,0 +1,38 @@
+.bamboo-menu {
+    padding: 1rem var(--page-spacing);
+    display: flex;
+    align-items: center;
+    position: sticky;
+    gap: 1rem;
+    top: 0;
+    background-color: var(--primary-color);
+    z-index: 9999;
+}
+
+.bamboo-menu__item {
+    font-size: 1.5rem;
+    color: var(--primary-color-lightest);
+    transition: color 0.3s;
+
+    &:hover {
+        color: var(--white);
+    }
+
+    &.is--logo {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        font-weight: 700;
+        font-family: Urbanist, sans-serif;
+    }
+
+    &.is--right {
+        margin-left: auto;
+    }
+}
+
+.bamboo-logo {
+    width: 2rem;
+    height: 2rem;
+    fill: currentColor;
+}

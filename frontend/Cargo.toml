@@ -5,8 +5,4 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-bamboo-frontend-pandas = { path = "pandas", optional = true }
-
-[features]
-default = []
-pandas = ["dep:bamboo-frontend-pandas"]
+bamboo-frontend-public = { path = "public" }

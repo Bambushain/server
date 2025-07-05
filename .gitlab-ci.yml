@@ -63,11 +63,17 @@ workflow:
           - amd64
           - arm64
       - APP:
-          - public
           - pandas
           - authentication
         TYPE:
           - frontend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
+          - public
+        TYPE:
+          - public
         ARCH:
           - amd64
           - arm64
@@ -119,7 +125,7 @@ lint-backend:
     - .base-backend-cache
   stage: lint
   script:
-    - cargo clippy --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator
+    - cargo clippy --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator --bin bamboo-public
 
 lint-frontend:
   extends:
@@ -139,18 +145,22 @@ build-backend:
     - .base-backend-cache
   stage: build
   script:
-    - cargo build --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator
+    - cargo build --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator --bin bamboo-public
     - mkdir -p $CI_PROJECT_DIR/$ARCH
     - cp $CI_PROJECT_DIR/target/release/bamboo-mailer $CI_PROJECT_DIR/$ARCH/bamboo-mailer
     - cp $CI_PROJECT_DIR/target/release/bamboo-api $CI_PROJECT_DIR/$ARCH/bamboo-api
     - cp $CI_PROJECT_DIR/target/release/bamboo-events $CI_PROJECT_DIR/$ARCH/bamboo-events
     - cp $CI_PROJECT_DIR/target/release/bamboo-migrator $CI_PROJECT_DIR/$ARCH/bamboo-migrator
+    - cp $CI_PROJECT_DIR/target/release/bamboo-public $CI_PROJECT_DIR/$ARCH/bamboo-public
+    - cp -r $CI_PROJECT_DIR/public $CI_PROJECT_DIR/$ARCH/public
   artifacts:
     paths:
       - $ARCH/bamboo-mailer
       - $ARCH/bamboo-api
       - $ARCH/bamboo-events
       - $ARCH/bamboo-migrator
+      - $ARCH/bamboo-public
+      - $ARCH/public
   parallel:
     matrix:
       - ARCH:
@@ -176,7 +186,6 @@ build-frontend:
   parallel:
     matrix:
       - APP:
-          - public
           - pandas
           - authentication
         ARCH:

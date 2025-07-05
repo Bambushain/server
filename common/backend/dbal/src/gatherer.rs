@@ -98,7 +98,7 @@ pub async fn create_gatherer(
     }
 
     model.insert(db).await.map_err(|err| {
-        log::error!("Failed to insert gatherer, {}", err);
+        log::error!("Failed to insert gatherer, {err}");
         BambooError::database(error_tag!(), "Failed to create gatherer")
     })
 }
