@@ -62,3 +62,17 @@
         }
     }
 }
+
+.bamboo-error {
+    background: #f1c1c1;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+
+    a {
+        color: #8f1f1f;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
