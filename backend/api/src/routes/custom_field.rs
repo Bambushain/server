@@ -103,7 +103,7 @@ pub async fn create_custom_field_option(
     dbal::create_custom_field_option(
         authentication.user.id,
         path.field_id,
-        body.into_inner(),
+        &body.into_inner(),
         &db,
     )
     .await
@@ -143,7 +143,7 @@ pub async fn update_custom_field_option(
         path.option_id,
         authentication.user.id,
         path.field_id,
-        body.into_inner(),
+        &body.into_inner(),
         &db,
     )
     .await

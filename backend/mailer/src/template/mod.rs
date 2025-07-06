@@ -49,7 +49,7 @@ pub async fn mail(
                     mj-group {
                         mj-column width="100%" padding-right="0" {
                             mj-text color="#598c79" font-size="11px" align="center" line-height="16px" font-weight="bold" {
-                                a style="color:#598c79;margin-right:24px" href="https://bambushain.app/legal/data-protection" {
+                                a style="color:#598c79;margin-right:24px" href="https://bambushain.app/legal/legal-notice" {
                                     "Impressum"
                                 }
                                 a style="color:#598c79" href="https://bambushain.app/legal/data-protection" {

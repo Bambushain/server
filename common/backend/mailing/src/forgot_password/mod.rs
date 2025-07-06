@@ -5,7 +5,7 @@ use chrono::Locale;
 use maud::html;
 use sea_orm::DatabaseConnection;
 
-pub async fn enqueue_forgot_password_mail(email: String, db: &DatabaseConnection) {
+pub async fn enqueue_forgot_password_mail(email: &str, db: &DatabaseConnection) {
     if let Ok(user) = dbal::get_user_by_email_or_username(email, db).await {
         if let Ok((token, valid_until)) = dbal::set_forgot_password_token(user.id, db).await {
             let mail_body = html! {

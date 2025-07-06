@@ -27,7 +27,7 @@ pub async fn create_free_company(name: String) -> Result<(), ServerFnError> {
 
     let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
 
-    dbal::create_free_company(auth_state.user.id, name, &db)
+    dbal::create_free_company(auth_state.user.id, &name, &db)
         .await
         .map_err(ServerFnError::from)
         .map(|_| ())
@@ -43,7 +43,7 @@ pub async fn edit_free_company(id: i32, name: String) -> Result<(), ServerFnErro
 
     let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
 
-    dbal::update_free_company(id, auth_state.user.id, name, &db)
+    dbal::update_free_company(id, auth_state.user.id, &name, &db)
         .await
         .map_err(ServerFnError::from)
 }

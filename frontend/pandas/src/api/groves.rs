@@ -201,7 +201,7 @@ pub async fn create_grove(name: String, allow_invite: String) -> Result<Grove, S
 
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
     dbal::create_grove(
-        name,
+        &name,
         allow_invite.to_lowercase() == "on",
         auth_state.user.id,
         &db,

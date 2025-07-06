@@ -31,7 +31,7 @@ pub async fn get_user(id: i32, db: &DatabaseConnection) -> BambooResult<BambooUs
         ))
 }
 
-pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> BambooResult<BambooUser> {
+pub async fn get_user_by_token(token: &str, db: &DatabaseConnection) -> BambooResult<BambooUser> {
     user::Entity::find()
         .column_as(
             Expr::val("/api/user/")
@@ -56,7 +56,7 @@ pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> Bamboo
 }
 
 pub async fn get_user_by_email_or_username(
-    username: String,
+    username: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<BambooUser> {
     user::Entity::find()
@@ -69,7 +69,7 @@ pub async fn get_user_by_email_or_username(
         )
         .filter(
             Condition::any()
-                .add(user::Column::Email.eq(username.clone()))
+                .add(user::Column::Email.eq(username))
                 .add(user::Column::DisplayName.eq(username)),
         )
         .into_model::<BambooUser>()
@@ -182,8 +182,8 @@ pub async fn user_is_banned_from_grove(
 
 pub(crate) async fn user_exists_by_id(
     id: i32,
-    email: String,
-    name: String,
+    email: &str,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     user::Entity::find()
@@ -200,8 +200,8 @@ pub(crate) async fn user_exists_by_id(
 }
 
 async fn user_exists_by_email_and_name(
-    email: String,
-    name: String,
+    email: &str,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     user::Entity::find()
@@ -218,10 +218,10 @@ async fn user_exists_by_email_and_name(
 
 pub async fn create_user(
     user: User,
-    password: String,
+    password: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<User> {
-    if user_exists_by_email_and_name(user.email.clone(), user.display_name.clone(), db).await? {
+    if user_exists_by_email_and_name(&user.email, &user.display_name, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A user with that email or name exists already",
@@ -231,7 +231,7 @@ pub async fn create_user(
     let mut model = user.into_active_model();
     model.id = NotSet;
     model
-        .set_password(&password)
+        .set_password(password)
         .map_err(|_| BambooError::database(error_tag!(), "Failed to hash password user"))?;
 
     model
@@ -248,7 +248,7 @@ pub async fn delete_user(id: i32, db: &DatabaseConnection) -> BambooErrorResult 
         .map(|_| ())
 }
 
-pub async fn set_password(id: i32, password: String, db: &DatabaseConnection) -> BambooErrorResult {
+pub async fn set_password(id: i32, password: &str, db: &DatabaseConnection) -> BambooErrorResult {
     let hashed_password = bcrypt::hash(password, 12)
         .map_err(|_| BambooError::unknown(error_tag!(), "Failed to hash the password"))?;
 
@@ -306,9 +306,9 @@ pub async fn set_forgot_password_token(
 }
 
 pub async fn reset_password_by_token(
-    email: String,
-    token: String,
-    password: String,
+    email: &str,
+    token: &str,
+    password: &str,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
     let user = get_user_by_email_or_username(email, db).await?;
@@ -353,4 +353,14 @@ pub async fn reset_password_by_token(
             "No data set for forgot password",
         ))
     }
+}
+
+pub async fn user_exists(email: &str, db: &DatabaseConnection) -> bool {
+    user::Entity::find()
+        .filter(user::Column::Email.eq(email))
+        .select_only()
+        .column(user::Column::Id)
+        .count(db)
+        .await
+        .is_ok_and(|c| c > 0)
 }

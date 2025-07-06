@@ -58,7 +58,7 @@ pub async fn create_character(
         .map_err(|_| BambooCodeError::Unknown)?;
 
     let free_company = if let Some(free_company) = free_company {
-        dbal::get_free_company_by_name(free_company, auth_state.user.id, &db)
+        dbal::get_free_company_by_name(&free_company, auth_state.user.id, &db)
             .await
             .map_err(bamboo_error_to_serverfn_error)?
     } else {
@@ -113,7 +113,7 @@ pub async fn update_character(
         .map_err(|_| BambooCodeError::Unknown)?;
 
     let free_company = if let Some(free_company) = free_company {
-        dbal::get_free_company_by_name(free_company, auth_state.user.id, &db)
+        dbal::get_free_company_by_name(&free_company, auth_state.user.id, &db)
             .await
             .map_err(bamboo_error_to_serverfn_error)?
     } else {

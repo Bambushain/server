@@ -43,7 +43,7 @@ pub async fn get_grove(id: i32, user_id: i32, db: &DatabaseConnection) -> Bamboo
         ))
 }
 
-pub async fn grove_exists_by_name(name: String, db: &DatabaseConnection) -> BambooResult<bool> {
+pub async fn grove_exists_by_name(name: &str, db: &DatabaseConnection) -> BambooResult<bool> {
     grove::Entity::find()
         .filter(grove::Column::Name.eq(name))
         .count(db)
@@ -54,7 +54,7 @@ pub async fn grove_exists_by_name(name: String, db: &DatabaseConnection) -> Bamb
 
 pub async fn grove_exists_by_id(
     id: i32,
-    name: String,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     grove::Entity::find()
@@ -86,12 +86,12 @@ pub async fn get_all_groves(db: &DatabaseConnection) -> BambooResult<Vec<Grove>>
 }
 
 pub async fn create_grove(
-    name: String,
+    name: &str,
     invite_active: bool,
     user_id: i32,
     db: &DatabaseConnection,
 ) -> BambooResult<Grove> {
-    let mut active_model = Grove::new(name, invite_active).into_active_model();
+    let mut active_model = Grove::new(name.to_string(), invite_active).into_active_model();
     active_model.id = NotSet;
 
     let grove = active_model
@@ -114,11 +114,11 @@ pub async fn create_grove(
 pub async fn update_grove(
     id: i32,
     user_id: i32,
-    name: String,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
     let mut grove = get_grove(id, user_id, db).await?.into_active_model();
-    grove.name = Set(name);
+    grove.name = Set(name.to_string());
     grove
         .update(db)
         .await
@@ -261,7 +261,7 @@ pub async fn check_grove_join_status(
 pub async fn join_grove(
     grove_id: i32,
     user_id: i32,
-    invite_secret: String,
+    invite_secret: &str,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
     grove::Entity::find_by_id(grove_id)
