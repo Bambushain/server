@@ -299,7 +299,7 @@ pub async fn create_custom_field_option(
     label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<CustomCharacterFieldOption> {
-    if custom_field_option_exists_by_label(user_id, custom_field_id, &label, db).await? {
+    if custom_field_option_exists_by_label(user_id, custom_field_id, label, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A custom field option with that label exists already",

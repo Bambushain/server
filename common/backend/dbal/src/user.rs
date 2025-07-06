@@ -321,7 +321,7 @@ pub async fn reset_password_by_token(
         {
             let mut active_user = user.clone().into_user_active_model();
             active_user
-                .set_password(&password)
+                .set_password(password)
                 .map_err(|_| BambooError::crypto(error_tag!(), "Failed to hash password"))?;
             active_user.forgot_password_code = Set(None);
             active_user.forgot_password_valid_until = Set(None);

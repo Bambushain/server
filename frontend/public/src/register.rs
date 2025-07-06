@@ -139,7 +139,7 @@ fn create_account_form(error: bool, name: &str, email: &str) -> Markup {
                 label.bamboo-label for="password" {
                     "Dein Passwort"
                 }
-                input.bamboo-input #password minlength=8 required type="password" name="password" ;
+                input.bamboo-input #password minlength="8" required type="password" name="password" ;
                 button.bamboo-button type="submit" {
                     "Account erstellen"
                 }
