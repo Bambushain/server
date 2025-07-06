@@ -18,7 +18,7 @@ pub async fn get_user_and_token_by_header(
         |header| header.authorization.clone().ok_or(unauthorized.clone()),
     )?;
 
-    let user = dbal::get_user_by_token(token.clone(), db)
+    let user = dbal::get_user_by_token(&token, db)
         .await
         .map_err(|_| unauthorized.clone())?;
 
@@ -32,7 +32,7 @@ pub async fn get_user_and_token_by_cookie(
     let unauthorized = BambooError::unauthorized("user", "Authorization failed");
     let token = auth_cookie.ok_or(unauthorized.clone())?.token;
 
-    let user = dbal::get_user_by_token(token.clone(), db)
+    let user = dbal::get_user_by_token(&token, db)
         .await
         .map_err(|_| unauthorized.clone())?;
 

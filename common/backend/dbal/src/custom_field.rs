@@ -76,7 +76,7 @@ pub async fn get_custom_field(
 async fn custom_field_exists_by_id(
     user_id: i32,
     id: i32,
-    label: String,
+    label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     custom_character_field::Entity::find()
@@ -91,7 +91,7 @@ async fn custom_field_exists_by_id(
 
 async fn custom_field_exists_by_label(
     user_id: i32,
-    label: String,
+    label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     custom_character_field::Entity::find()
@@ -108,7 +108,7 @@ pub async fn create_custom_field(
     custom_field: CustomField,
     db: &DatabaseConnection,
 ) -> BambooResult<CustomCharacterField> {
-    if custom_field_exists_by_label(user_id, custom_field.label.clone(), db).await? {
+    if custom_field_exists_by_label(user_id, &custom_field.label, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "The custom field exists already",
@@ -163,7 +163,7 @@ pub async fn update_custom_field(
     custom_field: CustomField,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    if custom_field_exists_by_id(user_id, id, custom_field.label.clone(), db).await? {
+    if custom_field_exists_by_id(user_id, id, &custom_field.label, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "The custom field exists already",
@@ -191,7 +191,7 @@ pub async fn update_custom_field_with_options(
     deleted_options: BTreeSet<i32>,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    if custom_field_exists_by_id(user_id, id, custom_field.label.clone(), db).await? {
+    if custom_field_exists_by_id(user_id, id, &custom_field.label, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "The custom field exists already",
@@ -211,7 +211,7 @@ pub async fn update_custom_field_with_options(
         .map(|_| ())?;
 
     let field_id = id;
-    for (id, label) in options.clone() {
+    for (id, ref label) in options.clone() {
         if id > 0 {
             update_custom_field_option(id, user_id, field_id, label, db).await?;
         } else {
@@ -261,7 +261,7 @@ pub async fn custom_field_option_exists_by_id(
     id: i32,
     user_id: i32,
     custom_field_id: i32,
-    label: String,
+    label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     custom_character_field_option::Entity::find()
@@ -279,7 +279,7 @@ pub async fn custom_field_option_exists_by_id(
 pub async fn custom_field_option_exists_by_label(
     user_id: i32,
     custom_field_id: i32,
-    label: String,
+    label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     custom_character_field_option::Entity::find()
@@ -296,10 +296,10 @@ pub async fn custom_field_option_exists_by_label(
 pub async fn create_custom_field_option(
     user_id: i32,
     custom_field_id: i32,
-    label: String,
+    label: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<CustomCharacterFieldOption> {
-    if custom_field_option_exists_by_label(user_id, custom_field_id, label.clone(), db).await? {
+    if custom_field_option_exists_by_label(user_id, custom_field_id, label, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A custom field option with that label exists already",
@@ -309,7 +309,7 @@ pub async fn create_custom_field_option(
     custom_character_field_option::ActiveModel {
         id: NotSet,
         custom_character_field_id: Set(custom_field_id),
-        label: Set(label),
+        label: Set(label.to_string()),
     }
     .insert(db)
     .await
@@ -320,10 +320,10 @@ pub async fn update_custom_field_option(
     id: i32,
     user_id: i32,
     custom_field_id: i32,
-    option: String,
+    option: &str,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    if custom_field_option_exists_by_id(id, user_id, custom_field_id, option.clone(), db).await? {
+    if custom_field_option_exists_by_id(id, user_id, custom_field_id, option, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A custom field option with that label exists already",
@@ -340,7 +340,7 @@ pub async fn update_custom_field_option(
 
     if let Some(model) = options.first() {
         let mut active_option = model.clone().into_active_model();
-        active_option.label = Set(option);
+        active_option.label = Set(option.to_string());
 
         active_option
             .update(db)

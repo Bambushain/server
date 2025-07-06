@@ -5,11 +5,11 @@ async fn setup_google_playstore_grove(
     user_id: i32,
     db: &sea_orm::DatabaseConnection,
 ) -> std::io::Result<()> {
-    if !dbal::grove_exists_by_name("Google".to_string(), db)
+    if !dbal::grove_exists_by_name("Google", db)
         .await
         .map_err(std::io::Error::other)?
     {
-        dbal::create_grove("Google".to_string(), false, user_id, db)
+        dbal::create_grove("Google", false, user_id, db)
             .await
             .map_err(std::io::Error::other)
             .map(|_| ())
@@ -19,10 +19,10 @@ async fn setup_google_playstore_grove(
 }
 
 async fn setup_google_playstore_user(db: &sea_orm::DatabaseConnection) -> std::io::Result<()> {
-    let email = "playstore@google.bambushain".to_string();
-    let password = "NkWHoLDmzg4aVEx".to_string();
+    let email = "playstore@google.bambushain";
+    let password = "NkWHoLDmzg4aVEx";
 
-    if let Ok(user) = dbal::get_user_by_email_or_username(email.clone(), db).await {
+    if let Ok(user) = dbal::get_user_by_email_or_username(email, db).await {
         dbal::set_password(user.id, password, db)
             .await
             .map_err(std::io::Error::other)
@@ -30,7 +30,7 @@ async fn setup_google_playstore_user(db: &sea_orm::DatabaseConnection) -> std::i
     } else {
         let user = dbal::create_user(
             bamboo_common::core::entities::User::new(
-                email,
+                email.to_string(),
                 "Google Playstore".to_string(),
                 "google".to_string(),
             ),

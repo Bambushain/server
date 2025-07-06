@@ -43,7 +43,7 @@ pub async fn create_free_company(
 ) -> BambooApiResult<FreeCompany> {
     let body = check_missing_fields!(body, "free_company")?;
 
-    dbal::create_free_company(authentication.user.id, body.name.clone(), &db)
+    dbal::create_free_company(authentication.user.id, &body.name, &db)
         .await
         .map(|data| created!(data))
 }
@@ -64,7 +64,7 @@ pub async fn update_free_company(
     dbal::update_free_company(
         path.free_company_id,
         authentication.user.id,
-        body.name.clone(),
+        &body.name,
         &db,
     )
     .await

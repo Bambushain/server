@@ -89,6 +89,7 @@ codee = { version = "0.3", features = ["json_serde"] }
 console_error_panic_hook = "0.1"
 date-range = "0.3"
 dotenvy = "0.15"
+email_address = "0.2"
 env_logger = "0.11"
 fast_qr = { version = "0.13", features = ["svg"] }
 futures = "0.3"

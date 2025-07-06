@@ -4,8 +4,8 @@ use bamboo_common::core::entities::get_dependencies;
 use chrono::Datelike;
 use maud::html;
 
-#[get("/legal/imprint")]
-pub async fn imprint() -> impl Responder {
+#[get("/legal/legal-notice")]
+pub async fn legal_notice() -> impl Responder {
     banner_page(
         "Impressum",
         html! {

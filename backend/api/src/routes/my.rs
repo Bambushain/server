@@ -19,8 +19,8 @@ pub async fn change_password(
 
     dbal::change_my_password(
         authentication.user.id,
-        body.old_password.clone(),
-        body.new_password.clone(),
+        &body.old_password,
+        &body.new_password,
         &db,
     )
     .await
@@ -38,9 +38,9 @@ pub async fn update_profile(
 
     dbal::update_my_profile(
         authentication.user.id,
-        body.email.clone(),
-        body.display_name.clone(),
-        body.discord_name.clone(),
+        &body.email,
+        &body.display_name,
+        &body.discord_name,
         &db,
     )
     .await
@@ -71,23 +71,18 @@ pub async fn validate_totp(
     } else {
         let body = check_missing_fields!(body, "user")?;
 
-        dbal::validate_my_totp(
-            authentication.user.id,
-            body.password.clone(),
-            body.code.clone(),
-            &db,
-        )
-        .await
-        .map(|data| {
-            if data {
-                Ok(no_content!())
-            } else {
-                Err(BambooError::insufficient_rights(
-                    "user",
-                    "The code is invalid",
-                ))
-            }
-        })?
+        dbal::validate_my_totp(authentication.user.id, &body.password, &body.code, &db)
+            .await
+            .map(|data| {
+                if data {
+                    Ok(no_content!())
+                } else {
+                    Err(BambooError::insufficient_rights(
+                        "user",
+                        "The code is invalid",
+                    ))
+                }
+            })?
     }
 }
 

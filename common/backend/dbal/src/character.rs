@@ -190,8 +190,8 @@ fn fill_custom_fields(character_id: i32, custom_fields: Vec<FillCustomField>) ->
 
 async fn character_exists_by_id(
     id: i32,
-    name: String,
-    world: String,
+    name: &str,
+    world: &str,
     user_id: i32,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
@@ -207,8 +207,8 @@ async fn character_exists_by_id(
 }
 
 async fn character_exists_by_name(
-    name: String,
-    world: String,
+    name: &str,
+    world: &str,
     user_id: i32,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
@@ -227,9 +227,7 @@ pub async fn create_character(
     character: Character,
     db: &DatabaseConnection,
 ) -> BambooResult<Character> {
-    if character_exists_by_name(character.name.clone(), character.world.clone(), user_id, db)
-        .await?
-    {
+    if character_exists_by_name(&character.name, &character.world, user_id, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A character with that name already exists",
@@ -257,15 +255,7 @@ pub async fn update_character(
     character: Character,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    if character_exists_by_id(
-        id,
-        character.name.clone(),
-        character.world.clone(),
-        user_id,
-        db,
-    )
-    .await?
-    {
+    if character_exists_by_id(id, &character.name, &character.world, user_id, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A character with that name already exists",

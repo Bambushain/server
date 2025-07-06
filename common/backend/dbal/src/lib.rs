@@ -56,7 +56,7 @@ fn get_passphrase(passphrase: &[u8]) -> BambooResult<Key> {
     .map(|_| Key::from(key))
 }
 
-pub(crate) fn decrypt_string(encrypted: Vec<u8>, passphrase: String) -> BambooResult<Vec<u8>> {
+pub(crate) fn decrypt_string(encrypted: Vec<u8>, passphrase: &str) -> BambooResult<Vec<u8>> {
     let cipher = ChaCha20Poly1305::new(&get_passphrase(passphrase.as_bytes())?);
     let nonce = Nonce::from_slice(&encrypted[..12]);
 
@@ -65,12 +65,12 @@ pub(crate) fn decrypt_string(encrypted: Vec<u8>, passphrase: String) -> BambooRe
         .map_err(|_| BambooError::crypto("encryption", "Failed to decrypt"))
 }
 
-pub(crate) fn encrypt_string(plain: Vec<u8>, passphrase: String) -> BambooResult<Vec<u8>> {
+pub(crate) fn encrypt_string(plain: &[u8], passphrase: &str) -> BambooResult<Vec<u8>> {
     let cipher = ChaCha20Poly1305::new(&get_passphrase(passphrase.as_bytes())?);
     let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
 
     let encrypted = cipher
-        .encrypt(&nonce, plain.as_ref())
+        .encrypt(&nonce, plain)
         .map_err(|_| BambooError::crypto("encryption", "Failed to encrypt"))?;
 
     let mut data = vec![];

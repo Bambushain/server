@@ -43,14 +43,9 @@ pub async fn create_grove(
 ) -> BambooApiResult<Grove> {
     let body = check_missing_fields!(body, "grove")?;
 
-    dbal::create_grove(
-        body.name.clone(),
-        body.invite_on,
-        authentication.user.id,
-        &db,
-    )
-    .await
-    .map(|data| created!(data))
+    dbal::create_grove(&body.name, body.invite_on, authentication.user.id, &db)
+        .await
+        .map(|data| created!(data))
 }
 
 #[put(
@@ -67,14 +62,9 @@ pub async fn update_grove(
     let path = check_invalid_path!(path, "grove")?;
     let body = check_missing_fields!(body, "grove")?;
 
-    dbal::update_grove(
-        path.grove_id,
-        authentication.user.id,
-        body.name.clone(),
-        &db,
-    )
-    .await
-    .map(|_| no_content!())
+    dbal::update_grove(path.grove_id, authentication.user.id, &body.name, &db)
+        .await
+        .map(|_| no_content!())
 }
 
 #[put(
@@ -194,7 +184,7 @@ pub async fn join_grove(
     dbal::join_grove(
         path.grove_id,
         authentication.user.id,
-        body.invite_secret.clone(),
+        &body.invite_secret,
         &db,
     )
     .await

@@ -20,6 +20,7 @@ pub fn page(title: impl Into<String>, children: Markup) -> Markup {
                 link href="/static/style/homepage.css" rel="stylesheet" ;
                 link href="/static/style/urbanist.css" rel="stylesheet" ;
                 link href="/static/style/variables.css" rel="stylesheet" ;
+                link href="/static/style/register.css" rel="stylesheet" ;
 
                 meta content="#598c79" name="msapplication-TileColor" ;
                 meta content="#598c79" name="theme-color" ;
@@ -83,7 +84,7 @@ pub fn page(title: impl Into<String>, children: Markup) -> Markup {
                             a href="/legal/licenses" {
                                 "Lizenzen"
                             }
-                            a href="/legal/imprint" {
+                            a href="/legal/legal-notice" {
                                 "Impressum"
                             }
                             a href="/legal/privacy" {

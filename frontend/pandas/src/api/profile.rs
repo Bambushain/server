@@ -70,8 +70,14 @@ pub async fn update_profile(
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
 
     Ok(
-        match dbal::update_my_profile(auth_state.user.id, email, display_name, discord_name, &db)
-            .await
+        match dbal::update_my_profile(
+            auth_state.user.id,
+            &email,
+            &display_name,
+            &discord_name,
+            &db,
+        )
+        .await
         {
             Ok(_) => UpdateProfileResult {
                 success: true,
@@ -144,7 +150,7 @@ pub async fn validate_totp(password: String, totp_code: String) -> Result<bool, 
 
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
 
-    dbal::validate_my_totp(auth_state.user.id, password, totp_code, &db)
+    dbal::validate_my_totp(auth_state.user.id, &password, &totp_code, &db)
         .await
         .map_err(ServerFnError::new)
 }
@@ -171,7 +177,7 @@ pub async fn change_password(
     let (auth_state, db) = extract::<(AuthState, DbConnection)>().await?;
 
     if let Err(err) =
-        dbal::change_my_password(auth_state.user.id, old_password, new_password, &db).await
+        dbal::change_my_password(auth_state.user.id, &old_password, &new_password, &db).await
     {
         match err {
             PasswordError::WrongPassword => Ok(PasswordResponse::WrongPassword),

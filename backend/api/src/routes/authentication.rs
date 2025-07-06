@@ -13,8 +13,8 @@ pub async fn login(body: Option<web::Json<Login>>, db: DbConnection) -> BambooAp
     let body = check_missing_fields!(body, "authentication")?;
 
     let data = dbal::validate_auth(
-        body.email.clone(),
-        body.password.clone(),
+        &body.email,
+        &body.password,
         body.two_factor_code.clone(),
         &db,
     )
@@ -27,7 +27,7 @@ pub async fn login(body: Option<web::Json<Login>>, db: DbConnection) -> BambooAp
     if data.requires_two_factor_code {
         Ok(no_content!())
     } else {
-        dbal::create_token(body.email.clone(), &db)
+        dbal::create_token(&body.email, &db)
             .await
             .map_err(|err| {
                 log::error!("Failed to login {err}");
@@ -43,7 +43,7 @@ pub async fn forgot_password(
     db: DbConnection,
 ) -> BambooApiResponseResult {
     let body = check_missing_fields!(body, "authentication")?.into_inner();
-    enqueue_forgot_password_mail(body.email, &db).await;
+    enqueue_forgot_password_mail(&body.email, &db).await;
 
     Ok(no_content!())
 }
@@ -55,14 +55,9 @@ pub async fn reset_password(
 ) -> BambooApiResponseResult {
     let body = check_missing_fields!(body, "authentication")?.into_inner();
 
-    dbal::reset_password_by_token(
-        body.email.clone(),
-        body.token.clone(),
-        body.password.clone(),
-        &db,
-    )
-    .await
-    .map(|_| no_content!())
+    dbal::reset_password_by_token(&body.email, &body.token, &body.password, &db)
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete("/api/login", wrap = "authenticate!()")]

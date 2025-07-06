@@ -24,14 +24,14 @@ pub async fn login(
 
     let db: DbConnection = extract().await?;
 
-    let res = dbal::validate_auth(email.clone(), password, two_factor_code, &db)
+    let res = dbal::validate_auth(&email, &password, two_factor_code, &db)
         .await
         .map_err(ServerFnError::new)?;
 
     if !res.requires_two_factor_code {
         let response = expect_context::<ResponseOptions>();
 
-        let token = dbal::create_token(email, &db).await.map_err(|err| {
+        let token = dbal::create_token(&email, &db).await.map_err(|err| {
             log::error!("Failed to login {err}");
             BambooError::unauthorized("user", "Login data is invalid")
         })?;
@@ -64,7 +64,7 @@ pub async fn forgot_password(email: String) -> Result<(), ServerFnError> {
 
     let db: DbConnection = extract().await?;
 
-    enqueue_forgot_password_mail(email, &db).await;
+    enqueue_forgot_password_mail(&email, &db).await;
 
     Ok(())
 }
@@ -81,7 +81,7 @@ pub async fn reset_password(
 
     let db: DbConnection = extract().await?;
 
-    dbal::reset_password_by_token(email.clone(), token.clone(), password.clone(), &db)
+    dbal::reset_password_by_token(&email, &token, &password, &db)
         .await
         .map(|_| true)
         .map_err(ServerFnError::new)

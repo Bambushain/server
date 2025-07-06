@@ -1,0 +1,78 @@
+.bamboo-form {
+    display: grid;
+    grid-template-columns: [label] max-content [content] 25rem;
+    gap: 1rem;
+    font-size: 1.25rem;
+}
+
+.bamboo-label {
+    grid-column: label;
+    align-self: center;
+}
+
+.bamboo-input {
+    grid-column: content;
+    font-size: 1.25rem;
+    border: 0.125rem solid var(--primary-color-lighter);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.3s;
+
+    &:focus,
+    &:active {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: none;
+    }
+
+    &:invalid {
+        border-color: #db504a;
+    }
+}
+
+.bamboo-button {
+    grid-column: content;
+    width: auto;
+    justify-self: end;
+    font-size: 1.25rem;
+    background: var(--primary-color);
+    border: 0.125rem solid var(--primary-color);
+    border-radius: 0.5rem;
+    transition: background 0.3s, border-color 0.3s;
+    color: var(--white);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--white);
+        color: var(--primary-color);
+    }
+}
+
+.bamboo-info {
+    background: #c1ddf1;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+
+    a {
+        color: #1f618f;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.bamboo-error {
+    background: #f1c1c1;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+
+    a {
+        color: #8f1f1f;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

@@ -9,17 +9,16 @@ use crate::{decrypt_string, encrypt_string, error_tag};
 
 pub async fn change_my_password(
     id: i32,
-    old_password: String,
-    new_password: String,
+    old_password: &str,
+    new_password: &str,
     db: &DatabaseConnection,
 ) -> Result<(), PasswordError> {
-    let hashed_password =
-        bcrypt::hash(new_password.clone(), 12).map_err(|_| PasswordError::Unknown)?;
+    let hashed_password = bcrypt::hash(new_password, 12).map_err(|_| PasswordError::Unknown)?;
 
     let user = dbal::get_user(id, db)
         .await
         .map_err(|_| PasswordError::UserNotFound)?;
-    let is_valid = user.validate_password(old_password.clone());
+    let is_valid = user.validate_password(old_password);
 
     if !is_valid {
         return Err(PasswordError::WrongPassword);
@@ -33,7 +32,7 @@ pub async fn change_my_password(
             user.totp_secret.clone().unwrap()
         };
 
-        let encrypted_totp_secret = encrypt_string(decrypted_totp_secret, new_password.clone())
+        let encrypted_totp_secret = encrypt_string(&decrypted_totp_secret, new_password)
             .map_err(|_| PasswordError::Unknown)?;
 
         (Some(encrypted_totp_secret), true)
@@ -94,15 +93,15 @@ pub async fn disable_my_totp(id: i32, db: &DatabaseConnection) -> BambooErrorRes
 
 pub async fn validate_my_totp(
     id: i32,
-    password: String,
-    code: String,
+    password: &str,
+    code: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     let user = dbal::get_user(id, db).await?;
-    let valid = dbal::validate_two_factor_code(id, code, password.clone(), true, db)
+    let valid = dbal::validate_two_factor_code(id, code, password, true, db)
         .await
         .is_ok();
-    let totp_secret = encrypt_string(user.totp_secret.unwrap(), password)?;
+    let totp_secret = encrypt_string(&user.totp_secret.unwrap(), password)?;
 
     user::Entity::update_many()
         .col_expr(user::Column::TotpSecret, Expr::value(totp_secret))
@@ -117,12 +116,12 @@ pub async fn validate_my_totp(
 
 pub async fn update_my_profile(
     id: i32,
-    email: String,
-    display_name: String,
-    discord_name: String,
+    email: &str,
+    display_name: &str,
+    discord_name: &str,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    if dbal::user_exists_by_id(id, email.clone(), display_name.clone(), db).await? {
+    if dbal::user_exists_by_id(id, email, display_name, db).await? {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A user with that email or name exists already",

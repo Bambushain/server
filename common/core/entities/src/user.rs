@@ -89,7 +89,7 @@ impl BambooUser {
         .into_active_model()
     }
 
-    pub fn validate_password(&self, password: String) -> bool {
+    pub fn validate_password(&self, password: &str) -> bool {
         let result = bcrypt::verify(password, self.password.as_str());
         result.unwrap_or(false)
     }
@@ -141,7 +141,7 @@ impl ActiveModelBehavior for ActiveModel {}
 
 #[cfg(feature = "backend")]
 impl ActiveModel {
-    pub fn set_password(&mut self, plain_password: &String) -> Result<(), bcrypt::BcryptError> {
+    pub fn set_password(&mut self, plain_password: &str) -> Result<(), bcrypt::BcryptError> {
         bcrypt::hash(plain_password.as_bytes(), 12).map(|hashed_password| {
             self.password = Set(hashed_password);
         })
@@ -168,7 +168,7 @@ impl Model {
     }
 
     #[cfg(feature = "backend")]
-    pub fn validate_password(&self, password: String) -> bool {
+    pub fn validate_password(&self, password: &str) -> bool {
         let result = bcrypt::verify(password, self.password.as_str());
         result.unwrap_or(false)
     }
