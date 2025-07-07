@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use chrono::NaiveDate;
+use chrono::NaiveTime as Time;
 use color_art::{color, Color};
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
@@ -30,6 +31,8 @@ pub struct Model {
     pub description: String,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
+    pub start_time: Option<Time>,
+    pub end_time: Option<Time>,
     pub color: String,
     #[serde(default = "set_false")]
     pub is_private: bool,
@@ -96,6 +99,8 @@ pub struct GroveEvent {
     pub description: String,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
+    pub start_time: Option<Time>,
+    pub end_time: Option<Time>,
     pub color: String,
     pub is_private: bool,
     pub user: Option<WebUser>,
@@ -110,6 +115,8 @@ impl GroveEvent {
             description: self.description.clone(),
             start_date: self.start_date,
             end_date: self.end_date,
+            start_time: self.start_time,
+            end_time: self.end_time,
             color: self.color.clone(),
             is_private: self.is_private,
             user_id: self.user.clone().map(|user| user.id),
@@ -118,12 +125,14 @@ impl GroveEvent {
     }
 
     pub fn from_event(event: Event, user: Option<WebUser>, grove: Option<Grove>) -> Self {
-        GroveEvent {
+        Self {
             id: event.id,
             title: event.title,
             description: event.description,
             start_date: event.start_date,
             end_date: event.end_date,
+            start_time: event.start_time,
+            end_time: event.end_time,
             color: event.color,
             is_private: event.is_private,
             user,

@@ -21,6 +21,8 @@ struct LoadEvent {
     pub description: String,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
+    pub start_time: Option<Time>,
+    pub end_time: Option<Time>,
     pub color: String,
     pub is_private: bool,
     pub user_id: Option<i32>,
@@ -51,6 +53,8 @@ impl From<LoadEvent> for GroveEvent {
             description: value.description,
             start_date: value.start_date,
             end_date: value.end_date,
+            start_time: value.start_time,
+            end_time: value.end_time,
             color: value.color,
             is_private: value.is_private,
             user,
@@ -70,6 +74,8 @@ fn get_event_query(
         .column_as(event::Column::Description, "description")
         .column_as(event::Column::StartDate, "start_date")
         .column_as(event::Column::EndDate, "end_date")
+        .column_as(event::Column::StartTime, "start_time")
+        .column_as(event::Column::EndTime, "end_time")
         .column_as(event::Column::Color, "color")
         .column_as(event::Column::IsPrivate, "is_private")
         .column_as(user::Column::Id, "user_id")
@@ -213,6 +219,8 @@ pub async fn update_event(
         .filter(event::Column::UserId.eq(user_id))
         .col_expr(event::Column::StartDate, Expr::value(event.start_date))
         .col_expr(event::Column::EndDate, Expr::value(event.end_date))
+        .col_expr(event::Column::StartTime, Expr::value(event.start_time))
+        .col_expr(event::Column::EndTime, Expr::value(event.end_time))
         .col_expr(event::Column::Description, Expr::value(event.description))
         .col_expr(event::Column::Title, Expr::value(event.title))
         .col_expr(event::Column::Color, Expr::value(event.color))
