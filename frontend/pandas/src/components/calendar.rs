@@ -90,6 +90,13 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
                         }}
                     </h5>
                 </hgroup>
+                {if let (Some(start_time), Some(end_time)) = (event.start_time, event.end_time) {
+                    view! {
+                        <p>{format!("{} - {}", start_time.format("%H:%M"), end_time.format("%H:%M"))}</p>
+                    }.into_any()
+                } else {
+                   "".into_any()
+                }}
                 <p>{event.description.clone()}</p>
                 <span class="panda-calendar__event-arrow" />
             </div>
@@ -161,6 +168,8 @@ fn AddEventDialog(
 
     let start_date = RwSignal::new(day);
     let end_date = RwSignal::new(day);
+
+    let has_time = RwSignal::new(false);
 
     let selected_grove = RwSignal::new(grove_id.read().map_or(
         groves.read().first().map(|grove| grove.id.to_string()),
@@ -242,6 +251,21 @@ fn AddEventDialog(
                     name="end_date"
                     value=end_date
                 />
+                <Switch label="Mit Zeiten" checked=has_time />
+                <Show when=move || *has_time.read()>
+                    <TimePicker
+                        width=InputWidth::Medium
+                        label="Startzeit"
+                        required=true
+                        name="start_time"
+                    />
+                    <TimePicker
+                        width=InputWidth::Medium
+                        label="Endzeit"
+                        required=true
+                        name="end_time"
+                    />
+                </Show>
                 <Show when=move || grove_id.read().is_none()>
                     <Switch label="Nur für mich" checked=is_private name="is_private" />
                 </Show>
@@ -292,9 +316,13 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
     let description = RwSignal::new(event.description);
     let start_date = RwSignal::new(event.start_date);
     let end_date = RwSignal::new(event.end_date);
+    let start_time = RwSignal::new(event.start_time.unwrap_or_default());
+    let end_time = RwSignal::new(event.end_time.unwrap_or_default());
     let color = RwSignal::new(
         Color::from_hex(event.color.as_str()).unwrap_or(Color::new(89, 140, 121, 0.0)),
     );
+
+    let has_time = RwSignal::new(event.start_time.is_some());
 
     let delete_event = move || {
         use_modals().confirm(
@@ -353,6 +381,23 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                         name="end_date"
                         value=end_date
                     />
+                    <Switch label="Mit Zeiten" checked=has_time />
+                    <Show when=move || *has_time.read()>
+                        <TimePicker
+                            width=InputWidth::Medium
+                            label="Startzeit"
+                            required=true
+                            name="start_time"
+                            value=start_time
+                        />
+                        <TimePicker
+                            width=InputWidth::Medium
+                            label="Endzeit"
+                            required=true
+                            name="end_time"
+                            value=end_time
+                        />
+                    </Show>
                 </ModalContent>
                 <ModalButton label="Abbrechen" on_click=move || is_open.set(false) slot />
                 <ModalButton
