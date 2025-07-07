@@ -487,21 +487,18 @@ components:
           type: string
         description:
           type: string
-        start:
+        startDate:
           type: string
           format: date-time
-        end:
+        endDate:
           type: string
           format: date-time
-        groveId:
+        startTime:
           type: string
-          format: uuid
-        createdAt:
+          format: time
+        endTime:
           type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
+          format: time
     Error:
       type: object
       properties:
