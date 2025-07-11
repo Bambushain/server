@@ -1,0 +1,14 @@
+get:
+  summary: Get all licenses
+  operationId: getLicenses
+  responses:
+    "200":
+      description: List of licenses
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../components/schemas/license.yaml"
+  tags:
+    - legal

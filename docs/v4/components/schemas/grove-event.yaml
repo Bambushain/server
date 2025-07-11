@@ -1,0 +1,26 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+  title:
+    type: string
+  description:
+    type: string
+  startDate:
+    type: string
+    format: date
+  endDate:
+    type: string
+    format: date
+  startTime:
+    type: string
+    format: time
+  endTime:
+    type: string
+    format: time
+required:
+  - title
+  - description
+  - startDate
+  - endDate

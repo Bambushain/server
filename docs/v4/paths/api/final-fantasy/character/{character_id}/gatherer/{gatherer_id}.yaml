@@ -1,0 +1,115 @@
+get:
+  summary: Get a specific gatherer for a character
+  operationId: getGatherer
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: gatherer_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Gatherer details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/gatherer.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Gatherer not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - gatherers
+put:
+  summary: Update a gatherer for a character
+  operationId: updateGatherer
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: gatherer_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../../components/schemas/gatherer.yaml"
+  responses:
+    "204":
+      description: Gatherer updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Gatherer not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - gatherers
+delete:
+  summary: Delete a gatherer for a character
+  operationId: deleteGatherer
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: gatherer_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Gatherer deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Gatherer not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - gatherers

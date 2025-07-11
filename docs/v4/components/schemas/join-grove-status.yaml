@@ -1,0 +1,5 @@
+type: string
+enum:
+  - joined
+  - not-joined
+  - banned

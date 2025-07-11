@@ -1,0 +1,50 @@
+get:
+  summary: Get all groves for authenticated user
+  operationId: getGroves
+  responses:
+    "200":
+      description: List of groves
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../components/schemas/grove.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - groves
+post:
+  summary: Create a new grove
+  operationId: createGrove
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas/create-grove.yaml"
+  responses:
+    "201":
+      description: Grove created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/grove.yaml"
+    "400":
+      description: Invalid request body
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - groves

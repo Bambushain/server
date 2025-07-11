@@ -11,6 +11,7 @@ use bamboo_common::core::error::*;
 use crate::middleware::check_grove_mod::grove_mod;
 use crate::path;
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
+use bamboo_common::backend::dbal::BannedStatus;
 
 #[get("/api/grove", wrap = "authenticate!()")]
 pub async fn get_groves(
@@ -33,6 +34,24 @@ pub async fn get_grove(
     dbal::get_grove(path.grove_id, authentication.user.id, &db)
         .await
         .map(|data| ok!(data))
+}
+
+#[get("/api/grove/{grove_id}/user", wrap = "authenticate!()")]
+pub async fn get_grove_users(
+    path: Option<path::GrovePath>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "grove")?;
+
+    dbal::get_users_by_grove(
+        authentication.user.id,
+        path.grove_id,
+        BannedStatus::All,
+        &db,
+    )
+    .await
+    .map(|data| list!(data))
 }
 
 #[post("/api/grove", wrap = "authenticate!()")]

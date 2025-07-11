@@ -1,0 +1,115 @@
+get:
+  summary: Get a specific fighter for a character
+  operationId: getFighter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: fighter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Fighter details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/fighter.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Fighter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - fighters
+put:
+  summary: Update a fighter for a character
+  operationId: updateFighter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: fighter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../../components/schemas/fighter.yaml"
+  responses:
+    "204":
+      description: Fighter updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Fighter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - fighters
+delete:
+  summary: Delete a fighter for a character
+  operationId: deleteFighter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: fighter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Fighter deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Fighter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - fighters

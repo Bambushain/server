@@ -1,0 +1,31 @@
+get:
+  summary: Get users of a grove
+  operationId: getGroveUsers
+  parameters:
+    - name: grove_id
+      schema:
+        type: string
+      in: path
+  responses:
+    "200":
+      description: Grove details
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../components/schemas/grove-user.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves

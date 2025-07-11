@@ -1,0 +1,7 @@
+type: object
+properties:
+  groveId:
+    type: string
+    format: uuid
+required:
+  - groveId

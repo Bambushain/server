@@ -1,0 +1,115 @@
+get:
+  summary: Get a specific housing for a character
+  operationId: getCharacterHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: character_housing_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Character housing details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/character-housing.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - housing
+put:
+  summary: Update a housing for a character
+  operationId: updateCharacterHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: character_housing_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../../components/schemas/character-housing.yaml"
+  responses:
+    "204":
+      description: Character housing updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - housing
+delete:
+  summary: Delete a housing for a character
+  operationId: deleteCharacterHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: character_housing_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Character housing deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - housing

@@ -1,0 +1,7 @@
+type: string
+enum:
+  - the-lavender-beds
+  - mist
+  - the-goblet
+  - shirogane
+  - empyreum

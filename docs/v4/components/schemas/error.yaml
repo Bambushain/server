@@ -1,0 +1,8 @@
+type: object
+properties:
+  entityType:
+    type: string
+  message:
+    type: string
+  errorType:
+    type: string

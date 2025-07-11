@@ -1,0 +1,74 @@
+get:
+  summary: Get all options for a custom field
+  operationId: getCustomFieldOptions
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: List of custom field options
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../../../components/schemas/custom-field-option.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields
+post:
+  summary: Create a new option for a custom field
+  operationId: createCustomFieldOption
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: string
+  responses:
+    "201":
+      description: Custom field option created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/custom-field-option.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields

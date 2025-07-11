@@ -1,0 +1,42 @@
+get:
+  summary: Get current user profile
+  operationId: getProfile
+  security:
+    - bearerAuth: [ ]
+  responses:
+    "200":
+      description: User profile
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/user.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - my-profile
+put:
+  summary: Update current user profile
+  operationId: updateProfile
+  security:
+    - bearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../components/schemas/update-profile.yaml"
+  responses:
+    "204":
+      description: Profile updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - my-profile
