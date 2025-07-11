@@ -1,0 +1,10 @@
+type: string
+enum:
+  - hyur
+  - elezen
+  - lalafell
+  - miqote
+  - roegadyn
+  - au-ra
+  - hrothgar
+  - viera

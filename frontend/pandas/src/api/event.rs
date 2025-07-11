@@ -9,12 +9,15 @@ pub async fn create_event(
     color: String,
     start_date: String,
     end_date: String,
+    start_time: Option<String>,
+    end_time: Option<String>,
     is_private: Option<String>,
     grove: Option<i32>,
 ) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
+    use chrono::NaiveTime as Time;
     use leptos_actix::extract;
     use leptos_cosmo::prelude::NaiveDate;
 
@@ -28,6 +31,17 @@ pub async fn create_event(
         NaiveDate::parse_from_str(start_date.as_str(), "%F").map_err(ServerFnError::new)?;
     let end_date =
         NaiveDate::parse_from_str(end_date.as_str(), "%F").map_err(ServerFnError::new)?;
+
+    let start_time = if let Some(start_time) = start_time {
+        Some(Time::parse_from_str(start_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
+    } else {
+        None
+    };
+    let end_time = if let Some(end_time) = end_time {
+        Some(Time::parse_from_str(end_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
+    } else {
+        None
+    };
 
     let grove = if let Some(grove) = grove {
         Some(
@@ -45,6 +59,8 @@ pub async fn create_event(
         description: description.unwrap_or("".to_string()),
         start_date,
         end_date,
+        start_time,
+        end_time,
         color,
         is_private: is_private
             .map(|val| val.to_lowercase() == "on")
@@ -67,10 +83,13 @@ pub async fn update_event(
     color: String,
     start_date: String,
     end_date: String,
+    start_time: Option<String>,
+    end_time: Option<String>,
 ) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
+    use chrono::NaiveTime as Time;
     use leptos_actix::extract;
     use leptos_cosmo::prelude::NaiveDate;
 
@@ -85,6 +104,17 @@ pub async fn update_event(
     let end_date =
         NaiveDate::parse_from_str(end_date.as_str(), "%F").map_err(ServerFnError::new)?;
 
+    let start_time = if let Some(start_time) = start_time {
+        Some(Time::parse_from_str(start_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
+    } else {
+        None
+    };
+    let end_time = if let Some(end_time) = end_time {
+        Some(Time::parse_from_str(end_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
+    } else {
+        None
+    };
+
     let event = dbal::get_event(id, user.id, &db)
         .await
         .map_err(ServerFnError::new)?;
@@ -95,6 +125,8 @@ pub async fn update_event(
         description: description.unwrap_or("".to_string()),
         start_date,
         end_date,
+        start_time,
+        end_time,
         color,
         is_private: event.is_private,
         user: None,

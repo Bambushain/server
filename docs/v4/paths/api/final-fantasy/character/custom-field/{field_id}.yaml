@@ -1,0 +1,97 @@
+get:
+  summary: Get a specific custom field
+  operationId: getCustomField
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Custom field details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/custom-field.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields
+put:
+  summary: Update a custom field
+  operationId: updateCustomField
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/custom-field.yaml"
+  responses:
+    "204":
+      description: Custom field updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields
+delete:
+  summary: Delete a custom field
+  operationId: deleteCustomField
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Custom field deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields

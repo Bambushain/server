@@ -1,0 +1,15 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  job:
+    $ref: ./crafter-job.yaml
+  level:
+    type: string
+  characterId:
+    type: integer
+    format: int32
+required:
+  - job
+  - level

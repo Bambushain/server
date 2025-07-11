@@ -1,0 +1,103 @@
+get:
+  summary: Get a specific grove
+  operationId: getGrove
+  parameters:
+    - name: grove_id
+      schema:
+        type: string
+      in: path
+  responses:
+    "200":
+      description: Grove details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/grove.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - groves
+put:
+  summary: Update grove (requires moderator permissions)
+  operationId: updateGrove
+  parameters:
+    - name: grove_id
+      schema:
+        type: string
+      in: path
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../components/schemas/grove.yaml"
+  responses:
+    "204":
+      description: Grove updated successfully
+    "400":
+      description: Invalid request body
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - groves
+delete:
+  summary: Delete grove (requires moderator permissions)
+  operationId: deleteGrove
+  parameters:
+    - name: grove_id
+      schema:
+        type: string
+      in: path
+  responses:
+    "204":
+      description: Grove deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - groves

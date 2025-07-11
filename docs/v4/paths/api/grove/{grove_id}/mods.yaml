@@ -1,0 +1,46 @@
+put:
+  summary: Update grove moderators (requires moderator permissions)
+  operationId: updateGroveMods
+  parameters:
+    - name: grove_id
+      schema:
+        type: string
+      in: path
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+  responses:
+    "204":
+      description: Moderators updated successfully
+    "400":
+      description: Invalid request body
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves

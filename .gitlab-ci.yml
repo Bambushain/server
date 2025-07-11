@@ -322,9 +322,14 @@ stop-review:
     - kube
 
 pages:
-  image: library/alpine:latest
+  image:
+    name: oven/bun:latest
+    pull_policy: always
+    entrypoint: [ "" ]
   stage: deploy
   script:
+    - rm -r public
+    - bunx @redocly/cli bundle  docs/v4/openapi.yaml -o docs/api-4.0.0.yaml --ext yaml
     - cp -r docs public
     - echo "/* /index.html 200" > public/_redirects
   artifacts:

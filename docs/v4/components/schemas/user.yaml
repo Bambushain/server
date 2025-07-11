@@ -1,0 +1,17 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  email:
+    type: string
+    format: email
+  displayName:
+    type: string
+  discordName:
+    type: string
+  appTotpEnabled:
+    type: boolean
+    nullable: true
+  profilePicture:
+    type: string

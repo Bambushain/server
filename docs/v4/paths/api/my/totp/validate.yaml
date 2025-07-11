@@ -1,0 +1,22 @@
+put:
+  summary: Validate the totp registration
+  operationId: validateTotp
+  security:
+    - bearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../components/schemas/validate-totp.yaml"
+  responses:
+    "204":
+      description: Totp validated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - my-profile

@@ -1,0 +1,9 @@
+type: string
+enum:
+  - carpenter
+  - blacksmith
+  - armorer
+  - goldsmith
+  - leatherworker
+  - weaver
+  - alchemist

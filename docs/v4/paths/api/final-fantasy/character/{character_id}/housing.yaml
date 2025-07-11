@@ -1,0 +1,74 @@
+get:
+  summary: Get all housings for a character
+  operationId: getCharacterHousings
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: List of character housings
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../../components/schemas/character-housing.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - housing
+post:
+  summary: Create a new housing for a character
+  operationId: createCharacterHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/character-housing.yaml"
+  responses:
+    "201":
+      description: Character housing created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/character-housing.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - housing

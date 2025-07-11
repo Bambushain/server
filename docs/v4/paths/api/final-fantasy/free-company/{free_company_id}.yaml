@@ -1,0 +1,97 @@
+get:
+  summary: Get a specific free company
+  operationId: getFreeCompany
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Free company details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/free-company.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Free company not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - free-companies
+put:
+  summary: Update a free company
+  operationId: updateFreeCompany
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../components/schemas/free-company.yaml"
+  responses:
+    "204":
+      description: Free company updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Free company not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - free-companies
+delete:
+  summary: Delete a free company
+  operationId: deleteFreeCompany
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Free company deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Free company not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - free-companies

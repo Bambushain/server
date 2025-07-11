@@ -1,0 +1,74 @@
+get:
+  summary: Get all gatherers for a character
+  operationId: getGatherers
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: List of gatherers
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../../components/schemas/gatherer.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - gatherers
+post:
+  summary: Create a new gatherer for a character
+  operationId: createGatherer
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/gatherer.yaml"
+  responses:
+    "201":
+      description: Gatherer created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/gatherer.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - gatherers

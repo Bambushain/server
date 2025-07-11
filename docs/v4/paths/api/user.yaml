@@ -1,0 +1,41 @@
+get:
+  summary: Get all users
+  operationId: getUsers
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: grove
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+    - name: banned
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+    - name: all
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+  responses:
+    "200":
+      description: List of users
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../components/schemas/user.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - pandas

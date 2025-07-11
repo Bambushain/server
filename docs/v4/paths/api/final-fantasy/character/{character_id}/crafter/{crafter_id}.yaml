@@ -1,0 +1,115 @@
+get:
+  summary: Get a specific crafter for a character
+  operationId: getCrafter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: crafter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Crafter details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/crafter.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Crafter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - crafters
+put:
+  summary: Update a crafter for a character
+  operationId: updateCrafter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: crafter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../../components/schemas/crafter.yaml"
+  responses:
+    "204":
+      description: Crafter updated successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Crafter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - crafters
+delete:
+  summary: Delete a crafter for a character
+  operationId: deleteCrafter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: crafter_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Crafter deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Crafter not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - crafters

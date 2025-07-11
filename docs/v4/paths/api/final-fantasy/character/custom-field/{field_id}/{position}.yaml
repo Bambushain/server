@@ -1,0 +1,35 @@
+put:
+  summary: Move a custom field to a new position
+  operationId: moveCustomField
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: field_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: position
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Custom field moved successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Custom field not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - custom-fields
