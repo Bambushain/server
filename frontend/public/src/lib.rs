@@ -22,7 +22,10 @@ pub async fn start_server() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(db.clone())
-            .service(Files::new("/static", "public/assets"))
+            .service(Files::new(
+                "/static",
+                std::env::var("STATIC_DIR").unwrap_or("public/assets".to_string()),
+            ))
             .service(legal_notice)
             .service(privacy)
             .service(licenses)

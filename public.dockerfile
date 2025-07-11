@@ -7,7 +7,7 @@ FROM scratch
 WORKDIR /app
 
 COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY bamboo-public /app/bamboo
-COPY public /app/
+COPY bamboo-public /bamboo
+COPY public /
 
 ENTRYPOINT ["/app/bamboo"]

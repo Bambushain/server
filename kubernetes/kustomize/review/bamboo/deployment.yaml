@@ -45,8 +45,8 @@ spec:
             - secretRef:
                 name: passwords
           env:
-            - name: LEPTOS_SITE_ADDR
-              value: 0.0.0.0:4070
+            - name: STATIC_DIR
+              value: /public/assets
           ports:
             - containerPort: 4070
         - name: events
