@@ -18,7 +18,7 @@ use crate::{CustomField, FreeCompany};
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.character_race"
+        enum_name = "final_fantasy\".\"character_race",
     )
 )]
 pub enum CharacterRace {

@@ -108,6 +108,7 @@ pub async fn get_characters(user_id: i32, db: &DatabaseConnection) -> BambooResu
         .column(character::Column::Id)
         .column(character::Column::UserId)
         .column(character::Column::World)
+        .column(character::Column::Datacenter)
         .column(character::Column::Name)
         .column(character::Column::Race)
         .column_as(free_company::Column::Id, "free_company_id")
@@ -273,6 +274,10 @@ pub async fn update_character(
         .col_expr(
             character::Column::World,
             Expr::value(character.world.clone()),
+        )
+        .col_expr(
+            character::Column::Datacenter,
+            Expr::value(character.datacenter.clone()),
         )
         .col_expr(
             character::Column::Race,
