@@ -16,7 +16,7 @@ use strum::EnumIter;
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.crafter_job"
+        enum_name = "final_fantasy\".\"crafter_job"
     )
 )]
 pub enum CrafterJob {
