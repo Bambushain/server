@@ -1,13 +1,13 @@
-FROM library/alpine:latest as alpine
+FROM library/alpine:latest AS alpine
 
 RUN apk add -U --no-cache ca-certificates
 
 FROM scratch
 
-WORKDIR /app
+WORKDIR /
 
 COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY bamboo-public /bamboo
-COPY public /
+COPY public /public
 
 ENTRYPOINT ["/bamboo"]
