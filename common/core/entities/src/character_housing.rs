@@ -49,6 +49,17 @@ impl HousingDistrict {
         }
         .to_string()
     }
+
+    pub fn get_serde_name(self) -> String {
+        match self {
+            HousingDistrict::TheLavenderBeds => "the-lavender-beds",
+            HousingDistrict::Mist => "mist",
+            HousingDistrict::TheGoblet => "the-goblet",
+            HousingDistrict::Shirogane => "shirogane",
+            HousingDistrict::Empyreum => "empyreum",
+        }
+        .to_string()
+    }
 }
 
 impl Display for HousingDistrict {
@@ -66,8 +77,10 @@ impl Display for HousingDistrict {
 impl From<String> for HousingDistrict {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
-            "the_lavender_beds" | "thelavenderbeds" => HousingDistrict::TheLavenderBeds,
-            "the_goblet" | "thegoblet" => HousingDistrict::TheGoblet,
+            "the_lavender_beds" | "the-lavender-beds" | "thelavenderbeds" => {
+                HousingDistrict::TheLavenderBeds
+            }
+            "the_goblet" | "the-goblet" | "thegoblet" => HousingDistrict::TheGoblet,
             "mist" => HousingDistrict::Mist,
             "shirogane" => HousingDistrict::Shirogane,
             "empyreum" => HousingDistrict::Empyreum,
@@ -95,7 +108,7 @@ impl Ord for HousingDistrict {
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.housing_type"
+        enum_name = "final_fantasy\".\"housing_type"
     )
 )]
 pub enum HousingType {
@@ -112,11 +125,20 @@ pub enum HousingType {
 }
 
 impl HousingType {
-    pub fn get_name(self) -> String {
+    pub fn get_name(&self) -> String {
         match self {
             HousingType::Private => "Private",
             HousingType::FreeCompany => "FreeCompany",
             HousingType::SharedApartment => "SharedApartment",
+        }
+        .to_string()
+    }
+
+    pub fn get_serde_name(&self) -> String {
+        match self {
+            HousingType::Private => "private",
+            HousingType::FreeCompany => "free-company",
+            HousingType::SharedApartment => "shared-apartment",
         }
         .to_string()
     }

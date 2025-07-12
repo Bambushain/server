@@ -34,7 +34,7 @@ mod user;
 macro_rules! error_tag {
     () => {
         std::path::Path::new(file!())
-            .file_name()
+            .file_stem()
             .and_then(|s| s.to_str())
             .unwrap()
     };

@@ -1,11 +1,10 @@
-use sea_orm::prelude::*;
-use sea_orm::ActiveValue::Set;
-use sea_orm::{IntoActiveModel, NotSet, QueryOrder};
-
 use crate::error_tag;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::entities::{character, character_housing};
 use bamboo_common_core::error::*;
+use sea_orm::prelude::*;
+use sea_orm::ActiveValue::Set;
+use sea_orm::{IntoActiveModel, NotSet, QueryOrder};
 
 pub async fn get_character_housings(
     user_id: i32,
@@ -87,6 +86,22 @@ async fn character_housing_exists_by_fields(
         .map_err(|_| BambooError::database(error_tag!(), "Failed to load the character housings"))
 }
 
+async fn private_housing_exists_already(
+    user_id: i32,
+    character_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<bool> {
+    character_housing::Entity::find()
+        .filter(character_housing::Column::CharacterId.eq(character_id))
+        .filter(character_housing::Column::HousingType.eq(HousingType::Private))
+        .filter(character::Column::UserId.eq(user_id))
+        .inner_join(character::Entity)
+        .count(db)
+        .await
+        .map(|count| count > 0)
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to count private housings"))
+}
+
 pub async fn create_character_housing(
     user_id: i32,
     character_id: i32,
@@ -106,6 +121,13 @@ pub async fn create_character_housing(
         return Err(BambooError::exists_already(
             error_tag!(),
             "A character housing with that address exists already",
+        ));
+    }
+
+    if private_housing_exists_already(user_id, character_id, db).await? {
+        return Err(BambooError::exists_already(
+            error_tag!(),
+            "A private housing exists already for that character",
         ));
     }
 

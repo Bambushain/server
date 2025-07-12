@@ -13,13 +13,21 @@ fn CreateHousingDialog(
     on_close: Callback<(), ()>,
 ) -> impl IntoView {
     let action = ServerAction::<CreateHousingAction>::new();
-    let selected_type = RwSignal::new(Some(HousingType::Private.get_name()));
+    let selected_type = RwSignal::new(Some(HousingType::Private.get_serde_name()));
     let selected_plot = RwSignal::new(Some("1".to_string()));
     let selected_ward = RwSignal::new(Some("1".to_string()));
 
-    let types = Memo::new(|_| {
+    let types = Memo::new(move |_| {
+        let housings = housings.get();
+        let private_allowed = housings
+            .iter()
+            .filter(|h| h.housing_type == HousingType::Private)
+            .count()
+            == 0;
+
         HousingType::iter()
-            .map(|t| (Some(t.get_name()), t.to_string()))
+            .filter(|t| t != &HousingType::Private || private_allowed)
+            .map(|t| (Some(t.get_serde_name()), t.to_string()))
             .collect::<Vec<_>>()
     });
     let districts = Memo::new(move |_| {
@@ -33,16 +41,16 @@ fn CreateHousingDialog(
                     .count()
                     < 30 * 60
             })
-            .map(|district| (Some(district.get_name()), district.to_string()))
+            .map(|district| (Some(district.get_serde_name()), district.to_string()))
             .collect::<Vec<_>>()
     });
-    let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_name()));
+    let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_serde_name()));
     let wards = Memo::new(move |_| {
         let selected_district = selected_district.get().unwrap();
         let plots = housings
             .get()
             .into_iter()
-            .filter(|housing| housing.district.get_name() == selected_district)
+            .filter(|housing| housing.district.get_serde_name() == selected_district)
             .collect::<Vec<_>>();
         (1..=30i16)
             .filter(|ward| plots.iter().filter(|plot| plot.ward == *ward).count() < 60)
@@ -56,7 +64,7 @@ fn CreateHousingDialog(
             .get()
             .iter()
             .filter(|housing| {
-                housing.district.get_name() == selected_district
+                housing.district.get_serde_name() == selected_district
                     && housing.ward.to_string() == selected_ward
             })
             .map(|housing| housing.plot)
@@ -74,6 +82,7 @@ fn CreateHousingDialog(
             on_save.run(())
         }
     });
+    Effect::new(move |_| selected_type.set(types.get().first().unwrap().0.clone()));
     Effect::new(move |_| selected_district.set(districts.get().first().unwrap().0.clone()));
     Effect::new(move |_| selected_ward.set(wards.get().first().unwrap().0.clone()));
     Effect::new(move |_| selected_plot.set(plots.get().first().unwrap().0.clone()));
