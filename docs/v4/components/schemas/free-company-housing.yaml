@@ -5,19 +5,16 @@ properties:
     format: int32
   district:
     $ref: ./housing-district.yaml
-  housingType:
-    $ref: ./housing-type.yaml
   ward:
     type: integer
     format: int16
   plot:
     type: integer
     format: int16
-  characterId:
+  freeCompanyId:
     type: integer
     format: int32
 required:
   - district
-  - housingType
   - ward
   - plot

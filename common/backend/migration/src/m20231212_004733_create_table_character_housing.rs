@@ -104,7 +104,7 @@ enum CharacterHousing {
 }
 
 #[derive(Iden, EnumIter)]
-enum HousingDistrict {
+pub enum HousingDistrict {
     TheLavenderBeds,
     Mist,
     TheGoblet,

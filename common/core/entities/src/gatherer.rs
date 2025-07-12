@@ -106,6 +106,7 @@ pub struct Model {
     pub job: GathererJob,
     #[serde(default)]
     pub level: Option<String>,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

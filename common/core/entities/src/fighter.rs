@@ -234,6 +234,7 @@ pub struct Model {
     pub level: Option<String>,
     #[serde(default)]
     pub gear_score: Option<String>,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

@@ -77,6 +77,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(free_company::get_free_company)
         .service(free_company::update_free_company)
         .service(free_company::delete_free_company)
+        .service(free_company::get_free_company_housing)
         .service(crafter::get_crafters)
         .service(crafter::create_crafter)
         .service(crafter::get_crafter)

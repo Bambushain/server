@@ -192,6 +192,7 @@ pub struct Model {
     pub housing_type: HousingType,
     pub ward: i16,
     pub plot: i16,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

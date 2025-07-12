@@ -1,0 +1,97 @@
+get:
+  summary: Get the housing for the given free company
+  operationId: getFreeCompanyHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: Free company housing details
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/free-company-housing.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Free company housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - free-company
+put:
+  summary: Set a housing for a free company
+  operationId: setFreeCompanyHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/free-company-housing.yaml"
+  responses:
+    "204":
+      description: Free company housing set successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - free-company
+delete:
+  summary: Delete the housing for a free company
+  operationId: deleteFreeCompanyHousing
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: free_company_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "204":
+      description: Free company housing deleted successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Free company housing not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - free-company

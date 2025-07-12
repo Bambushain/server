@@ -6,7 +6,8 @@ use crate::api::ff::{
 use crate::api::BambooCodeError;
 use crate::components::{Card, CardBottom, CardList};
 use bamboo_common::core::entities::{
-    CustomCharacterField, CustomCharacterFieldOption, FreeCompanyWithCharacterCount,
+    CustomCharacterField, CustomCharacterFieldOption, FreeCompanyWithCharacterCountAndHousing,
+    HousingDistrict,
 };
 use leptos::ev::{DragEvent, SubmitEvent};
 use leptos::prelude::*;
@@ -14,6 +15,7 @@ use leptos::task::spawn_local;
 use leptos_cosmo::icons::*;
 use leptos_cosmo::prelude::*;
 use std::collections::BTreeSet;
+use strum::IntoEnumIterator;
 
 #[component]
 fn EditCustomFieldDialog(
@@ -464,6 +466,27 @@ fn CreateFreeCompanyDialog(
     #[prop(into)] on_close: Callback<(), ()>,
 ) -> impl IntoView {
     let action = ServerAction::<CreateFreeCompanyAction>::new();
+    let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_serde_name()));
+    let selected_plot = RwSignal::new(Some("1".to_string()));
+    let selected_ward = RwSignal::new(Some("1".to_string()));
+
+    let has_housing = RwSignal::new(false);
+    let districts = Memo::new(move |_| {
+        HousingDistrict::iter()
+            .map(|district| (Some(district.get_serde_name()), district.to_string()))
+            .collect::<Vec<_>>()
+    });
+    let wards = Memo::new(move |_| {
+        (1..=30i16)
+            .map(|ward| (Some(ward.to_string()), ward.to_string()))
+            .collect::<Vec<_>>()
+    });
+    let plots = Memo::new(move |_| {
+        (1..=60i16)
+            .map(|plot| (Some(plot.to_string()), plot.to_string()))
+            .collect::<Vec<_>>()
+    });
+
     let value = action.value();
 
     Effect::new(move |_| {
@@ -476,6 +499,19 @@ fn CreateFreeCompanyDialog(
         <ActionFormModal action=action title="Freie Gesellschaft hinzufügen">
             <ModalContent slot>
                 <Textbox required=true label="Name" name="name" />
+                <Switch required=false label="Hat Unterkunft" checked=has_housing name="has_housing" />
+                <Show when=move || has_housing.get() fallback=|| view! {
+                    <input type="hidden" name="district" value="" />
+                    <input type="hidden" name="ward" value="" />
+                    <input type="hidden" name="plot" value="" />
+                    <input type="hidden" name="has_housing" value="off" />
+                }>
+                    <Fieldset title="Unterkunft">
+                        <SingleSelect required=true label="Gebiet" items=districts name="district" selected=selected_district />
+                        <SingleSelect required=true label="Bezirk" items=wards name="ward" selected=selected_ward />
+                        <SingleSelect required=true label="Nummer" items=plots name="plot" selected=selected_plot />
+                    </Fieldset>
+                </Show>
             </ModalContent>
             <ModalButton on_click=on_close label="Schließen" slot />
             <ModalButton is_submit=true label="Freie Gesellschaft hinzufügen" slot />
@@ -486,14 +522,47 @@ fn CreateFreeCompanyDialog(
 #[component]
 fn EditFreeCompanyDialog(
     #[prop(into)] name: Signal<String>,
+    #[prop(into)] district: Signal<Option<String>>,
+    #[prop(into)] ward: Signal<Option<String>>,
+    #[prop(into)] plot: Signal<Option<String>>,
     #[prop(into)] id: Signal<i32>,
     #[prop(into)] on_save: Callback<(), ()>,
     #[prop(into)] on_close: Callback<(), ()>,
 ) -> impl IntoView {
     let action = ServerAction::<EditFreeCompanyAction>::new();
-    let value = action.value();
+
+    let selected_district = RwSignal::new(Some(
+        district
+            .get()
+            .unwrap_or(HousingDistrict::TheLavenderBeds.get_serde_name()),
+    ));
+    let selected_plot = RwSignal::new(Some(ward.get().unwrap_or("1".to_string())));
+    let selected_ward = RwSignal::new(Some(plot.get().unwrap_or("1".to_string())));
+
+    let has_housing = RwSignal::new(
+        district.get_untracked().is_some()
+            && ward.get_untracked().is_some()
+            && plot.get_untracked().is_some(),
+    );
+    let districts = Memo::new(move |_| {
+        HousingDistrict::iter()
+            .map(|district| (Some(district.get_serde_name()), district.to_string()))
+            .collect::<Vec<_>>()
+    });
+    let wards = Memo::new(move |_| {
+        (1..=30i16)
+            .map(|ward| (Some(ward.to_string()), ward.to_string()))
+            .collect::<Vec<_>>()
+    });
+    let plots = Memo::new(move |_| {
+        (1..=60i16)
+            .map(|plot| (Some(plot.to_string()), plot.to_string()))
+            .collect::<Vec<_>>()
+    });
 
     let name = RwSignal::new(name.get());
+
+    let value = action.value();
 
     Effect::new(move |_| {
         if value.read().is_some() {
@@ -506,6 +575,19 @@ fn EditFreeCompanyDialog(
             <ModalContent slot>
                 <input type="hidden" value=id name="id" />
                 <Textbox required=true label="Name" name="name" value=name />
+                <Switch required=false label="Hat Unterkunft" checked=has_housing name="has_housing" />
+                <Show when=move || has_housing.get() fallback=|| view! {
+                    <input type="hidden" name="district" value="" />
+                    <input type="hidden" name="ward" value="" />
+                    <input type="hidden" name="plot" value="" />
+                    <input type="hidden" name="has_housing" value="off" />
+                }>
+                    <Fieldset title="Unterkunft">
+                        <SingleSelect required=true label="Gebiet" items=districts name="district" selected=selected_district />
+                        <SingleSelect required=true label="Bezirk" items=wards name="ward" selected=selected_ward />
+                        <SingleSelect required=true label="Nummer" items=plots name="plot" selected=selected_plot />
+                    </Fieldset>
+                </Show>
             </ModalContent>
             <ModalButton on_click=on_close label="Änderungen verwerfen" slot />
             <ModalButton is_submit=true label="Freie Gesellschaft speichern" slot />
@@ -523,6 +605,9 @@ pub fn FreeCompanies() -> impl IntoView {
     let add_free_company = RwSignal::new(false);
 
     let selected_free_company_name = RwSignal::new(String::default());
+    let selected_free_company_district = RwSignal::new(None as Option<String>);
+    let selected_free_company_ward = RwSignal::new(None as Option<String>);
+    let selected_free_company_plot = RwSignal::new(None as Option<String>);
     let selected_free_company_id = RwSignal::new(-1);
     let edit_open = RwSignal::new(false);
 
@@ -539,8 +624,11 @@ pub fn FreeCompanies() -> impl IntoView {
             None,
         )
     };
-    let edit_free_company = move |free_company: FreeCompanyWithCharacterCount| {
+    let edit_free_company = move |free_company: FreeCompanyWithCharacterCountAndHousing| {
         selected_free_company_name.set(free_company.name.clone());
+        selected_free_company_district.set(free_company.district.map(|f| f.get_serde_name()));
+        selected_free_company_ward.set(free_company.ward.map(|f| f.to_string()));
+        selected_free_company_plot.set(free_company.plot.map(|f| f.to_string()));
         selected_free_company_id.set(free_company.id);
         edit_open.set(true);
     };
@@ -588,6 +676,14 @@ pub fn FreeCompanies() -> impl IntoView {
                                                     <KeyValueList>
                                                         <dt>Charaktere</dt>
                                                         <dd>{item.character_count}</dd>
+                                                        <dt>Unterkunft</dt>
+                                                        <dd>
+                                                            {move || if let (Some(district), Some(ward), Some(plot)) = (item.district, item.ward, item.plot) {
+                                                                format!("Haus {plot} im {ward}. Bezirk im Distrikt {district}")
+                                                            } else {
+                                                                "Keine Unterkunft".to_string()
+                                                            }}
+                                                        </dd>
                                                     </KeyValueList>
                                                     <CardBottom slot>
                                                         <Button
@@ -619,6 +715,9 @@ pub fn FreeCompanies() -> impl IntoView {
                 <Show when=move || edit_open.get()>
                     <EditFreeCompanyDialog
                         name=selected_free_company_name
+                        district=selected_free_company_district
+                        ward=selected_free_company_ward
+                        plot=selected_free_company_plot
                         id=selected_free_company_id
                         on_save=edit_saved
                         on_close=move || edit_open.set(false)

@@ -8,21 +8,31 @@ use bamboo_common_core::error::*;
 pub async fn get_free_companies(
     user_id: i32,
     db: &DatabaseConnection,
-) -> BambooResult<Vec<FreeCompanyWithCharacterCount>> {
+) -> BambooResult<Vec<FreeCompanyWithCharacterCountAndHousing>> {
     free_company::Entity::find()
         .select_only()
         .column(free_company::Column::Id)
         .column(free_company::Column::Name)
+        .column(free_company_housing::Column::District)
+        .column(free_company_housing::Column::Ward)
+        .column(free_company_housing::Column::Plot)
         .column_as(character::Column::Id.count(), "character_count")
         .join(
             JoinType::FullOuterJoin,
             free_company::Relation::Character.def(),
         )
+        .join(
+            JoinType::FullOuterJoin,
+            free_company::Relation::Housing.def(),
+        )
         .group_by(free_company::Column::Id)
         .group_by(free_company::Column::Name)
+        .group_by(free_company_housing::Column::District)
+        .group_by(free_company_housing::Column::Ward)
+        .group_by(free_company_housing::Column::Plot)
         .filter(free_company::Column::UserId.eq(user_id))
         .order_by_asc(free_company::Column::Name)
-        .into_model::<FreeCompanyWithCharacterCount>()
+        .into_model::<FreeCompanyWithCharacterCountAndHousing>()
         .all(db)
         .await
         .map_err(|_| BambooError::not_found(error_tag!(), "Free companies not found"))
@@ -32,22 +42,32 @@ pub async fn get_free_company(
     free_company_id: Option<i32>,
     user_id: i32,
     db: &DatabaseConnection,
-) -> BambooResult<Option<FreeCompanyWithCharacterCount>> {
+) -> BambooResult<Option<FreeCompanyWithCharacterCountAndHousing>> {
     if let Some(id) = free_company_id {
         free_company::Entity::find()
             .select_only()
             .column(free_company::Column::Id)
             .column(free_company::Column::Name)
+            .column(free_company_housing::Column::District)
+            .column(free_company_housing::Column::Ward)
+            .column(free_company_housing::Column::Plot)
             .column_as(character::Column::Id.count(), "character_count")
             .join(
                 JoinType::FullOuterJoin,
                 free_company::Relation::Character.def(),
             )
+            .join(
+                JoinType::FullOuterJoin,
+                free_company::Relation::Housing.def(),
+            )
             .group_by(free_company::Column::Id)
             .group_by(free_company::Column::Name)
+            .group_by(free_company_housing::Column::District)
+            .group_by(free_company_housing::Column::Ward)
+            .group_by(free_company_housing::Column::Plot)
             .filter(free_company::Column::UserId.eq(user_id))
             .filter(free_company::Column::Id.eq(id))
-            .into_model::<FreeCompanyWithCharacterCount>()
+            .into_model::<FreeCompanyWithCharacterCountAndHousing>()
             .one(db)
             .await
             .map_err(|_| BambooError::not_found(error_tag!(), "Free company not found"))

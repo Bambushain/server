@@ -15,8 +15,9 @@ pub use crate::event::GroveEvent;
 pub use crate::event::Model as Event;
 pub use crate::fighter::FighterJob;
 pub use crate::fighter::Model as Fighter;
-pub use crate::free_company::FreeCompanyWithCharacterCount;
+pub use crate::free_company::FreeCompanyWithCharacterCountAndHousing;
 pub use crate::free_company::Model as FreeCompany;
+pub use crate::free_company_housing::Model as FreeCompanyHousing;
 pub use crate::gatherer::GathererJob;
 pub use crate::gatherer::Model as Gatherer;
 pub use crate::grove::Model as Grove;
@@ -43,6 +44,7 @@ pub mod dependency;
 pub mod event;
 pub mod fighter;
 pub mod free_company;
+pub mod free_company_housing;
 pub mod gatherer;
 pub mod grove;
 #[cfg(feature = "backend")]

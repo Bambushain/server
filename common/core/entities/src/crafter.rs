@@ -127,6 +127,7 @@ pub struct Model {
     pub job: CrafterJob,
     #[serde(default)]
     pub level: Option<String>,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

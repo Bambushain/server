@@ -1,4 +1,6 @@
-use crate::api::ff::{get_housings, CreateHousingAction, DeleteHousingAction};
+use crate::api::ff::{
+    get_free_company_housing, get_housings, CreateHousingAction, DeleteHousingAction,
+};
 use crate::components::*;
 use bamboo_common::core::entities::{CharacterHousing, HousingDistrict, HousingType};
 use leptos::prelude::*;
@@ -14,6 +16,7 @@ fn CreateHousingDialog(
 ) -> impl IntoView {
     let action = ServerAction::<CreateHousingAction>::new();
     let selected_type = RwSignal::new(Some(HousingType::Private.get_serde_name()));
+    let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_serde_name()));
     let selected_plot = RwSignal::new(Some("1".to_string()));
     let selected_ward = RwSignal::new(Some("1".to_string()));
 
@@ -44,7 +47,6 @@ fn CreateHousingDialog(
             .map(|district| (Some(district.get_serde_name()), district.to_string()))
             .collect::<Vec<_>>()
     });
-    let selected_district = RwSignal::new(Some(HousingDistrict::TheLavenderBeds.get_serde_name()));
     let wards = Memo::new(move |_| {
         let selected_district = selected_district.get().unwrap();
         let plots = housings
@@ -112,6 +114,10 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
     let housing_resource = Resource::new(
         move || character_id.get(),
         |id| async move { get_housings(id).await },
+    );
+    let free_company_housing_resource = Resource::new(
+        move || character_id.get(),
+        |id| async move { get_free_company_housing(id).await },
     );
     let add_open = RwSignal::new(false);
     let add_saved = Callback::from(move || {
@@ -185,11 +191,31 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                         {move || {
                             let housing_resource = housing_resource;
                             Suspend::new(async move {
+                                let free_company_housing = free_company_housing_resource
+                                    .await
+                                    .map(|housing| {
+                                        housing
+                                            .map(|housing| view! {
+                                                <Card title=housing
+                                                    .district
+                                                    .to_string()>
+                                                    "Unterkunft der freien Gesellschaft"<br />
+                                                    {format!("Bezirk {}", housing.ward)}<br />
+                                                    {format!("Nr. {}", housing.plot)}
+                                                    <CardBottom slot>
+                                                        <Button
+                                                            label="Löschen"
+                                                            enabled=false
+                                                        />
+                                                    </CardBottom>
+                                                </Card>
+                                            })
+                                });
                                 housing_resource
                                     .await
                                     .map(|housings| {
-
                                         view! {
+                                            {free_company_housing}
                                             <For
                                                 each=move || housings.clone()
                                                 key=move |housing| housing.clone()
@@ -200,7 +226,8 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                                                     .to_string()>
                                                     {housing.housing_type.to_string()}<br />
                                                     {format!("Bezirk {}", housing.ward)}<br />
-                                                    {format!("Nr. {}", housing.plot)} <CardBottom slot>
+                                                    {format!("Nr. {}", housing.plot)}
+                                                    <CardBottom slot>
                                                         <Button
                                                             label="Löschen"
                                                             on:click=move |_| delete_housing(housing.id)

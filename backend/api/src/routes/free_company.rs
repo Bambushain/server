@@ -27,7 +27,7 @@ pub async fn get_free_company(
     path: Option<path::FreeCompanyPath>,
     authentication: Authentication,
     db: DbConnection,
-) -> BambooApiResult<FreeCompanyWithCharacterCount> {
+) -> BambooApiResult<FreeCompanyWithCharacterCountAndHousing> {
     let path = check_invalid_path!(path, "free_company")?;
 
     dbal::get_free_company(Some(path.free_company_id), authentication.user.id, &db)
@@ -83,6 +83,61 @@ pub async fn delete_free_company(
     let path = check_invalid_path!(path, "free_company")?;
 
     dbal::delete_free_company(path.free_company_id, authentication.user.id, &db)
+        .await
+        .map(|_| no_content!())
+}
+
+#[get(
+    "/api/final-fantasy/free-company/{free_company_id}/housing",
+    wrap = "authenticate!()"
+)]
+pub async fn get_free_company_housing(
+    path: Option<path::FreeCompanyPath>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResult<FreeCompanyHousing> {
+    let path = check_invalid_path!(path, "free_company")?;
+
+    dbal::get_free_company_housing(authentication.user.id, path.free_company_id, &db)
+        .await
+        .map(|data| ok!(data))
+}
+
+#[put(
+    "/api/final-fantasy/free-company/{free_company_id}/housing",
+    wrap = "authenticate!()"
+)]
+pub async fn set_free_company_housing(
+    path: Option<path::FreeCompanyPath>,
+    body: Option<web::Json<FreeCompanyHousing>>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResult<FreeCompanyHousing> {
+    let path = check_invalid_path!(path, "free_company")?;
+    let body = check_missing_fields!(body, "free_company_housing")?;
+
+    dbal::set_free_company_housing(
+        authentication.user.id,
+        path.free_company_id,
+        body.into_inner(),
+        &db,
+    )
+    .await
+    .map(|data| ok!(data))
+}
+
+#[delete(
+    "/api/final-fantasy/free-company/{free_company_id}/housing",
+    wrap = "authenticate!()"
+)]
+pub async fn delete_free_company_housing(
+    path: Option<path::FreeCompanyPath>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "free_company")?;
+
+    dbal::delete_free_company_housing(authentication.user.id, path.free_company_id, &db)
         .await
         .map(|_| no_content!())
 }

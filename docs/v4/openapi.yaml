@@ -136,6 +136,8 @@ paths:
     $ref: "paths/api/final-fantasy/free-company.yaml"
   /api/final-fantasy/free-company/{free_company_id}:
     $ref: "paths/api/final-fantasy/free-company/{free_company_id}.yaml"
+  /api/final-fantasy/free-company/{free_company_id}/housing:
+    $ref: "paths/api/final-fantasy/free-company/{free_company_id}/housing.yaml"
   /api/final-fantasy/character/custom-field:
     $ref: "paths/api/final-fantasy/character/custom-field.yaml"
   /api/final-fantasy/character/custom-field/{field_id}:

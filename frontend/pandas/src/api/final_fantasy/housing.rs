@@ -1,4 +1,6 @@
-use bamboo_common::core::entities::{CharacterHousing, HousingDistrict, HousingType};
+use bamboo_common::core::entities::{
+    CharacterHousing, FreeCompanyHousing, HousingDistrict, HousingType,
+};
 use leptos::server;
 use server_fn::ServerFnError;
 
@@ -57,4 +59,30 @@ pub async fn create_housing(
     .await
     .map_err(ServerFnError::new)
     .map(|_| ())
+}
+
+#[server(GetFreeCompanyHousing, "/pandas/free-company/housing")]
+pub async fn get_free_company_housing(
+    character_id: i32,
+) -> Result<Option<FreeCompanyHousing>, ServerFnError> {
+    use bamboo_common::backend::dbal;
+    use bamboo_common::backend::services::DbConnection;
+    use leptos_actix::extract;
+
+    use crate::authentication::AuthState;
+
+    let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
+
+    let character = dbal::get_character(character_id, auth_state.user.id, &db)
+        .await
+        .map_err(ServerFnError::new)?;
+
+    if let Some(fc) = character.free_company {
+        dbal::get_free_company_housing(auth_state.user.id, fc.id, &db)
+            .await
+            .map_err(ServerFnError::new)
+            .map(|housing| Some(housing))
+    } else {
+        Ok(None)
+    }
 }
