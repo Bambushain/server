@@ -1,0 +1,28 @@
+{{- if .Values.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-database
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        {{- include "bambushain.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: migrate-database
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.migrator }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+      restartPolicy: Never
+{{- end }}

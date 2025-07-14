@@ -1,0 +1,6 @@
+stages:
+  - lint
+  - build
+  - docker
+  - deploy
+  - deploy-testing

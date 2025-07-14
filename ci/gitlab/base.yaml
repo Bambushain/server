@@ -1,0 +1,107 @@
+.base-cargo:
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+
+.base-backend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/rust-docker-base-image:latest
+    pull_policy: always
+  extends:
+    - .base-cargo
+  cache:
+    key: $CI_PROJECT_NAME-$ARCH-server
+    paths:
+      - $CI_PROJECT_DIR/target/
+      - $CI_PROJECT_DIR/.cargo/
+
+.base-frontend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/leptos-docker-base-image:latest
+    pull_policy: always
+  extends:
+    - .base-cargo
+  variables:
+    CARGO_PROFILE_RELEASE_PANIC: abort
+    CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
+    CARGO_PROFILE_RELEASE_OPT_LEVEL: z
+    CARGO_PROFILE_RELEASE_DEBUG: "false"
+    CARGO_PROFILE_RELEASE_LTO: "true"
+    CARGO_PROFILE_RELEASE_STRIP: "symbols"
+  cache:
+    key: $CI_PROJECT_NAME-leptos
+    paths:
+      - $CI_PROJECT_DIR/target/
+      - $CI_PROJECT_DIR/.cargo/
+
+.base-docker:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    pull_policy: always
+    entrypoint: [ "" ]
+  before_script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"https://index.docker.io/v1/\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
+  stage: docker
+  script:
+    - /kaniko/executor --build-arg "APP=bamboo-$APP" --build-arg "PKG_DIR=$APP/pkg" --context "dir://${CI_PROJECT_DIR}/$ARCH" --dockerfile "${CI_PROJECT_DIR}/${TYPE}.dockerfile" $KANIKO_FLAGS
+  parallel:
+    matrix:
+      - APP:
+          - mailer
+          - events
+          - api
+          - migrator
+        TYPE:
+          - backend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
+          - pandas
+          - authentication
+        TYPE:
+          - frontend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
+          - public
+        TYPE:
+          - public
+        ARCH:
+          - amd64
+          - arm64
+  tags:
+    - runner-${ARCH}
+
+.base-merge-manifests:
+  stage: deploy
+  image:
+    name: mplatform/manifest-tool:alpine
+    entrypoint: [ "" ]
+  script:
+    - >-
+      manifest-tool
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
+      push from-args
+      --platforms linux/amd64,linux/arm64
+      --template ${CI_REGISTRY_IMAGE}/${APP}/ARCH:$TAG
+      --target ${CI_REGISTRY_IMAGE}/${APP}:$TAG
+  parallel:
+    matrix:
+      - APP:
+          - mailer
+          - events
+          - api
+          - public
+          - pandas
+          - authentication
+          - migrator
+
+.base-review:
+  image:
+    name: registry.ulbricht.casa/docker-images/kubectl:latest
+    entrypoint: [ '' ]
+  stage: deploy-testing
+  tags:
+    - kube
