@@ -6,10 +6,10 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 include:
-  - /ci/gitlab/api-docs.yml
-  - /ci/gitlab/backend.yml
-  - /ci/gitlab/base.yml
-  - /ci/gitlab/container.yml
-  - /ci/gitlab/frontend.yml
-  - /ci/gitlab/review.yml
-  - /ci/gitlab/stages.yml
+  - /ci/gitlab/api-docs.yaml
+  - /ci/gitlab/backend.yaml
+  - /ci/gitlab/base.yaml
+  - /ci/gitlab/container.yaml
+  - /ci/gitlab/frontend.yaml
+  - /ci/gitlab/review.yaml
+  - /ci/gitlab/stages.yaml
