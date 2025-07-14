@@ -46,7 +46,7 @@
     TAG: test
     IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP/$ARCH:$TAG
   script:
-    - buildah build --platform=linux/$ARCH -build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f "$CI_PROJECT_DIR/docker/$TYPE.dockerfile" -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
+    - buildah build --platform=linux/$ARCH --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f "$CI_PROJECT_DIR/docker/$TYPE.dockerfile" -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
     - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"
   parallel:
     matrix:
