@@ -28,21 +28,26 @@
     CARGO_PROFILE_RELEASE_LTO: "true"
     CARGO_PROFILE_RELEASE_STRIP: "symbols"
   cache:
-    key: $CI_PROJECT_NAME-leptos
+    key: $CI_PROJECT_NAME-$ARCH-leptos
     paths:
       - $CI_PROJECT_DIR/target/
       - $CI_PROJECT_DIR/.cargo/
 
 .base-docker:
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    pull_policy: always
-    entrypoint: [ "" ]
+  image: registry.ulbricht.casa/docker-images/buildah:latest
   before_script:
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"https://index.docker.io/v1/\":{\"auth\":\"$DOCKER_TOKEN\"}}}" > /kaniko/.docker/config.json
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$DOCKERHUB_PASSWORD" | buildah login -u "$DOCKERHUB_USER" --password-stdin docker.io
+
+.base-docker-build:
+  extends: .base-docker
   stage: docker
+  variables:
+    TAG: test
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP/$ARCH:$TAG
   script:
-    - /kaniko/executor --build-arg "APP=bamboo-$APP" --build-arg "PKG_DIR=$APP/pkg" --context "dir://${CI_PROJECT_DIR}/$ARCH" --dockerfile "${CI_PROJECT_DIR}/${TYPE}.dockerfile" $KANIKO_FLAGS
+    - buildah build --platform=linux/$ARCH -build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f "$CI_PROJECT_DIR/docker/$TYPE.dockerfile" -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
+    - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"
   parallel:
     matrix:
       - APP:
@@ -78,15 +83,14 @@
   image:
     name: mplatform/manifest-tool:alpine
     entrypoint: [ "" ]
+  variables:
+    IMAGE: $CI_REGISTRY_IMAGE/$APP
+    IMAGE_TAG: $IMAGE:$TAG
   script:
-    - >-
-      manifest-tool
-      --username=${CI_REGISTRY_USER}
-      --password=${CI_REGISTRY_PASSWORD}
-      push from-args
-      --platforms linux/amd64,linux/arm64
-      --template ${CI_REGISTRY_IMAGE}/${APP}/ARCH:$TAG
-      --target ${CI_REGISTRY_IMAGE}/${APP}:$TAG
+    - buildah manifest create $IMAGE_TAG
+    - buildah manifest add $IMAGE_TAG docker://$IMAGE/amd64:$TAG
+    - buildah manifest add $IMAGE_TAG docker://$IMAGE/arm64:$TAG
+    - buildah manifest push --all $IMAGE_TAG
   parallel:
     matrix:
       - APP:

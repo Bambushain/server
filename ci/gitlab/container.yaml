@@ -1,34 +1,34 @@
 build-docker-test:
   extends:
-    - .base-docker
+    - .base-docker-build
   stage: docker
   variables:
-    KANIKO_FLAGS: --no-push
+    NO_PUSH: yes
 
 build-docker-mr:
   extends:
-    - .base-docker
+    - .base-docker-build
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination ${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
+    TAG: 4.0.0-alpha.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME.$CI_PIPELINE_IID
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 build-docker-main:
   extends:
-    - .base-docker
+    - .base-docker-build
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:4.0.0-beta.$CI_PIPELINE_IID"
+    TAG: 4.0.0-beta.$CI_PIPELINE_IID
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
 build-docker-tag:
   extends:
-    - .base-docker
+    - .base-docker-build
   stage: docker
   variables:
-    KANIKO_FLAGS: --destination "${CI_REGISTRY_IMAGE}/${APP}/${ARCH}:$CI_COMMIT_TAG"
+    TAG: $CI_COMMIT_TAG
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -44,16 +44,7 @@ merge-manifests-mr:
   extends:
     - .base-merge-manifests
   variables:
-    TAG: $CI_COMMIT_TAG
-  script:
-    - >-
-      manifest-tool
-      --username=${CI_REGISTRY_USER}
-      --password=${CI_REGISTRY_PASSWORD}
-      push from-args
-      --platforms linux/amd64,linux/arm64
-      --template ${CI_REGISTRY_IMAGE}/${APP}/ARCH:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
-      --target ${CI_REGISTRY_IMAGE}/${APP}:4.0.0-alpha.${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}.${CI_PIPELINE_IID}
+    TAG: 4.0.0-alpha.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME.$CI_PIPELINE_IID
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
