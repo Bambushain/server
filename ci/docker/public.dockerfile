@@ -1,4 +1,4 @@
-FROM library/alpine:latest AS alpine
+FROM docker.io/library/alpine:latest AS alpine
 
 RUN apk add -U --no-cache ca-certificates
 
