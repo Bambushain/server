@@ -5,11 +5,15 @@ lint-frontend:
   script:
     - cd frontend/$APP
     - cargo clippy --release --features ssr --features hydrate
+  variables:
+    ARCH: amd64
   parallel:
     matrix:
       - APP:
           - pandas
           - authentication
+  tags:
+    - runner-$ARCH
 
 build-frontend:
   extends:
