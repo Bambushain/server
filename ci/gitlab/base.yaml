@@ -80,9 +80,7 @@
 
 .base-merge-manifests:
   stage: deploy
-  image:
-    name: mplatform/manifest-tool:alpine
-    entrypoint: [ "" ]
+  extends: .base-docker
   variables:
     IMAGE: $CI_REGISTRY_IMAGE/$APP
     IMAGE_TAG: $IMAGE:$TAG
