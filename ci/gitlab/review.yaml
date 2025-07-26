@@ -5,7 +5,7 @@ deploy-review:
     - cd $CI_PROJECT_DIR/kubernetes/helm/review/
     - export BRANCH=`echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" | awk '{print tolower($0)}'`
     - export TAG="4\\.0\\.0-alpha\\.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME\\.$CI_PIPELINE_IID"
-    - helm upgrade --create-namespace --install --namespace=bamboo-review-$BRANCH --set namespace=bamboo-review-$BRANCH --set branch=$BRANCH --set bamboo.config.mailer.password=$MAILER_PASSWORD --set bamboo.config.s3.accessKey=$S3_ACCESS_KEY --set bamboo.config.s3.secretKey=$S3_SECRET_KEY bamboo_${CI_COMMIT_REF_NAME//-/_} $CI_PROJECT_DIR/kubernetes/review/bambushain
+    - helm upgrade --create-namespace --install --namespace=bamboo-review-$BRANCH --set namespace=bamboo-review-$BRANCH --set branch=$BRANCH --set bamboo.config.mailer.password=$MAILER_PASSWORD --set bamboo.config.s3.accessKey=$S3_ACCESS_KEY --set bamboo.config.s3.secretKey=$S3_SECRET_KEY bamboo-$BRANCH $CI_PROJECT_DIR/kubernetes/review/bambushain
     - export MESSAGE="Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$BRANCH-review.bambushain.app erreichen."
     - |
       curl -H "Content-Type: application/json" -X POST -d "{\"content\":\"$MESSAGE\"}" $DISCORD_WEBHOOK
