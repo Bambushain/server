@@ -76,9 +76,5 @@ Get the full image name
 Get the namespace
 */}}
 {{- define "bambushain.namespace" -}}
-{{- if .Values.branch -}}
-{{- printf "%s-%s" .Values.namespace .Values.branch -}}
-{{- else -}}
 {{- .Values.namespace -}}
-{{- end -}}
 {{- end -}}
