@@ -20,7 +20,21 @@ spec:
         - name: nats
           image: "{{ .Values.nats.image.repository }}:{{ .Values.nats.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
+          args:
             - -js
+            - -m
+            - 8222
           ports:
             - containerPort: 4222
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 5
+            periodSeconds: 5
