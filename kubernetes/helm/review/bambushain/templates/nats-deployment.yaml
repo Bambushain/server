@@ -21,7 +21,6 @@ spec:
           image: "{{ .Values.nats.image.repository }}:{{ .Values.nats.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - /nats-server
             - -js
           ports:
             - containerPort: 4222
