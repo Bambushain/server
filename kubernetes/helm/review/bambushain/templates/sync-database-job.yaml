@@ -1,4 +1,3 @@
-{{- if .Values.postgres.sync.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,10 +5,6 @@ metadata:
   namespace: {{ include "bambushain.namespace" . }}
   labels:
     {{- include "bambushain.labels" . | nindent 4 }}
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "1"
-    "helm.sh/hook-delete-policy": hook-succeeded
 data:
   dump-live.sh: |
     #!/usr/bin/env sh
@@ -37,6 +32,10 @@ metadata:
   namespace: {{ include "bambushain.namespace" . }}
   labels:
     {{- include "bambushain.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   parallelism: 1
   template:
@@ -92,4 +91,3 @@ spec:
         - name: data
           emptyDir: { }
       restartPolicy: Never
-{{- end }}
