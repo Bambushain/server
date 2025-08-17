@@ -1,0 +1,32 @@
+deploy-review:
+  extends:
+    - .base-review
+  script:
+    - export BRANCH=`echo "$CI_COMMIT_REF_NAME" | awk '{print tolower($0)}'`
+    - export TAG="4\\.0\\.0-alpha\\.$CI_COMMIT_REF_NAME\\.$CI_PIPELINE_IID"
+    - helm upgrade --create-namespace --install --namespace=bamboo-review-$BRANCH --set namespace=bamboo-review-$BRANCH --set branch=$BRANCH --set bamboo.config.mailer.password=$MAILER_PASSWORD --set bamboo.config.s3.accessKey=$S3_ACCESS_KEY --set bamboo.config.s3.secretKey=$S3_SECRET_KEY --set image.tag=$TAG bamboo-$BRANCH $CI_PROJECT_DIR/kubernetes/helm/review/bambushain
+    - export MESSAGE="Hey @BambushainTeam, eine neue Testversion ist online. Ihr könnt sie unter https://$BRANCH-review.bambushain.app erreichen."
+    - |
+      curl -H "Content-Type: application/json" -X POST -d "{\"content\":\"$MESSAGE\"}" $DISCORD_WEBHOOK
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$CI_COMMIT_REF_NAME-review.bambushain.app
+    on_stop: stop-review
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+stop-review:
+  extends:
+    - .base-review
+  stage: deploy-testing
+  script:
+    - export BRANCH=`echo "$CI_COMMIT_REF_NAME" | awk '{print tolower($0)}'`
+    - helm uninstall bamboo-$BRANCH
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+  tags:
+    - kube

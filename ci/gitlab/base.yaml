@@ -1,0 +1,109 @@
+.base-cargo:
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+
+.base-backend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/rust-docker-base-image:latest
+    pull_policy: always
+  extends:
+    - .base-cargo
+  cache:
+    key: $CI_PROJECT_NAME-$ARCH-server
+    paths:
+      - $CI_PROJECT_DIR/target/
+      - $CI_PROJECT_DIR/.cargo/
+
+.base-frontend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/leptos-docker-base-image:latest
+    pull_policy: always
+  extends:
+    - .base-cargo
+  variables:
+    CARGO_PROFILE_RELEASE_PANIC: abort
+    CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
+    CARGO_PROFILE_RELEASE_OPT_LEVEL: z
+    CARGO_PROFILE_RELEASE_DEBUG: "false"
+    CARGO_PROFILE_RELEASE_LTO: "true"
+    CARGO_PROFILE_RELEASE_STRIP: "symbols"
+  cache:
+    key: $CI_PROJECT_NAME-$ARCH-leptos
+    paths:
+      - $CI_PROJECT_DIR/target/
+      - $CI_PROJECT_DIR/.cargo/
+
+.base-docker:
+  image: registry.ulbricht.casa/docker-images/buildah:latest
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$DOCKERHUB_PASSWORD" | buildah login -u "$DOCKERHUB_USER" --password-stdin docker.io
+
+.base-docker-build:
+  extends: .base-docker
+  stage: docker
+  variables:
+    TAG: test
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP/$ARCH:$TAG
+  script:
+    - buildah build --platform=linux/$ARCH --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f $CI_PROJECT_DIR/ci/docker/$TYPE.dockerfile -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
+    - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"
+  parallel:
+    matrix:
+      - APP:
+          - mailer
+          - events
+          - api
+          - migrator
+        TYPE:
+          - backend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
+          - pandas
+          - authentication
+        TYPE:
+          - frontend
+        ARCH:
+          - amd64
+          - arm64
+      - APP:
+          - public
+        TYPE:
+          - public
+        ARCH:
+          - amd64
+          - arm64
+  tags:
+    - runner-${ARCH}
+
+.base-merge-manifests:
+  stage: deploy
+  extends: .base-docker
+  variables:
+    IMAGE: $CI_REGISTRY_IMAGE/$APP
+    IMAGE_TAG: $IMAGE:$TAG
+  script:
+    - buildah manifest create $IMAGE_TAG
+    - buildah manifest add $IMAGE_TAG docker://$IMAGE/amd64:$TAG
+    - buildah manifest add $IMAGE_TAG docker://$IMAGE/arm64:$TAG
+    - buildah manifest push --all $IMAGE_TAG
+  parallel:
+    matrix:
+      - APP:
+          - mailer
+          - events
+          - api
+          - public
+          - pandas
+          - authentication
+          - migrator
+
+.base-review:
+  image:
+    name: registry.ulbricht.casa/docker-images/kubectl:latest
+    entrypoint: [ '' ]
+  stage: deploy-testing
+  tags:
+    - kube

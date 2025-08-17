@@ -1,0 +1,77 @@
+# Default values for bambushain.
+# This is a YAML-formatted file.
+
+# Namespace configuration
+namespace:
+
+# Branch name for review environments
+branch: ""
+
+# Global image settings
+image:
+  registry: registry.ulbricht.casa
+  tag:
+  pullPolicy: IfNotPresent
+
+# Bamboo application configuration
+bamboo:
+  replicas: 1
+  image:
+    authentication: bambushain/server/authentication
+    pandas: bambushain/server/pandas
+    public: bambushain/server/public
+    events: bambushain/server/events
+    api: bambushain/server/api
+    mailer: bambushain/server/mailer
+    migrator: bambushain/server/migrator
+  config:
+    databaseUrl: "postgres://bamboo:bamboo@postgres:5432/bamboo"
+    mailer:
+      encryption: "ssl"
+      from: "panda.helferlein@bambushain.app"
+      port: "465"
+      server: "mail.ulbricht.cloud"
+      starttls: "false"
+      username: "panda.helferlein@bambushain.app"
+      password: ""
+    natsServer: "nats:4222"
+    rustLog: "info"
+    s3:
+      bucket: "bambushain-review"
+      endpoint: "https://ceph.storage.ulbricht.casa"
+      region: "default"
+      usePathStyle: "true"
+      accessKey: ""
+      secretKey: ""
+
+# NATS configuration
+nats:
+  replicas: 1
+  image:
+    repository: nats
+    tag: 2-alpine
+
+# PostgreSQL configuration
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: 17-alpine
+  persistence:
+    enabled: true
+    size: 1Gi
+  sync:
+    enabled: true
+    liveDatabase:
+      host: postgres.ulbricht.casa
+      user: app_bambushain_pandas
+      password: app_bambushain_pandas
+      database: app_bambushain_pandas
+
+# Database migration job
+migrate:
+  enabled: true
+
+# Labels to apply to all resources
+labels:
+  app: bambushain

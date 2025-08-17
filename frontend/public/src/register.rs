@@ -195,10 +195,10 @@ fn create_account_form(
 pub async fn create_account_page(query: web::Query<CreateAccountQuery>) -> impl Responder {
     let name = base64::engine::general_purpose::URL_SAFE
         .decode(&query.name)
-        .map(|v| String::from_utf8(v));
+        .map(String::from_utf8);
     let email = base64::engine::general_purpose::URL_SAFE
         .decode(&query.email)
-        .map(|v| String::from_utf8(v));
+        .map(String::from_utf8);
 
     if let (Ok(Ok(name)), Ok(Ok(email))) = (name, email) {
         HttpResponse::Ok()
