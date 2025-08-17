@@ -23,7 +23,7 @@ spec:
           args:
             - -js
             - -m
-            - 8222
+            - "8222"
           ports:
             - containerPort: 4222
           livenessProbe:
