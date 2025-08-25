@@ -24,7 +24,7 @@ impl header::Header for AuthorizationHeader {
             .ok_or(error::ParseError::Header)?
             .to_str()
             .map_err(|_| error::ParseError::Header)
-            .map(|header| header.strip_prefix("Panda ").map(|res| res.to_string()))?;
+            .map(|header| header.strip_prefix("Bearer ").map(|res| res.to_string()))?;
 
         Ok(AuthorizationHeader { authorization })
     }
