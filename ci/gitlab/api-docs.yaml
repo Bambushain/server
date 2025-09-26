@@ -1,6 +1,6 @@
 pages:
   image:
-    name: oven/bun:latest
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:latest
     pull_policy: always
     entrypoint: [ "" ]
   stage: deploy
