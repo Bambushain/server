@@ -6,7 +6,7 @@ FROM scratch
 
 WORKDIR /
 
-COPY --from=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY bamboo-public /bamboo
 COPY ../../public /public
 
