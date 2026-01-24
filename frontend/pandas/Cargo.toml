@@ -33,19 +33,20 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 server_fn = { workspace = true }
 strum = { workspace = true }
-uuid = { workspace = true, features = ["js"] }
 wasm-bindgen = { workspace = true }
 
 [features]
 csr = [
     "leptos/csr",
     "leptos-cosmo/csr",
-    "bamboo-common/frontend"
+    "bamboo-common/frontend",
+    "getrandom/wasm_js"
 ]
 hydrate = [
     "leptos/hydrate",
     "leptos-cosmo/hydrate",
-    "bamboo-common/frontend"
+    "bamboo-common/frontend",
+    "getrandom/wasm_js"
 ]
 ssr = [
     "dep:actix-files",
@@ -56,6 +57,7 @@ ssr = [
     "leptos-cosmo/with-icons",
     "leptos_meta/ssr",
     "leptos_router/ssr",
+    "leptos-use/ssr",
     "bamboo-common/backend"
 ]
 

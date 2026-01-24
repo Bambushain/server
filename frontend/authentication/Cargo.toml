@@ -14,25 +14,31 @@ actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true, features = ["macros"] }
 console_error_panic_hook = { workspace = true }
 dotenvy = { workspace = true }
-getrandom = { workspace = true, features = ["js"] }
+getrandom = { workspace = true }
+getrandom_0_2 = { package = "getrandom", version = "0.2", features = ["js"] }
 leptos = { workspace = true }
 leptos_meta = { workspace = true }
 leptos_actix = { workspace = true, optional = true }
 leptos_router = { workspace = true }
 leptos-use = { workspace = true }
 log = { workspace = true }
+rand = { workspace = true }
 serde = { workspace = true }
-uuid = { workspace = true, features = ["js"] }
+uuid = { workspace = true }
 wasm-bindgen = { workspace = true }
 
 [features]
 csr = [
     "bamboo-common/frontend",
-    "leptos/csr"
+    "leptos/csr",
+    "getrandom/wasm_js",
+    "uuid/js",
 ]
 hydrate = [
     "bamboo-common/frontend",
-    "leptos/hydrate"
+    "leptos/hydrate",
+    "getrandom/wasm_js",
+    "uuid/js",
 ]
 ssr = [
     "dep:actix-files",
@@ -43,6 +49,7 @@ ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
+    "leptos-use/ssr",
 ]
 
 [package.metadata.leptos]

@@ -290,13 +290,6 @@ pub async fn update_character(
     create_custom_field_values(user_id, id, character.custom_fields, db).await
 }
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, FromQueryResult)]
-struct CustomCharacterFieldCreated {
-    pub character_id: i32,
-    pub custom_character_field_id: i32,
-    pub custom_character_field_option_id: i32,
-}
-
 async fn create_custom_field_values(
     user_id: i32,
     character_id: i32,

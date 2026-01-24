@@ -1,7 +1,6 @@
 use crate::api::{get_events, CreateEventAction, DeleteEventAction, UpdateEventAction};
 use crate::state::AllGroves;
 use bamboo_common::core::entities::{BambooUser, GroveEvent};
-#[cfg(any(feature = "csr", feature = "hydrate"))]
 use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
 use chrono::{Days, Months};
@@ -13,10 +12,6 @@ use leptos_router::components::A;
 use leptos_router::hooks::use_query_map;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Not, Sub};
-#[cfg(any(feature = "csr", feature = "hydrate"))]
-use std::str::FromStr;
-#[cfg(any(feature = "csr", feature = "hydrate"))]
-use strum::IntoEnumIterator;
 
 enum ColorYiqResult {
     Light,
@@ -500,43 +495,66 @@ pub fn Calendar(
     let prev_href = Memo::new(move |_| format!("{}?month={}", base_url.get(), prev_month.get()));
     let next_href = Memo::new(move |_| format!("{}?month={}", base_url.get(), next_month.get()));
 
-    #[cfg(any(feature = "csr", feature = "hydrate"))]
-    {
-        let leptos_use::UseEventSourceReturn { event, data, .. } =
-            leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
-                "/sse/event",
-                leptos_use::UseEventSourceOptions::default().named_events(
-                    EventType::iter()
-                        .map(|val| val.to_string())
-                        .collect::<Vec<_>>(),
-                ),
-            );
-        let _ = Effect::watch(
-            move || data.get(),
-            move |data, _, _| {
-                if let Some(data) = data {
-                    events.update(|events| {
-                        if let Some(event) = event.get() {
-                            let event_type = EventType::from_str(event.type_().as_str());
-                            match event_type {
-                                Ok(EventType::Created) => events.push(data.to_owned()),
-                                Ok(EventType::Updated) => {
-                                    if let Some(evt) =
-                                        events.iter_mut().find(|evt| evt.id == data.id)
-                                    {
-                                        *evt = data.to_owned();
-                                    }
-                                }
-                                Ok(EventType::Deleted) => events.retain(|evt| evt.id != data.id),
-                                _ => {}
-                            }
-                        }
-                    });
-                }
-            },
-            false,
-        );
-    }
+    let leptos_use::UseEventSourceReturn {
+        message: created_event,
+        ..
+    } = leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
+        "/sse/event",
+        leptos_use::UseEventSourceOptions::default()
+            .named_events(vec![EventType::Created.to_string()]),
+    );
+    let leptos_use::UseEventSourceReturn {
+        message: updated_event,
+        ..
+    } = leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
+        "/sse/event",
+        leptos_use::UseEventSourceOptions::default()
+            .named_events(vec![EventType::Updated.to_string()]),
+    );
+    let leptos_use::UseEventSourceReturn {
+        message: deleted_event,
+        ..
+    } = leptos_use::use_event_source_with_options::<GroveEvent, codee::string::JsonSerdeCodec>(
+        "/sse/event",
+        leptos_use::UseEventSourceOptions::default()
+            .named_events(vec![EventType::Deleted.to_string()]),
+    );
+
+    let _ = Effect::watch(
+        move || created_event.get(),
+        move |data, _, _| {
+            if let Some(data) = data {
+                events.update(|events| events.push(data.data.to_owned()));
+            }
+        },
+        false,
+    );
+    let _ = Effect::watch(
+        move || updated_event.get(),
+        move |data, _, _| {
+            if let Some(data) = data {
+                events.update(|events| {
+                    let event = data.data.to_owned();
+                    if let Some(evt) = events.iter_mut().find(|evt| evt.id == event.id) {
+                        *evt = event;
+                    }
+                });
+            }
+        },
+        false,
+    );
+    let _ = Effect::watch(
+        move || deleted_event.get(),
+        move |data, _, _| {
+            if let Some(data) = data {
+                events.update(|events| {
+                    let event = data.data.to_owned();
+                    events.retain(|evt| evt.id != event.id)
+                });
+            }
+        },
+        false,
+    );
 
     Effect::new(move || {
         events_resource.refetch();

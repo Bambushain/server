@@ -287,7 +287,7 @@ pub async fn set_forgot_password_token(
                 "Failed to add a week to the date",
             ))?;
     let mut token = [0u8; 32];
-    getrandom::getrandom(&mut token)
+    getrandom::fill(&mut token)
         .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
 
     let token = hex::encode(token);
