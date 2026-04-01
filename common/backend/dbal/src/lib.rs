@@ -1,6 +1,5 @@
 use chacha20poly1305::aead::{Aead, OsRng};
 use chacha20poly1305::{AeadCore, ChaCha20Poly1305, Key, KeyInit, Nonce};
-use pbkdf2::hmac::Hmac;
 use sha2::Sha512;
 
 use bamboo_common_core::error::*;
@@ -46,16 +45,15 @@ pub(crate) use error_tag;
 
 fn get_passphrase(passphrase: &[u8]) -> BambooResult<Key> {
     let mut key = [0_u8; 32];
-    pbkdf2::pbkdf2::<Hmac<Sha512>>(
+    pbkdf2::pbkdf2_hmac::<Sha512>(
         passphrase,
         std::env::var("DATABASE_URL")
             .unwrap_or("f47ac10b-58cc-4372-a567-0e02b2c3d479".into())
             .as_bytes(),
         12,
         &mut key,
-    )
-    .map_err(|_| BambooError::crypto("encryption", "Failed to create pbkdf2 key"))
-    .map(|_| Key::from(key))
+    );
+    Ok(Key::from(key))
 }
 
 pub(crate) fn decrypt_string(encrypted: Vec<u8>, passphrase: &str) -> BambooResult<Vec<u8>> {
