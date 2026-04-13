@@ -1,4 +1,4 @@
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/library/alpine:latest as alpine
+FROM $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/library/alpine:latest as alpine
 
 RUN apk add -U --no-cache ca-certificates
 
