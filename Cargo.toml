@@ -111,7 +111,7 @@ leptos-use = "0.18"
 lettre = { version = "0.11", features = ["tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"], default-features = false }
 log = "0.4"
 maud = "0.27"
-mrml = { version = "5.1", features = ["async", "parse", "render"] }
+mrml = { version = "6", features = ["async", "parse", "render"] }
 parking_lot = "0.12"
 pbkdf2 = "0.12"
 quote = "1"
