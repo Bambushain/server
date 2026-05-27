@@ -56,7 +56,7 @@ postgres:
   replicas: 1
   image:
     repository: postgres
-    tag: 17-alpine
+    tag: 18-alpine
   persistence:
     enabled: true
     size: 1Gi

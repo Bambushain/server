@@ -8,22 +8,14 @@ metadata:
 data:
   dump-live.sh: |
     #!/usr/bin/env sh
-    pg_dump {{ .Values.postgres.sync.liveDatabase.database }} > /data/{{ .Values.postgres.sync.liveDatabase.database }}.sql
+    pg_dump {{ .Values.postgres.sync.liveDatabase.database }} --format=p --clean --if-exists --file=/data/{{ .Values.postgres.sync.liveDatabase.database }}.sql
 
-    sed 's/{{ .Values.postgres.sync.liveDatabase.database }}/bamboo/g' /data/{{ .Values.postgres.sync.liveDatabase.database }}.sql > /data/bamboo.sql    
+    sed 's/{{ .Values.postgres.sync.liveDatabase.database }}/bamboo/g' /data/{{ .Values.postgres.sync.liveDatabase.database }}.sql > /data/bamboo.sql
     sed -i 's/ALTER SCHEMA public OWNER TO postgres/ALTER SCHEMA public OWNER TO bamboo/g' /data/bamboo.sql
-    echo 'ALTER ROLE bamboo SET search_path TO public;' >> /data/bamboo.sql
     echo 'UPDATE authentication."user" SET totp_validated = false, totp_secret = null, totp_secret_encrypted = true;' >> /data/bamboo.sql
   sync-database.sh: |
     #!/usr/bin/env sh
-    psql --file=/scripts/clear-database.sql --echo-error bamboo
     psql --file=/data/bamboo.sql --echo-error bamboo
-  clear-database.sql: |
-    DROP SCHEMA IF EXISTS authentication CASCADE;
-    DROP SCHEMA IF EXISTS bamboo CASCADE;
-    DROP SCHEMA IF EXISTS final_fantasy CASCADE;
-    DROP SCHEMA IF EXISTS grove CASCADE;
-    DROP TABLE IF EXISTS public.seaql_migrations CASCADE;
 ---
 apiVersion: batch/v1
 kind: Job
@@ -45,7 +37,7 @@ spec:
     spec:
       initContainers:
         - name: export-database
-          image: library/postgres:17
+          image: library/postgres:18
           imagePullPolicy: IfNotPresent
           env:
             - name: PGHOST
@@ -65,7 +57,7 @@ spec:
               name: data
       containers:
         - name: sync-testsystem
-          image: library/postgres:17
+          image: library/postgres:18
           imagePullPolicy: IfNotPresent
           env:
             - name: PGHOST
