@@ -39,7 +39,7 @@ pub async fn get_custom_fields(
                     }
                 })
                 .collect_vec();
-            res.sort_by(|a, b| a.position.cmp(&b.position));
+            res.sort_by_key(|a| a.position);
 
             res
         })

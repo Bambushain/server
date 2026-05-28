@@ -5,7 +5,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum BambooErrorCode {
     Crypto,
@@ -18,14 +18,9 @@ pub enum BambooErrorCode {
     NotFound,
     Serialization,
     Unauthorized,
+    #[default]
     Unknown,
     Validation,
-}
-
-impl Default for BambooErrorCode {
-    fn default() -> Self {
-        Self::Unknown
-    }
 }
 
 impl FromStr for BambooErrorCode {
