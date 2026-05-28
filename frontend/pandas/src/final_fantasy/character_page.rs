@@ -237,7 +237,7 @@ fn EditCharacterDialog(
                 free_company.get_untracked(),
                 Some(custom_fields),
             )
-            .await
+                .await
             {
                 Err(BambooCodeError::ExistsAlready) => {
                     *error_message_header.write() = "Charakter existiert bereits".to_string();
@@ -392,7 +392,7 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
                 free_company.get_untracked(),
                 Some(custom_fields),
             )
-            .await
+                .await
             {
                 Err(BambooCodeError::ExistsAlready) => {
                     *error_message_header.write() = "Charakter existiert bereits".to_string();

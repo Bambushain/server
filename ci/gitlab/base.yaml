@@ -13,8 +13,10 @@
   cache:
     key: $CI_PROJECT_NAME-$ARCH-server
     paths:
-      - $CI_PROJECT_DIR/target/
-      - $CI_PROJECT_DIR/.cargo/
+      - $CI_PROJECT_DIR/.cargo/registry/       # dep sources
+      - $CI_PROJECT_DIR/.cargo/git/            # git deps
+      - $CI_PROJECT_DIR/target/release/.fingerprint/
+      - $CI_PROJECT_DIR/target/release/deps/
 
 .base-frontend-cache:
   image:
@@ -33,8 +35,15 @@
   cache:
     key: $CI_PROJECT_NAME-$ARCH-leptos
     paths:
-      - $CI_PROJECT_DIR/target/
-      - $CI_PROJECT_DIR/.cargo/
+      # Cargo registry — the most valuable part to cache
+      - $CI_PROJECT_DIR/.cargo/registry/cache/
+      - $CI_PROJECT_DIR/.cargo/registry/src/
+      - $CI_PROJECT_DIR/.cargo/git/db/
+
+      # Only cache incremental artifacts, not full output
+      - $CI_PROJECT_DIR/target/release/incremental/
+      - $CI_PROJECT_DIR/target/wasm32-unknown-unknown/release/incremental/
+
 
 .base-docker:
   image: registry.ulbricht.casa/docker-images/buildah:latest
@@ -49,7 +58,7 @@
   stage: docker
   variables:
     TAG: test
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP<:$TAG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP:$TAG
   script:
     - buildah build --platform=linux/$ARCH --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f $CI_PROJECT_DIR/ci/docker/$TYPE.dockerfile -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
     - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"

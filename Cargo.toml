@@ -67,7 +67,7 @@ members = [
 
 [workspace.package]
 version = "4.0.0"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 
 [workspace.dependencies]
@@ -97,6 +97,7 @@ futures-util = "0.3"
 getrandom = "0.4"
 gloo = "0.12"
 gloo-file = "0.4"
+gloo-utils = "0.3"
 hex = "0.4"
 html2text = "0.17"
 icondata_lu = "0.1"

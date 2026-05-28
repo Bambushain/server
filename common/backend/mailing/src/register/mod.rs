@@ -46,5 +46,5 @@ pub async fn enqueue_register_mail(
         ),
         db,
     )
-    .await;
+        .await;
 }

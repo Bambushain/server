@@ -158,16 +158,16 @@ pub async fn get_events(
             additional_filter
         },
     )
-    .all(db)
-    .await
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))
-    .map(|events| {
-        events
-            .iter()
-            .cloned()
-            .map(|event| event.into())
-            .collect::<Vec<GroveEvent>>()
-    })
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))
+        .map(|events| {
+            events
+                .iter()
+                .cloned()
+                .map(|event| event.into())
+                .collect::<Vec<GroveEvent>>()
+        })
 }
 
 pub async fn get_event(id: i32, user_id: i32, db: &DatabaseConnection) -> BambooResult<GroveEvent> {

@@ -26,5 +26,5 @@ pub async fn send_support_request(
         ),
         db,
     )
-    .await
+        .await
 }

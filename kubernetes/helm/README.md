@@ -1,6 +1,7 @@
 # Bambushain Helm Chart
 
-This directory contains a Helm chart for deploying the Bambushain application to Kubernetes. The chart was converted from the original Kustomize templates.
+This directory contains a Helm chart for deploying the Bambushain application to Kubernetes. The chart was converted
+from the original Kustomize templates.
 
 ## Structure
 
@@ -39,22 +40,22 @@ helm install bambushain ./bambushain
 
 The following table lists the configurable parameters of the Bambushain chart and their default values.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `namespace` | Namespace to deploy to | `bamboo-review` |
-| `branch` | Branch name for review environments | `""` |
-| `image.registry` | Image registry | `registry.ulbricht.casa` |
-| `image.tag` | Image tag | `4.0.0-alpha` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `bamboo.replicas` | Number of bamboo replicas | `1` |
-| `bamboo.config.databaseUrl` | Database URL | `postgres://bamboo:bamboo@postgres:5432/bamboo` |
-| `bamboo.config.mailer.*` | Mailer configuration | See values.yaml |
-| `bamboo.config.s3.*` | S3 configuration | See values.yaml |
-| `nats.replicas` | Number of NATS replicas | `1` |
-| `postgres.replicas` | Number of PostgreSQL replicas | `1` |
-| `postgres.persistence.size` | Size of PostgreSQL data volume | `1Gi` |
-| `postgres.sync.enabled` | Enable database synchronization | `true` |
-| `migrate.enabled` | Enable database migration | `true` |
+| Parameter                   | Description                         | Default                                         |
+|-----------------------------|-------------------------------------|-------------------------------------------------|
+| `namespace`                 | Namespace to deploy to              | `bamboo-review`                                 |
+| `branch`                    | Branch name for review environments | `""`                                            |
+| `image.registry`            | Image registry                      | `registry.ulbricht.casa`                        |
+| `image.tag`                 | Image tag                           | `4.0.0-alpha`                                   |
+| `image.pullPolicy`          | Image pull policy                   | `IfNotPresent`                                  |
+| `bamboo.replicas`           | Number of bamboo replicas           | `1`                                             |
+| `bamboo.config.databaseUrl` | Database URL                        | `postgres://bamboo:bamboo@postgres:5432/bamboo` |
+| `bamboo.config.mailer.*`    | Mailer configuration                | See values.yaml                                 |
+| `bamboo.config.s3.*`        | S3 configuration                    | See values.yaml                                 |
+| `nats.replicas`             | Number of NATS replicas             | `1`                                             |
+| `postgres.replicas`         | Number of PostgreSQL replicas       | `1`                                             |
+| `postgres.persistence.size` | Size of PostgreSQL data volume      | `1Gi`                                           |
+| `postgres.sync.enabled`     | Enable database synchronization     | `true`                                          |
+| `migrate.enabled`           | Enable database migration           | `true`                                          |
 
 ### Customization
 
@@ -85,4 +86,5 @@ This Helm chart was converted from the original Kustomize templates. The convers
 4. Adding conditionals for optional components
 5. Creating helper functions for common template patterns
 
-The chart maintains the same functionality as the original Kustomize templates, but with the added flexibility and templating capabilities of Helm.
+The chart maintains the same functionality as the original Kustomize templates, but with the added flexibility and
+templating capabilities of Helm.

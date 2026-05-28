@@ -115,7 +115,7 @@ impl FighterJob {
             FighterJob::Viper => "viper.webp",
             FighterJob::Pictomancer => "pictomancer.webp",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_job_name(self) -> String {
@@ -143,7 +143,7 @@ impl FighterJob {
             FighterJob::Viper => "Viper",
             FighterJob::Pictomancer => "Pictomancer",
         }
-        .to_string()
+            .to_string()
     }
 }
 

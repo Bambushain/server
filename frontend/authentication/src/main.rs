@@ -30,7 +30,7 @@ async fn redirect_if_authenticated(
                 .insert_header((header::LOCATION, "/pandas"))
                 .message_body(())?,
         )
-        .map_into_right_body())
+            .map_into_right_body())
     } else {
         Ok(next.call(req).await?.map_into_left_body())
     }
@@ -100,7 +100,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::from_fn(redirect_if_authenticated))
             .wrap(middleware::Compress::default())
     })
-    .bind(&addr)?
-    .run()
-    .await
+        .bind(&addr)?
+        .run()
+        .await
 }

@@ -161,7 +161,7 @@ pub async fn get_users_by_grove(
         banned_status,
         db,
     )
-    .await
+        .await
 }
 
 pub async fn user_is_banned_from_grove(

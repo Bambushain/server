@@ -175,6 +175,6 @@ pub async fn get_events(
         grove_id,
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
+        .await
+        .map_err(ServerFnError::new)
 }

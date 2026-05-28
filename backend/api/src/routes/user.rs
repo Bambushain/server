@@ -42,8 +42,8 @@ pub async fn get_users(
             },
             &db,
         )
-        .await
-        .map(|data| list!(data))
+            .await
+            .map(|data| list!(data))
     } else {
         dbal::get_users(authentication.user.id, &db)
             .await
@@ -56,11 +56,10 @@ pub async fn get_profile_picture(
     path: Option<path::UserPath>,
     minio: MinioService,
 ) -> impl Responder {
-    if let Ok(path) = check_invalid_path!(path, "user") {
-        let profile_picture = minio.get_profile_picture(path.user_id).await;
-        if let Ok(profile_picture) = profile_picture {
-            return actix_web::HttpResponse::Ok().body(profile_picture);
-        }
+    if let Ok(path) = check_invalid_path!(path, "user")
+        && let Ok(profile_picture) = minio.get_profile_picture(path.user_id).await
+    {
+        return actix_web::HttpResponse::Ok().body(profile_picture);
     }
 
     actix_web::HttpResponse::Ok()

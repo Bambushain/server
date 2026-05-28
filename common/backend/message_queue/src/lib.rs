@@ -8,8 +8,8 @@ pub async fn get_nats() -> Result<async_nats::Client, NotificationError> {
     let client = async_nats::connect(
         std::env::var("NATS_SERVER").map_err(|err| NotificationError::new(err.to_string()))?,
     )
-    .await
-    .map_err(|err| NotificationError::new(err.to_string()))?;
+        .await
+        .map_err(|err| NotificationError::new(err.to_string()))?;
 
     Ok(client)
 }

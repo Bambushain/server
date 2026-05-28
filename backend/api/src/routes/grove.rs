@@ -50,8 +50,8 @@ pub async fn get_grove_users(
         BannedStatus::All,
         &db,
     )
-    .await
-    .map(|data| list!(data))
+        .await
+        .map(|data| list!(data))
 }
 
 #[post("/api/grove", wrap = "authenticate!()")]
@@ -106,8 +106,8 @@ pub async fn update_grove_mods(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(
@@ -206,8 +206,8 @@ pub async fn join_grove(
         &body.invite_secret,
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[get("/api/grove/{grove_id}/join", wrap = "authenticate!()")]

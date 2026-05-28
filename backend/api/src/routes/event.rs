@@ -64,7 +64,7 @@ pub async fn update_event(
         body.into_inner(),
         &db,
     )
-    .await?;
+        .await?;
 
     Ok(no_content!())
 }

@@ -86,7 +86,7 @@ impl BambooUser {
             forgot_password_code: self.forgot_password_code,
             forgot_password_valid_until: self.forgot_password_valid_until,
         }
-        .into_active_model()
+            .into_active_model()
     }
 
     pub fn validate_password(&self, password: &str) -> bool {

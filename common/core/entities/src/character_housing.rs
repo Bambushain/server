@@ -47,7 +47,7 @@ impl HousingDistrict {
             HousingDistrict::Shirogane => "Shirogane",
             HousingDistrict::Empyreum => "Empyreum",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_serde_name(self) -> String {
@@ -58,7 +58,7 @@ impl HousingDistrict {
             HousingDistrict::Shirogane => "shirogane",
             HousingDistrict::Empyreum => "empyreum",
         }
-        .to_string()
+            .to_string()
     }
 }
 
@@ -131,7 +131,7 @@ impl HousingType {
             HousingType::FreeCompany => "FreeCompany",
             HousingType::SharedApartment => "SharedApartment",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_serde_name(&self) -> String {
@@ -140,7 +140,7 @@ impl HousingType {
             HousingType::FreeCompany => "free-company",
             HousingType::SharedApartment => "shared-apartment",
         }
-        .to_string()
+            .to_string()
     }
 }
 

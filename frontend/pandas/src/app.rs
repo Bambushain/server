@@ -141,42 +141,6 @@ fn PandasRoutes() -> impl IntoView {
 }
 
 #[component]
-fn PandasTopBar() -> impl IntoView {
-    let logout_action = ServerAction::<LogoutAction>::new();
-    let current_user_ctx = expect_context::<RwSignal<BambooUser>>();
-
-    let profile_picture = Memo::new(move |_| current_user_ctx.get().profile_picture);
-
-    let logout = Callback::new(move |_| {
-        logout_action.dispatch(LogoutAction {});
-    });
-
-    Effect::new(move |_| {
-        if logout_action.value().get().is_some_and(|res| res.is_ok()) {
-            let window = use_window();
-            let _ = window
-                .as_ref()
-                .unwrap()
-                .location()
-                .set_href("/authentication");
-        }
-    });
-
-    view! {
-        <TopBar
-            has_right_item=true
-            right_item_label="Abmelden"
-            right_item_on_click=logout
-            profile_picture=profile_picture
-        >
-            <TopBarItem label="Lizenzen" />
-            <TopBarItem label="Impressum" />
-            <TopBarItem label="Datenschutz" />
-        </TopBar>
-    }
-}
-
-#[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
@@ -226,7 +190,7 @@ pub fn App() -> impl IntoView {
                     <a href="/legal/licenses" target="_blank">
                         Lizenzen
                     </a>
-                    <a href="/legal/imprint" target="_blank">
+                    <a href="/legal/legal-notice" target="_blank">
                         Impressum
                     </a>
                     <a href="/legal/privacy" target="_blank">

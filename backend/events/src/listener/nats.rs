@@ -51,13 +51,12 @@ async fn handle_message(
     notifier_state: NotifierState,
     db: DatabaseConnection,
 ) {
-    if let Some(message) = message {
-        if let Ok(event_action) =
-            EventAction::from_message(message).map_err(|err| log::error!("{err}"))
-        {
-            if let Ok(groves) = dbal::get_all_groves(&db).await {
-                notifier_state.send_event(event_action, groves).await;
-            }
+    if let Some(message) = message
+        && let Ok(event_action) =
+        EventAction::from_message(message).map_err(|err| log::error!("{err}"))
+    {
+        if let Ok(groves) = dbal::get_all_groves(&db).await {
+            notifier_state.send_event(event_action, groves).await;
         }
     }
 }

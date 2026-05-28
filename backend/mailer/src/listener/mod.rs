@@ -1,3 +1,3 @@
-mod nats;
+mod database;
 
-pub use nats::*;
+pub use database::*;

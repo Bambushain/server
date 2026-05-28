@@ -55,7 +55,7 @@ impl CrafterJob {
             CrafterJob::Weaver => "weaver.webp",
             CrafterJob::Alchemist => "alchemist.webp",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_job_name(self) -> String {
@@ -68,7 +68,7 @@ impl CrafterJob {
             CrafterJob::Weaver => "Weaver",
             CrafterJob::Alchemist => "Alchemist",
         }
-        .to_string()
+            .to_string()
     }
 }
 

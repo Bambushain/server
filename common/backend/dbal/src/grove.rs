@@ -153,11 +153,11 @@ pub async fn update_grove_mods(
             Ok(())
         })
     })
-    .await
-    .map_err(|_: TransactionError<BambooError>| {
-        BambooError::database(error_tag!(), "Failed to update grove mods")
-    })
-    .map(|_| ())
+        .await
+        .map_err(|_: TransactionError<BambooError>| {
+            BambooError::database(error_tag!(), "Failed to update grove mods")
+        })
+        .map(|_| ())
 }
 
 pub async fn delete_grove(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
@@ -307,8 +307,8 @@ pub async fn join_grove(
         grove_id: Set(grove_id),
         user_id: Set(user_id),
     }
-    .insert(db)
-    .await
-    .map_err(|_| BambooError::unknown(error_tag!(), "Failed to join grove"))
-    .map(|_| ())
+        .insert(db)
+        .await
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to join grove"))
+        .map(|_| ())
 }

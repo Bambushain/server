@@ -138,8 +138,8 @@ impl EventBroadcaster {
             event.is_private && Some(user.id) == event.user.map(|u| u.id);
         let is_in_same_grove = !event.is_private
             && groves
-                .iter()
-                .any(|g| g.id == event.grove.clone().map(|g| g.id).unwrap_or(-1));
+            .iter()
+            .any(|g| g.id == event.grove.clone().map(|g| g.id).unwrap_or(-1));
 
         is_private_event_of_current_user || is_in_same_grove
     }

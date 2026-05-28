@@ -36,31 +36,31 @@ pub fn all_dependencies(_input: TokenStream) -> TokenStream {
             .join("..")
             .join("Cargo.toml"),
     )
-    .follow_links(false)
-    .into_iter()
-    .filter_map(|e| {
-        e.ok()
-            .map(|e| get_dependencies_from_cargo_toml(e.path().display().to_string()))
-    })
-    .flatten()
-    .collect::<BTreeMap<_, _>>()
-    .into_values()
-    .map(|p| {
-        let authors = if p.authors.is_empty() {
-            String::default()
-        } else {
-            p.authors.join(", ")
-        };
-        let description = p
-            .description
-            .clone()
-            .map(|s| s.trim().replace('\n', " "))
-            .unwrap_or_default();
-        let license = p.license.as_ref().map(|s| normalize(s)).unwrap_or_default();
-        let repository = p.repository.clone().unwrap_or_default();
-        let name = p.name.to_string();
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| {
+            e.ok()
+                .map(|e| get_dependencies_from_cargo_toml(e.path().display().to_string()))
+        })
+        .flatten()
+        .collect::<BTreeMap<_, _>>()
+        .into_values()
+        .map(|p| {
+            let authors = if p.authors.is_empty() {
+                String::default()
+            } else {
+                p.authors.join(", ")
+            };
+            let description = p
+                .description
+                .clone()
+                .map(|s| s.trim().replace('\n', " "))
+                .unwrap_or_default();
+            let license = p.license.as_ref().map(|s| normalize(s)).unwrap_or_default();
+            let repository = p.repository.clone().unwrap_or_default();
+            let name = p.name.to_string();
 
-        quote! {
+            quote! {
             DependencyDetails::new(
                 #authors,
                 #name,
@@ -69,8 +69,8 @@ pub fn all_dependencies(_input: TokenStream) -> TokenStream {
                 #description,
             )
         }
-    })
-    .collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
     let expanded = quote! {
         vec![#(#dependencies),*]

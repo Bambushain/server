@@ -43,7 +43,7 @@ impl GathererJob {
             GathererJob::Botanist => "botanist.webp",
             GathererJob::Fisher => "fisher.webp",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_job_name(self) -> String {
@@ -53,7 +53,7 @@ impl GathererJob {
             GathererJob::Botanist => "Botanist",
             GathererJob::Fisher => "Fisher",
         }
-        .to_string()
+            .to_string()
     }
 }
 

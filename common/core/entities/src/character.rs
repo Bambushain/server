@@ -53,7 +53,7 @@ impl CharacterRace {
             Self::Hrothgar => "hrothgar",
             Self::Viera => "viera",
         }
-        .to_string()
+            .to_string()
     }
 }
 
