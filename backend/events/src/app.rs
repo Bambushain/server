@@ -14,7 +14,7 @@ pub async fn start_server() -> std::io::Result<()> {
 
     let notifier_state = NotifierState::new();
 
-    let handle = start_listening(notifier_state.clone())
+    start_listening(notifier_state.clone())
         .await
         .map_err(std::io::Error::other)?;
 
@@ -28,8 +28,6 @@ pub async fn start_server() -> std::io::Result<()> {
     .bind(("0.0.0.0", 4020))?
     .run()
     .await?;
-
-    handle.await.map_err(std::io::Error::other)?;
 
     Ok(())
 }

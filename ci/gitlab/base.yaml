@@ -49,7 +49,7 @@
   stage: docker
   variables:
     TAG: test
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP<:$TAG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP:$TAG
   script:
     - buildah build --platform=linux/$ARCH --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f $CI_PROJECT_DIR/ci/docker/$TYPE.dockerfile -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
     - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"

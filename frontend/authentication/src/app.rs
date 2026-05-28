@@ -92,7 +92,7 @@ fn Login() -> impl IntoView {
                 </ActionForm>
                 <footer class="auth-footer">
                     <a href="/legal/licenses" target="_blank">Lizenzen</a>
-                    <a href="/legal/imprint" target="_blank">Impressum</a>
+                    <a href="/legal/legal-notice" target="_blank">Impressum</a>
                     <a href="/legal/privacy" target="_blank">Datenschutz</a>
                 </footer>
             </div>

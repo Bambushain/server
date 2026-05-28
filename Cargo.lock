@@ -993,6 +993,7 @@ dependencies = [
  "futures-util",
  "getrandom 0.4.2",
  "gloo-file",
+ "gloo-utils 0.3.0",
  "icondata_lu",
  "leptos",
  "leptos-cosmo",
@@ -1006,6 +1007,7 @@ dependencies = [
  "serde_json",
  "server_fn",
  "strum",
+ "uuid",
  "wasm-bindgen",
 ]
 

@@ -20,6 +20,7 @@ dotenvy = { workspace = true }
 futures-util = { workspace = true }
 getrandom = { workspace = true }
 gloo-file = { workspace = true, features = ["futures"] }
+gloo-utils = { workspace = true }
 icondata_lu = { workspace = true }
 leptos = { workspace = true }
 leptos_actix = { workspace = true, optional = true }
@@ -33,6 +34,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 server_fn = { workspace = true }
 strum = { workspace = true }
+uuid = { workspace = true }
 wasm-bindgen = { workspace = true }
 
 [features]
@@ -82,8 +84,6 @@ site-addr = "0.0.0.0:4080"
 reload-port = 4081
 # The browserlist query used for optimizing the CSS.
 browserquery = "defaults"
-# The environment Leptos will run in, usually either "DEV" or "PROD"
-env = "DEV"
 # The features to use when compiling the bin target
 #
 # Optional. Can be over-ridden with the command line parameter --bin-features
@@ -108,3 +108,6 @@ lib-default-features = false
 #
 # Optional. Defaults to "release".
 lib-profile-release = "wasm-release"
+
+lib-cargo-args = ["-j", "10"]
+bin-cargo-args = ["-j", "10"]

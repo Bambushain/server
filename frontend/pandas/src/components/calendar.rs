@@ -5,17 +5,64 @@ use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
 use chrono::{Days, Months};
 use date_range::DateRange;
+use leptos::ev::MouseEvent;
+use leptos::html::Div;
 use leptos::prelude::*;
 use leptos_cosmo::icons::Icon;
 use leptos_cosmo::prelude::*;
 use leptos_router::components::A;
 use leptos_router::hooks::use_query_map;
+use rand::prelude::IndexedRandom;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Not, Sub};
+use strum::{EnumIter, IntoEnumIterator};
 
 enum ColorYiqResult {
     Light,
     Dark,
+}
+
+#[derive(EnumIter)]
+enum Colors {
+    ColorE57373,
+    ColorF06292,
+    ColorBA68C8,
+    Color9575CD,
+    Color7986CB,
+    Color64B5F6,
+    Color4FC3F7,
+    Color4DD0E1,
+    Color4DB6AC,
+    Color81C784,
+    ColorAED581,
+    ColorDCE775,
+    ColorFFF176,
+    ColorFFD54F,
+    ColorFFB74D,
+    ColorFF8A65,
+}
+
+impl Colors {
+    fn get_hex_code(&self) -> &str {
+        match self {
+            Colors::ColorE57373 => "#E57373",
+            Colors::ColorF06292 => "#F06292",
+            Colors::ColorBA68C8 => "#BA68C8",
+            Colors::Color9575CD => "#9575CD",
+            Colors::Color7986CB => "#7986CB",
+            Colors::Color64B5F6 => "#64B5F6",
+            Colors::Color4FC3F7 => "#4FC3F7",
+            Colors::Color4DD0E1 => "#4DD0E1",
+            Colors::Color4DB6AC => "#4DB6AC",
+            Colors::Color81C784 => "#81C784",
+            Colors::ColorAED581 => "#AED581",
+            Colors::ColorDCE775 => "#DCE775",
+            Colors::ColorFFF176 => "#FFF176",
+            Colors::ColorFFD54F => "#FFD54F",
+            Colors::ColorFFB74D => "#FFB74D",
+            Colors::ColorFF8A65 => "#FF8A65",
+        }
+    }
 }
 
 impl Display for ColorYiqResult {
@@ -27,8 +74,8 @@ impl Display for ColorYiqResult {
     }
 }
 
-fn color_yiq(color: String) -> ColorYiqResult {
-    let color = Color::from_hex(color.as_str()).unwrap();
+fn color_yiq(color: &str) -> ColorYiqResult {
+    let color = Color::from_hex(color).unwrap();
     let yiq =
         ((color.red() as u32 * 299) + (color.green() as u32 * 587) + (color.blue() as u32 * 114))
             / 1000;
@@ -44,7 +91,7 @@ fn color_yiq(color: String) -> ColorYiqResult {
 fn EventEntry(event: GroveEvent) -> impl IntoView {
     let edit_event_open = RwSignal::new(false);
 
-    let color = Color::from_hex(event.color.as_str()).unwrap_or_default();
+    let color = Color::from_hex(&event.color).unwrap_or_default();
 
     let me = expect_context::<RwSignal<BambooUser>>();
 
@@ -63,7 +110,7 @@ fn EventEntry(event: GroveEvent) -> impl IntoView {
             class="pandas-calendar__event"
             style:--event-background-color=color.fade(0.8).hsla()
             style:--event-shadow-color=color.fade(0.9).hsla()
-            style:--event-text-color=color_yiq(event.color.clone()).to_string()
+            style:--event-text-color=color_yiq(&event.color).to_string()
         >
             {event.title.clone()}
             <button hidden=can_edit on:click=move |_| edit_event_open.set(true) class="pandas-calendar__event-edit is--button">
@@ -152,6 +199,99 @@ fn Day(
 }
 
 #[component]
+fn BambooColorSelect(
+    #[prop(optional, into)] selected: RwSignal<String>,
+    #[prop(into)] label: Signal<String>,
+    #[prop(optional, into)] name: Signal<String>,
+    #[prop(default = InputWidth::Auto.into(), into)] width: Signal<InputWidth>,
+) -> impl IntoView {
+    let id = uuid::Uuid::new_v4().to_string();
+
+    let flyout_open = RwSignal::new(false);
+    let flyout_up = RwSignal::new(false);
+
+    let select_node = NodeRef::<Div>::new();
+
+    let items = Memo::new(|_| {
+        Colors::iter()
+            .map(|color| {
+                (
+                    color.get_hex_code().to_string(),
+                    color.get_hex_code().to_string(),
+                )
+            })
+            .collect::<Vec<_>>()
+    });
+
+    #[cfg(not(feature = "ssr"))]
+    let on_toggle_flyout = move |ev: MouseEvent| {
+        let element = event_target::<leptos::web_sys::HtmlElement>(&ev);
+        flyout_up.set(
+            gloo_utils::window()
+                .inner_height()
+                .expect("No window? Then this app won't work")
+                .as_f64()
+                .expect("This should be a number")
+                - element.get_bounding_client_rect().bottom()
+                < 100.0,
+        );
+
+        flyout_open.set(!flyout_open.get());
+    };
+    #[cfg(feature = "ssr")]
+    let on_toggle_flyout = move |_ev: MouseEvent| {};
+
+    let on_select = move |item| {
+        selected.set(item);
+    };
+
+    let selected_item = {
+        let items = items.clone();
+        move || {
+            items
+                .read()
+                .iter()
+                .find(|&(value, _)| selected.read() == *value)
+                .cloned()
+                .map(|(_, label)| label)
+        }
+    };
+
+    #[cfg(not(feature = "ssr"))]
+    let _ = leptos_use::on_click_outside(select_node, move |_| flyout_open.set(false));
+
+    view! {
+        <label for=id class="cosmo-label" on:click=on_toggle_flyout>
+            {label}
+        </label>
+        <div node_ref=select_node class=move || format!("cosmo-select cosmo-input {}", width.read()) on:click=on_toggle_flyout>
+            <select style="display:none" name=name prop:value=selected>
+                <For each=move || items.get() key=move |(value, ..)| value.clone() let((value, label))>
+                    <option prop:value=value>{label}</option>
+                </For>
+            </select>
+            <div
+                class="cosmo-select__chip-holder is--color"
+                style:--color-value=selected_item
+            >
+            </div>
+            <Show when=move || *flyout_open.read()>
+                <div class="cosmo-select__flyout is--color" class:is--up=flyout_up>
+                    <For each=move || items.get() key=move |(value, ..)| value.clone() let((value, ..))>
+                        <span
+                            style:--color-value=value.clone()
+                            on:click=move |_| on_select(value.clone())
+                            class="cosmo-select__flyout-item is--color"
+                        >
+                        </span>
+                    </For>
+                </div>
+            </Show>
+        </div>
+    }
+}
+
+#[component]
 fn AddEventDialog(
     day: NaiveDate,
     grove_id: Signal<Option<i32>>,
@@ -177,7 +317,14 @@ fn AddEventDialog(
         },
     ));
 
-    let color = RwSignal::new(Color::random());
+    let colors = Colors::iter().collect::<Vec<_>>();
+
+    let color = colors
+        .choose(&mut rand::rng())
+        .expect("There is at least one color available")
+        .get_hex_code()
+        .to_string();
+    let color = RwSignal::new(color);
 
     let is_private = RwSignal::new(grove_id.read().is_none());
 
@@ -230,7 +377,11 @@ fn AddEventDialog(
                     name="description"
                     required=false
                 />
-                <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
+                <BambooColorSelect
+                    label="Farbe"
+                    name="color"
+                    selected=color
+                />
                 <DatePicker
                     width=InputWidth::Medium
                     label="Von"
@@ -313,9 +464,7 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
     let end_date = RwSignal::new(event.end_date);
     let start_time = RwSignal::new(event.start_time.unwrap_or_default());
     let end_time = RwSignal::new(event.end_time.unwrap_or_default());
-    let color = RwSignal::new(
-        Color::from_hex(event.color.as_str()).unwrap_or(Color::new(89, 140, 121, 0.0)),
-    );
+    let color = RwSignal::new(event.color);
 
     let has_time = RwSignal::new(event.start_time.is_some());
 
@@ -361,7 +510,11 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                         value=description
                         required=false
                     />
-                    <ColorPicker width=InputWidth::Medium label="Farbe" name="color" value=color />
+                    <BambooColorSelect
+                        label="Farbe"
+                        name="color"
+                        selected=color
+                    />
                     <DatePicker
                         width=InputWidth::Medium
                         label="Von"
