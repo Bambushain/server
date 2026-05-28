@@ -116,7 +116,7 @@ pub async fn create_character_housing(
         housing.plot,
         db,
     )
-    .await?
+        .await?
     {
         return Err(BambooError::exists_already(
             error_tag!(),
@@ -157,7 +157,7 @@ pub async fn update_character_housing(
         housing.plot,
         db,
     )
-    .await?
+        .await?
     {
         return Err(BambooError::exists_already(
             error_tag!(),

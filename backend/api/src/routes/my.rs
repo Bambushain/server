@@ -23,9 +23,9 @@ pub async fn change_password(
         &body.new_password,
         &db,
     )
-    .await
-    .map(|_| no_content!())
-    .map_err(|err| err.into())
+        .await
+        .map(|_| no_content!())
+        .map_err(|err| err.into())
 }
 
 #[put("/api/my/profile", wrap = "authenticate!()")]
@@ -43,8 +43,8 @@ pub async fn update_profile(
         &body.discord_name,
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[post("/api/my/totp", wrap = "authenticate!()")]

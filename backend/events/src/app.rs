@@ -25,9 +25,9 @@ pub async fn start_server() -> std::io::Result<()> {
             .app_data(Notifier::new(notifier_state.clone()))
             .configure(routes::configure_routes)
     })
-    .bind(("0.0.0.0", 4020))?
-    .run()
-    .await?;
+        .bind(("0.0.0.0", 4020))?
+        .run()
+        .await?;
 
     Ok(())
 }

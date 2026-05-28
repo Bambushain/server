@@ -76,9 +76,9 @@ pub async fn create_custom_field(
         },
         &db,
     )
-    .await
-    .map_err(bamboo_error_to_serverfn_error)
-    .map(|_| ())
+        .await
+        .map_err(bamboo_error_to_serverfn_error)
+        .map(|_| ())
 }
 
 #[server(UpdateCustomFieldAction, "/pandas/custom-field")]
@@ -113,9 +113,9 @@ pub async fn update_custom_field(
         deleted_values.unwrap_or_default(),
         &db,
     )
-    .await
-    .map_err(|err| {
-        log::error!("Failed to update custom field: {}", err);
-        bamboo_error_to_serverfn_error(err)
-    })
+        .await
+        .map_err(|err| {
+            log::error!("Failed to update custom field: {}", err);
+            bamboo_error_to_serverfn_error(err)
+        })
 }

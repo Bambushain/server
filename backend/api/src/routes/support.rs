@@ -21,7 +21,7 @@ pub async fn send_support_request(
         authentication.user.email.clone(),
         &db,
     )
-    .await;
+        .await;
 
     Ok(no_content!())
 }

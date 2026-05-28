@@ -86,8 +86,8 @@ pub async fn create_character(
         ),
         &db,
     )
-    .await
-    .map_err(bamboo_error_to_serverfn_error)
+        .await
+        .map_err(bamboo_error_to_serverfn_error)
 }
 
 #[server(UpdateCharacterAction, "/pandas/characters")]
@@ -142,6 +142,6 @@ pub async fn update_character(
         ),
         &db,
     )
-    .await
-    .map_err(bamboo_error_to_serverfn_error)
+        .await
+        .map_err(bamboo_error_to_serverfn_error)
 }

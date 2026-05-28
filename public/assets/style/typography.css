@@ -1,91 +1,91 @@
 a {
-  color: var(--primary-color);
-  text-decoration: none;
+    color: var(--primary-color);
+    text-decoration: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: var(--font-weight-heading);
-  font-family: var(--font-family-heading);
-  margin: 0.5em 0 0;
-  vertical-align: text-top;
+    font-weight: var(--font-weight-heading);
+    font-family: var(--font-family-heading);
+    margin: 0.5em 0 0;
+    vertical-align: text-top;
 }
 
 h1 {
-  font-size: 2.75rem;
-  margin-top: 0;
+    font-size: 2.75rem;
+    margin-top: 0;
 }
 
 h2 {
-  font-size: 2.5rem;
+    font-size: 2.5rem;
 }
 
 h3 {
-  font-size: 2.25rem;
+    font-size: 2.25rem;
 }
 
 h4 {
-  font-size: 2rem;
+    font-size: 2rem;
 }
 
 h5 {
-  font-size: 1.75rem;
+    font-size: 1.75rem;
 }
 
 h6 {
-  font-size: 1.5rem;
+    font-size: 1.5rem;
 }
 
 address {
-  font-style: normal;
-  font-size: 1.25rem;
+    font-style: normal;
+    font-size: 1.25rem;
 }
 
 dt {
-  padding: 0;
-  margin: 0.25em 0 0;
-  font-weight: var(--font-weight-bold);
-  font-size: 1.25rem;
+    padding: 0;
+    margin: 0.25em 0 0;
+    font-weight: var(--font-weight-bold);
+    font-size: 1.25rem;
 }
 
 dd {
-  padding: 0;
-  margin: 0;
-  font-size: 1.25rem;
+    padding: 0;
+    margin: 0;
+    font-size: 1.25rem;
 }
 
 ul {
-  margin: 0;
-  padding: 0;
-
-  li {
+    margin: 0;
     padding: 0;
-    margin: 0 0 0 1rem;
-    font-size: 1.25rem;
-  }
+
+    li {
+        padding: 0;
+        margin: 0 0 0 1rem;
+        font-size: 1.25rem;
+    }
 }
 
 p {
-  font-size: 1.25rem;
+    font-size: 1.25rem;
 
-  &:first-child {
-    margin-top: 0;
-  }
+    &:first-child {
+        margin-top: 0;
+    }
 
-  &:last-child {
-    margin-bottom: 0;
-  }
+    &:last-child {
+        margin-bottom: 0;
+    }
 }
 
 pre {
-  font-size: 1.25rem;
-  font-family: var(--font-family);
+    font-size: 1.25rem;
+    font-family: var(--font-family);
 }
 
 summary {
-  font-size: 1.25rem;
-  cursor: pointer;
+    font-size: 1.25rem;
+    cursor: pointer;
 }
 
 details {
-  font-size: 1.25rem;
+    font-size: 1.25rem;
 }

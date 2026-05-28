@@ -133,25 +133,25 @@ pub fn HousingTab(character_id: Signal<i32>) -> impl IntoView {
                 .map(|res| res.iter().find(|&f| f.id == housing_id).cloned().clone())
         }) {
             use_modals().confirm(
-                    "Unterkunft löschen",
-                    format!(
-                        "Soll die {} im Gebiet {} im Bezirk {} mit der Nummer {} wirklich gelöscht werden?",
-                        housing.housing_type,
-                        housing.district,
-                        housing.ward,
-                        housing.plot
-                    ),
-                    Variant::Negative,
-                    "Unterkunft löschen",
-                    "Unterkunft behalten",
-                    Some(Callback::new(move |_| {
-                        delete_housing_action.dispatch(DeleteHousingAction {
-                            housing_id,
-                            character_id: character_id.get(),
-                        });
-                    })),
-                    None,
-                );
+                "Unterkunft löschen",
+                format!(
+                    "Soll die {} im Gebiet {} im Bezirk {} mit der Nummer {} wirklich gelöscht werden?",
+                    housing.housing_type,
+                    housing.district,
+                    housing.ward,
+                    housing.plot
+                ),
+                Variant::Negative,
+                "Unterkunft löschen",
+                "Unterkunft behalten",
+                Some(Callback::new(move |_| {
+                    delete_housing_action.dispatch(DeleteHousingAction {
+                        housing_id,
+                        character_id: character_id.get(),
+                    });
+                })),
+                None,
+            );
         }
     };
 

@@ -21,13 +21,13 @@ pub async fn create_token(username: &str, db: &DatabaseConnection) -> BambooResu
         token: Set(uuid::Uuid::new_v4().to_string()),
         user_id: Set(user.id),
     }
-    .insert(db)
-    .await
-    .map(|token| LoginResult {
-        token: token.token,
-        user,
-    })
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to create token"))
+        .insert(db)
+        .await
+        .map(|token| LoginResult {
+            token: token.token,
+            user,
+        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create token"))
 }
 
 pub async fn validate_auth(
@@ -47,11 +47,9 @@ pub async fn validate_auth(
 
     let mut requires_two_factor_code =
         user.totp_secret.is_some() && user.totp_validated.unwrap_or(false);
-    if requires_two_factor_code {
-        if let Some(two_factor_code) = two_factor_code {
-            validate_two_factor_code(user.id, &two_factor_code, password, false, db).await?;
-            requires_two_factor_code = false;
-        }
+    if requires_two_factor_code && let Some(two_factor_code) = two_factor_code {
+        validate_two_factor_code(user.id, &two_factor_code, password, false, db).await?;
+        requires_two_factor_code = false;
     }
 
     Ok(TwoFactorResult {
@@ -132,12 +130,12 @@ async fn validate_totp_token(
             Some("Bambushain".to_string()),
             user.display_name.clone(),
         )
-        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))?,
+            .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))?,
     )
-    .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-    .map(|totp| {
-        totp.check_current(code)
-            .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-            .map(|_| ())
-    })?
+        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
+        .map(|totp| {
+            totp.check_current(code)
+                .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
+                .map(|_| ())
+        })?
 }

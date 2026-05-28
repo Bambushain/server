@@ -56,9 +56,9 @@ pub async fn create_housing(
         CharacterHousing::new(character_id, district, housing_type, ward, plot),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }
 
 #[server(GetFreeCompanyHousing, "/pandas/free-company/housing")]

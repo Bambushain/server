@@ -69,7 +69,7 @@ impl MigrationTrait for Migration {
             manager.get_database_backend(),
             "ALTER TYPE final_fantasy.crafter_job RENAME TO crafter_job_old",
         ))
-        .await?;
+            .await?;
 
         manager
             .create_type(

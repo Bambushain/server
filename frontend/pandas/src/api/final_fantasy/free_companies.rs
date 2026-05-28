@@ -3,8 +3,7 @@ use leptos::server;
 use server_fn::ServerFnError;
 
 #[server(GetFreeCompaniesAction, "/pandas/free-company")]
-pub async fn get_free_companies(
-) -> Result<Vec<FreeCompanyWithCharacterCountAndHousing>, ServerFnError> {
+pub async fn get_free_companies() -> Result<Vec<FreeCompanyWithCharacterCountAndHousing>, ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use leptos_actix::extract;
@@ -50,9 +49,9 @@ pub async fn create_free_company(
             FreeCompanyHousing::new(company.id, district.into(), ward, plot),
             &db,
         )
-        .await
-        .map(|_| ())
-        .map_err(ServerFnError::from)
+            .await
+            .map(|_| ())
+            .map_err(ServerFnError::from)
     } else {
         Ok(())
     }
@@ -91,9 +90,9 @@ pub async fn edit_free_company(
             FreeCompanyHousing::new(id, district.into(), ward, plot),
             &db,
         )
-        .await
-        .map(|_| ())
-        .map_err(ServerFnError::from)
+            .await
+            .map(|_| ())
+            .map_err(ServerFnError::from)
     } else {
         dbal::delete_free_company_housing(auth_state.user.id, id, &db)
             .await

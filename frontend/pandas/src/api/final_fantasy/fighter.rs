@@ -53,9 +53,9 @@ pub async fn create_fighter(
         Fighter::new(character_id, fighter_job, level, gear_score),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }
 
 #[server(EditFighterAction, "/pandas/fighter")]
@@ -81,7 +81,7 @@ pub async fn edit_fighter(
         Fighter::new(character_id, fighter_job, level, gear_score),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }

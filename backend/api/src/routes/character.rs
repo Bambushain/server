@@ -67,8 +67,8 @@ pub async fn update_character(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(

@@ -67,8 +67,8 @@ pub async fn update_free_company(
         &body.name,
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(
@@ -122,8 +122,8 @@ pub async fn set_free_company_housing(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|data| ok!(data))
+        .await
+        .map(|data| ok!(data))
 }
 
 #[delete(

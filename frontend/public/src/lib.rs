@@ -36,7 +36,7 @@ pub async fn start_server() -> std::io::Result<()> {
             .default_service(web::to(homepage))
             .wrap(middleware::Compress::default())
     })
-    .bind("0.0.0.0:4070")?
-    .run()
-    .await
+        .bind("0.0.0.0:4070")?
+        .run()
+        .await
 }

@@ -14,7 +14,7 @@ pub(crate) async fn check_grove_mod(
     req: dev::ServiceRequest,
     next: Next<impl body::MessageBody>,
 ) -> Result<dev::ServiceResponse<impl body::MessageBody>, Error> {
-    let (_, user) = if authorization.is_some() {
+    let (.., user) = if authorization.is_some() {
         middleware::get_user_and_token_by_header(&db, authorization).await?
     } else {
         middleware::get_user_and_token_by_cookie(&db, auth_cookie).await?
@@ -26,7 +26,7 @@ pub(crate) async fn check_grove_mod(
                 "grove",
                 "You don't have the right to manage this grove",
             )
-            .into());
+                .into());
         }
     }
 

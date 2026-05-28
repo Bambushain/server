@@ -131,9 +131,9 @@ pub async fn create_custom_field(
         user_id: Set(user_id),
         position: Set(custom_field.position as i32),
     }
-    .insert(db)
-    .await
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to create custom field"))?;
+        .insert(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create custom field"))?;
 
     let models = custom_field
         .values
@@ -311,9 +311,9 @@ pub async fn create_custom_field_option(
         custom_character_field_id: Set(custom_field_id),
         label: Set(label.to_string()),
     }
-    .insert(db)
-    .await
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to create custom field option"))
+        .insert(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create custom field option"))
 }
 
 pub async fn update_custom_field_option(
@@ -458,9 +458,9 @@ pub async fn move_custom_field(
             Ok(())
         })
     })
-    .await
-    .map_err(|_: TransactionError<BambooError>| {
-        BambooError::database(error_tag!(), "Failed to update grove mods")
-    })
-    .map(|_| ())
+        .await
+        .map_err(|_: TransactionError<BambooError>| {
+            BambooError::database(error_tag!(), "Failed to update grove mods")
+        })
+        .map(|_| ())
 }

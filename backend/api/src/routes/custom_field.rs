@@ -67,8 +67,8 @@ pub async fn update_custom_field(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(
@@ -106,8 +106,8 @@ pub async fn create_custom_field_option(
         &body.into_inner(),
         &db,
     )
-    .await
-    .map(|data| created!(data))
+        .await
+        .map(|data| created!(data))
 }
 
 #[get(
@@ -146,8 +146,8 @@ pub async fn update_custom_field_option(
         &body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(

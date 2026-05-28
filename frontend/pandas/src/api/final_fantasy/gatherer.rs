@@ -52,9 +52,9 @@ pub async fn create_gatherer(
         Gatherer::new(character_id, gatherer_job, level),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }
 
 #[server(EditGathererAction, "/pandas/gatherer")]
@@ -79,7 +79,7 @@ pub async fn edit_gatherer(
         Gatherer::new(character_id, gatherer_job, level),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }

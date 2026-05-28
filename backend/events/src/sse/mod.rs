@@ -7,7 +7,7 @@ use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
 pub async fn event_sse_client(
     notifier: Notifier,
     authentication: Authentication,
-) -> impl Responder + use<> {
+) -> impl Responder + use < > {
     log::debug!("Register new event sse client");
     notifier.new_client(authentication.user.clone()).await
 }

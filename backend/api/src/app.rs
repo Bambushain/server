@@ -23,7 +23,7 @@ pub async fn start_server() -> std::io::Result<()> {
             .app_data(DbConnection::new(db.clone()))
             .configure(routes::configure_routes)
     })
-    .bind(("0.0.0.0", 4010))?
-    .run()
-    .await
+        .bind(("0.0.0.0", 4010))?
+        .run()
+        .await
 }

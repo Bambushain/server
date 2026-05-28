@@ -18,11 +18,11 @@ pub async fn login(body: Option<web::Json<Login>>, db: DbConnection) -> BambooAp
         body.two_factor_code.clone(),
         &db,
     )
-    .await
-    .map_err(|err| {
-        log::error!("Failed to login {err}");
-        BambooError::unauthorized("user", "Login data is invalid")
-    })?;
+        .await
+        .map_err(|err| {
+            log::error!("Failed to login {err}");
+            BambooError::unauthorized("user", "Login data is invalid")
+        })?;
 
     if data.requires_two_factor_code {
         Ok(no_content!())

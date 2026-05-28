@@ -83,8 +83,8 @@ pub async fn update_gatherer(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(

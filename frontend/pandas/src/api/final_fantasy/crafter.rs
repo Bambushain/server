@@ -52,9 +52,9 @@ pub async fn create_crafter(
         Crafter::new(character_id, crafter_job, level),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }
 
 #[server(EditCrafterAction, "/pandas/crafter")]
@@ -79,7 +79,7 @@ pub async fn edit_crafter(
         Crafter::new(character_id, crafter_job, level),
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
-    .map(|_| ())
+        .await
+        .map_err(ServerFnError::new)
+        .map(|_| ())
 }

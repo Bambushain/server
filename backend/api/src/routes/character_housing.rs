@@ -44,8 +44,8 @@ pub async fn get_character_housing(
         character.id,
         &db,
     )
-    .await
-    .map(|character_housing| ok!(character_housing))
+        .await
+        .map(|character_housing| ok!(character_housing))
 }
 
 #[post(
@@ -88,8 +88,8 @@ pub async fn update_character_housing(
         body.into_inner(),
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }
 
 #[delete(
@@ -111,6 +111,6 @@ pub async fn delete_character_housing(
         character.id,
         &db,
     )
-    .await
-    .map(|_| no_content!())
+        .await
+        .map(|_| no_content!())
 }

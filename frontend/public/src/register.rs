@@ -255,7 +255,7 @@ pub async fn create_account(
         &body.password,
         &db,
     )
-    .await
+        .await
     {
         log::error!("Failed to create account for new user: {err}");
         HttpResponse::Ok()

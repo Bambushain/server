@@ -26,7 +26,7 @@ impl NotifierState {
         Self { event_broadcaster }
     }
 
-    pub async fn new_client(&self, user: BambooUser) -> impl Responder + use<> {
+    pub async fn new_client(&self, user: BambooUser) -> impl Responder + use < > {
         log::info!("Wanted new client");
         Arc::clone(&self.event_broadcaster).new_client(user).await
     }

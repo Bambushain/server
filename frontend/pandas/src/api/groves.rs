@@ -144,9 +144,9 @@ pub async fn update_mods(id: i32, mods: Vec<String>) -> Result<(), ServerFnError
                 .collect::<Vec<_>>(),
             &db,
         )
-        .await
-        .map_err(ServerFnError::new)
-        .map(|_| ())
+            .await
+            .map_err(ServerFnError::new)
+            .map(|_| ())
     } else {
         Err(ServerFnError::new("You need to be mod"))
     }
@@ -206,6 +206,6 @@ pub async fn create_grove(name: String, allow_invite: String) -> Result<Grove, S
         auth_state.user.id,
         &db,
     )
-    .await
-    .map_err(ServerFnError::new)
+        .await
+        .map_err(ServerFnError::new)
 }

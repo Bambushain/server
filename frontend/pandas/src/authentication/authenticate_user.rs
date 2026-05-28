@@ -28,7 +28,7 @@ pub async fn authenticate_user(
                 .insert_header((header::LOCATION, "/authentication"))
                 .message_body(())?,
         )
-        .map_into_right_body())
+            .map_into_right_body())
     }
 }
 

@@ -201,14 +201,14 @@ fn CreateCustomFieldDialog(
         spawn_local(async move {
             has_error.set(match create_custom_field(position, label, values).await {
                 Err(BambooCodeError::ExistsAlready) =>
-                {
-                    error_message_header.set("Feld existiert".to_string());
-                    error_message.set("Du hast schon ein Feld mit diesem Namen".to_string());
-                    true
-                }
+                    {
+                        error_message_header.set("Feld existiert".to_string());
+                        error_message.set("Du hast schon ein Feld mit diesem Namen".to_string());
+                        true
+                    }
                 Err(_) => {
                     error_message_header.set("Fehler beim Erstellen".to_string());
-                    error_message.set( "Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport".to_string());
+                    error_message.set("Ein unbekannter Fehler ist aufgetreten, bitte wende dich an den Bambussupport".to_string());
                     true
                 }
                 Ok(_) => {

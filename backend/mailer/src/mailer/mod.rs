@@ -23,7 +23,7 @@ fn get_transport(
     } else {
         AsyncSmtpTransport::<Tokio1Executor>::relay(mail_server.as_str())
     }
-    .map_err(|_| BambooError::mailing("Failed to create the email builder"))?;
+        .map_err(|_| BambooError::mailing("Failed to create the email builder"))?;
 
     let port = env_service
         .get_env("MAILER_PORT", "25")
@@ -51,12 +51,12 @@ fn get_transport(
         } else {
             builder.tls(smtp::client::Tls::None)
         }
-        .credentials(smtp::authentication::Credentials::new(
-            env_service.get_env("MAILER_USERNAME", ""),
-            env_service.get_env("MAILER_PASSWORD", ""),
-        ))
-        .port(port)
-        .build();
+            .credentials(smtp::authentication::Credentials::new(
+                env_service.get_env("MAILER_USERNAME", ""),
+                env_service.get_env("MAILER_PASSWORD", ""),
+            ))
+            .port(port)
+            .build();
 
     Ok(transport)
 }
@@ -91,7 +91,7 @@ async fn convert_html_body(mail: Mail) -> BambooResult<String> {
             mail.action_label,
             mail.action_link,
         )
-        .await
+            .await
     } else {
         Ok(mail.body)
     }
@@ -110,7 +110,7 @@ async fn convert_plain_body(mail: Mail) -> BambooResult<String> {
             }),
             mail.action_link,
         )
-        .await
+            .await
     } else {
         Ok(mail.body)
     }?;
@@ -129,23 +129,23 @@ pub async fn send_mail(mail: &Mail, env_service: EnvironmentService) -> BambooEr
     } else {
         build_message(&env_service, mail.subject.clone(), mail.to.clone())?
     }
-    .multipart(
-        MultiPart::alternative()
-            .singlepart(SinglePart::plain(convert_plain_body(mail.clone()).await?))
-            .multipart(
-                MultiPart::related()
-                    .singlepart(SinglePart::html(convert_html_body(mail.clone()).await?))
-                    .singlepart(Attachment::new_inline("logo".to_string()).body(
-                        Body::new(include_bytes!("logo.gif").to_vec()),
-                        ContentType::parse("image/gif").unwrap(),
-                    ))
-                    .singlepart(Attachment::new_inline("background".to_string()).body(
-                        Body::new(include_bytes!("background.jpg").to_vec()),
-                        ContentType::parse("image/jpeg").unwrap(),
-                    )),
-            ),
-    )
-    .map_err(|_| BambooError::mailing("Failed to construct the email message"))?;
+        .multipart(
+            MultiPart::alternative()
+                .singlepart(SinglePart::plain(convert_plain_body(mail.clone()).await?))
+                .multipart(
+                    MultiPart::related()
+                        .singlepart(SinglePart::html(convert_html_body(mail.clone()).await?))
+                        .singlepart(Attachment::new_inline("logo".to_string()).body(
+                            Body::new(include_bytes!("logo.gif").to_vec()),
+                            ContentType::parse("image/gif").unwrap(),
+                        ))
+                        .singlepart(Attachment::new_inline("background".to_string()).body(
+                            Body::new(include_bytes!("background.jpg").to_vec()),
+                            ContentType::parse("image/jpeg").unwrap(),
+                        )),
+                ),
+        )
+        .map_err(|_| BambooError::mailing("Failed to construct the email message"))?;
 
     get_transport(&env_service)?
         .send(email)

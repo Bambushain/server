@@ -77,7 +77,7 @@ pub async fn update_profile(
             &discord_name,
             &db,
         )
-        .await
+            .await
         {
             Ok(_) => UpdateProfileResult {
                 success: true,

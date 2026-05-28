@@ -145,7 +145,7 @@ pub async fn get_character(
             .add(character::Column::Id.eq(id)),
         db,
     )
-    .await?;
+        .await?;
 
     character::Entity::find_by_id(id)
         .select_only()
@@ -360,12 +360,12 @@ async fn create_custom_field_values(
                 .map(|_| ())
         })
     })
-    .await
-    .map_err(|err: TransactionError<BambooError>| {
-        log::error!("{err}");
-        BambooError::database(error_tag!(), "Failed to update grove mods")
-    })
-    .map(|_| ())
+        .await
+        .map_err(|err: TransactionError<BambooError>| {
+            log::error!("{err}");
+            BambooError::database(error_tag!(), "Failed to update grove mods")
+        })
+        .map(|_| ())
 }
 
 pub async fn delete_character(id: i32, user_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
