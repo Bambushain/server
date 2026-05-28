@@ -6,6 +6,8 @@
   image:
     name: registry.ulbricht.casa/docker-images/rust-docker-base-image:latest
     pull_policy: always
+  variables:
+    ARCH: amd64
   extends:
     - .base-cargo
   cache:
@@ -27,6 +29,7 @@
     CARGO_PROFILE_RELEASE_DEBUG: "false"
     CARGO_PROFILE_RELEASE_LTO: "true"
     CARGO_PROFILE_RELEASE_STRIP: "symbols"
+    ARCH: amd64
   cache:
     key: $CI_PROJECT_NAME-$ARCH-leptos
     paths:
@@ -35,6 +38,8 @@
 
 .base-docker:
   image: registry.ulbricht.casa/docker-images/buildah:latest
+  variables:
+    ARCH: amd64
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "$CI_JOB_TOKEN" | buildah login -u gitlab-ci-token --password-stdin gitlab.imanuel.dev:443
@@ -44,7 +49,7 @@
   stage: docker
   variables:
     TAG: test
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP/$ARCH:$TAG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP<:$TAG
   script:
     - buildah build --platform=linux/$ARCH --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f $CI_PROJECT_DIR/ci/docker/$TYPE.dockerfile -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
     - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"
@@ -57,48 +62,17 @@
           - migrator
         TYPE:
           - backend
-        ARCH:
-          - amd64
-          - arm64
       - APP:
           - pandas
           - authentication
         TYPE:
           - frontend
-        ARCH:
-          - amd64
-          - arm64
       - APP:
           - public
         TYPE:
           - public
-        ARCH:
-          - amd64
-          - arm64
   tags:
-    - runner-${ARCH}
-
-.base-merge-manifests:
-  stage: deploy
-  extends: .base-docker
-  variables:
-    IMAGE: $CI_REGISTRY_IMAGE/$APP
-    IMAGE_TAG: $IMAGE:$TAG
-  script:
-    - buildah manifest create $IMAGE_TAG
-    - buildah manifest add $IMAGE_TAG docker://$IMAGE/amd64:$TAG
-    - buildah manifest add $IMAGE_TAG docker://$IMAGE/arm64:$TAG
-    - buildah manifest push --all $IMAGE_TAG
-  parallel:
-    matrix:
-      - APP:
-          - mailer
-          - events
-          - api
-          - public
-          - pandas
-          - authentication
-          - migrator
+    - runner-$ARCH
 
 .base-review:
   image:

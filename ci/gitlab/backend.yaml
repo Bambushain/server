@@ -4,8 +4,6 @@ lint-backend:
   stage: lint
   script:
     - cargo clippy --release --bin bamboo-api --bin bamboo-events --bin bamboo-mailer --bin bamboo-migrator --bin bamboo-public
-  variables:
-    ARCH: amd64
   tags:
     - runner-$ARCH
 
@@ -30,10 +28,5 @@ build-backend:
       - $ARCH/bamboo-migrator
       - $ARCH/bamboo-public
       - $ARCH/public
-  parallel:
-    matrix:
-      - ARCH:
-          - amd64
-          - arm64
   tags:
-    - runner-${ARCH}
+    - runner-$ARCH

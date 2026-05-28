@@ -5,8 +5,6 @@ lint-frontend:
   script:
     - cd frontend/$APP
     - cargo clippy --release --features ssr --features hydrate
-  variables:
-    ARCH: amd64
   parallel:
     matrix:
       - APP:
@@ -34,8 +32,5 @@ build-frontend:
       - APP:
           - pandas
           - authentication
-        ARCH:
-          - amd64
-          - arm64
   tags:
-    - runner-${ARCH}
+    - runner-$ARCH
