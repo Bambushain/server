@@ -1,0 +1,81 @@
+get:
+  summary: Get notifications for event
+  description: Gets the notifications for the passed event id
+  parameters:
+    - name: event_id
+      in: path
+      required: true
+      description: ID of the event to update
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: Event notifications
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../../components/schemas/event-notification.yaml"
+    "400":
+      description: Invalid dates
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - calendar
+post:
+  summary: Create event notification
+  description: Create a new grove event notification
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/event-notification.yaml"
+  responses:
+    "201":
+      description: Event notification created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/grove-event.yaml"
+    "400":
+      description: Invalid dates
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/grove-event.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/grove-event.yaml"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/grove-event.yaml"
+  tags:
+    - calendar

@@ -44,6 +44,12 @@ pub struct EventPathInfo {
 }
 
 #[derive(Deserialize)]
+pub struct EventNotificationPathInfo {
+    pub event_id: i32,
+    pub notification_id: i32,
+}
+
+#[derive(Deserialize)]
 pub struct FighterPathInfo {
     pub fighter_id: i32,
 }
@@ -76,6 +82,7 @@ pub type CustomFieldPath = web::Path<CustomFieldPathInfo>;
 pub type CustomFieldOptionPath = web::Path<CustomFieldOptionPathInfo>;
 pub type CustomFieldPositionPath = web::Path<CustomFieldPositionPathInfo>;
 pub type EventPath = web::Path<EventPathInfo>;
+pub type EventNotificationPath = web::Path<EventNotificationPathInfo>;
 pub type FighterPath = web::Path<FighterPathInfo>;
 pub type FreeCompanyPath = web::Path<FreeCompanyPathInfo>;
 pub type GathererPath = web::Path<GathererPathInfo>;

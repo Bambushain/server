@@ -17,6 +17,7 @@ pub struct Model {
     #[cfg_attr(feature = "backend", sea_orm(primary_key))]
     #[serde(default)]
     pub id: i32,
+    #[serde(skip)]
     pub event_id: i32,
     pub time: chrono::DateTime<Utc>,
 }

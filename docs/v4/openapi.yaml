@@ -104,6 +104,10 @@ paths:
     $ref: "paths/api/bamboo-grove/event.yaml"
   /api/bamboo-grove/event/{event_id}:
     $ref: "paths/api/bamboo-grove/event/{event_id}.yaml"
+  /api/bamboo-grove/event/{event_id}/notification:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/notification.yaml"
+  /api/bamboo-grove/event/{event_id}/notification/{notification_id}:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/notification/{notification_id}.yaml"
   /api/user:
     $ref: "paths/api/user.yaml"
   /api/user/{user_id}/picture:

@@ -5,7 +5,7 @@ use bamboo_common_core::entities::user::WebUser;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 use bamboo_common_core::queueing::EventAction;
-use chrono::{NaiveDate, Timelike, Utc};
+use chrono::{NaiveDate, Timelike};
 use date_range::DateRange;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::IntoCondition;
@@ -298,9 +298,10 @@ pub async fn create_event_notification(
         .map_err(|_| BambooError::database(error_tag!(), "Failed to create event notification"))
 }
 
-pub async fn delete_event_notification(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+pub async fn delete_event_notification(event_id: i32, notification_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
     event_notification::Entity::delete_many()
-        .filter(event::Column::Id.eq(id))
+        .filter(event_notification::Column::Id.eq(notification_id))
+        .filter(event_notification::Column::EventId.eq(event_id))
         .exec(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to delete event notification"))

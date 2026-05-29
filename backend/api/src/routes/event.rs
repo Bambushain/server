@@ -11,6 +11,7 @@ use bamboo_common::core::error::*;
 
 use crate::path;
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
+use bamboo_common::core::entities::EventNotification;
 
 #[derive(Deserialize)]
 pub struct GetEventsQuery {
@@ -64,7 +65,7 @@ pub async fn update_event(
         body.into_inner(),
         &db,
     )
-        .await?;
+    .await?;
 
     Ok(no_content!())
 }
@@ -80,4 +81,51 @@ pub async fn delete_event(
     dbal::delete_event(authentication.user.id, path.event_id, &db).await?;
 
     Ok(no_content!())
+}
+
+#[get(
+    "/api/bamboo-grove/event/{event_id}/notification",
+    wrap = "authenticate!()"
+)]
+pub async fn get_event_notifications(
+    path: Option<path::EventPath>,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "event_notification")?;
+
+    dbal::get_notifications_for_event(path.event_id, &db)
+        .await
+        .map(|data| list!(data))
+}
+
+#[post(
+    "/api/bamboo-grove/event/{event_id}/notification",
+    wrap = "authenticate!()"
+)]
+pub async fn create_event_notification(
+    path: Option<path::EventPath>,
+    body: Option<web::Json<EventNotification>>,
+    db: DbConnection,
+) -> BambooApiResult<EventNotification> {
+    let path = check_invalid_path!(path, "event_notification")?;
+    let body = check_missing_fields!(body, "event_notification")?;
+
+    dbal::create_event_notification(path.event_id, body.time, &db)
+        .await
+        .map(|data| created!(data))
+}
+
+#[delete(
+    "/api/bamboo-grove/event/{event_id}/notification/{notification_id}",
+    wrap = "authenticate!()"
+)]
+pub async fn delete_event_notification(
+    path: Option<path::EventNotificationPath>,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "event_notification")?;
+
+    dbal::delete_event_notification(path.event_id, path.notification_id, &db)
+        .await
+        .map(|_| no_content!())
 }
