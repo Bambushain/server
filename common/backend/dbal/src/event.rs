@@ -5,7 +5,7 @@ use bamboo_common_core::entities::user::WebUser;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 use bamboo_common_core::queueing::EventAction;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, Timelike, Utc};
 use date_range::DateRange;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::IntoCondition;
@@ -158,16 +158,16 @@ pub async fn get_events(
             additional_filter
         },
     )
-        .all(db)
-        .await
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))
-        .map(|events| {
-            events
-                .iter()
-                .cloned()
-                .map(|event| event.into())
-                .collect::<Vec<GroveEvent>>()
-        })
+    .all(db)
+    .await
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))
+    .map(|events| {
+        events
+            .iter()
+            .cloned()
+            .map(|event| event.into())
+            .collect::<Vec<GroveEvent>>()
+    })
 }
 
 pub async fn get_event(id: i32, user_id: i32, db: &DatabaseConnection) -> BambooResult<GroveEvent> {
@@ -254,4 +254,55 @@ pub async fn delete_event(user_id: i32, id: i32, db: &DatabaseConnection) -> Bam
     } else {
         Err(BambooError::not_found(error_tag!(), "Event not found"))
     }
+}
+
+pub async fn get_notifications_for_event(
+    event_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<EventNotification>> {
+    event_notification::Entity::find()
+        .filter(event_notification::Column::EventId.eq(event_id))
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to get event notifications"))
+}
+
+pub async fn get_current_notifications(
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<EventNotification>> {
+    let now = chrono::Utc::now()
+        .with_nanosecond(0)
+        .unwrap()
+        .with_second(0)
+        .unwrap();
+    event_notification::Entity::find()
+        .filter(event_notification::Column::Time.eq(now))
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to get event notifications"))
+}
+
+pub async fn create_event_notification(
+    event_id: i32,
+    time: chrono::DateTime<chrono::Utc>,
+    db: &DatabaseConnection,
+) -> BambooResult<EventNotification> {
+    let mut model = event_notification::ActiveModel::new();
+    model.id = NotSet;
+    model.event_id = Set(event_id);
+    model.time = Set(time);
+
+    model
+        .insert(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create event notification"))
+}
+
+pub async fn delete_event_notification(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    event_notification::Entity::delete_many()
+        .filter(event::Column::Id.eq(id))
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete event notification"))
+        .map(|_| ())
 }
