@@ -1,13 +1,15 @@
-use crate::api::{get_events, CreateEventAction, DeleteEventAction, UpdateEventAction};
+use crate::api::{create_event, update_event, get_events, DeleteEventAction};
 use crate::state::AllGroves;
 use bamboo_common::core::entities::{BambooUser, GroveEvent};
 use bamboo_common::core::queueing::EventType;
 use chrono::prelude::*;
 use chrono::{Days, Months};
 use date_range::DateRange;
-use leptos::ev::MouseEvent;
+use icondata_lu::{LuPlus, LuTrash};
+use leptos::ev::{MouseEvent, SubmitEvent};
 use leptos::html::Div;
 use leptos::prelude::*;
+use leptos::task::spawn_local;
 use leptos_cosmo::icons::Icon;
 use leptos_cosmo::prelude::*;
 use leptos_router::components::A;
@@ -246,7 +248,6 @@ fn BambooColorSelect(
     };
 
     let selected_item = {
-        let items = items.clone();
         move || {
             items
                 .read()
@@ -299,10 +300,13 @@ fn AddEventDialog(
 ) -> impl IntoView {
     let groves = expect_context::<RwSignal<AllGroves>>();
 
-    let action = ServerAction::<CreateEventAction>::new();
-
     let start_date = RwSignal::new(day);
     let end_date = RwSignal::new(day);
+    let start_time = RwSignal::new(NaiveTime::default());
+    let end_time = RwSignal::new(NaiveTime::default());
+
+    let title = RwSignal::new("".to_string());
+    let description = RwSignal::new("".to_string());
 
     let has_time = RwSignal::new(false);
 
@@ -316,6 +320,14 @@ fn AddEventDialog(
                 .map(|grove| grove.name.clone())
         },
     ));
+
+    let notifications = RwSignal::new(vec![]);
+    let new_notification = RwSignal::new(
+        day.and_hms_opt(12, 0, 0)
+            .unwrap()
+            .format("%FT%R")
+            .to_string(),
+    );
 
     let colors = Colors::iter().collect::<Vec<_>>();
 
@@ -344,25 +356,74 @@ fn AddEventDialog(
             .collect::<Vec<_>>()
     };
 
-    let value = action.value();
-    let has_error = move || value.with(|val| matches!(val, Some(Err(_))));
+    let has_error = RwSignal::new(false);
 
-    Effect::new(move |_| {
-        if value.read().is_some() {
-            is_open.set(false);
+    let add_notification = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        if !new_notification.read().is_empty() {
+            notifications.update(|notifications| {
+                let notification =
+                    NaiveDateTime::parse_from_str(&new_notification.get(), "%FT%R").unwrap();
+                notifications.push(notification.and_utc());
+            });
+            new_notification.set("".to_string());
         }
-    });
+    };
+    let add_event = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        spawn_local(async move {
+            let start_time = if has_time.read() == true {
+                None
+            } else {
+                Some(start_time.get_untracked())
+            };
+            let end_time = if has_time.read() == true {
+                None
+            } else {
+                Some(end_time.get_untracked())
+            };
+
+            has_error.set(
+                match create_event(
+                    title.get_untracked(),
+                    Some(description.get_untracked()),
+                    color.get_untracked(),
+                    start_date.get_untracked(),
+                    end_date.get_untracked(),
+                    start_time,
+                    end_time,
+                    is_private.get_untracked(),
+                    grove_id.get_untracked(),
+                    notifications.get_untracked(),
+                )
+                .await
+                {
+                    Err(_) => true,
+                    Ok(_) => {
+                        is_open.set(false);
+                        false
+                    }
+                },
+            );
+        });
+    };
+    let delete_notification = {
+        Callback::new(move |time| {
+            notifications.update(|values| values.retain(|when| when != &time));
+        })
+    };
 
     view! {
-        <ActionFormModal action=action title="Event hinzufügen">
+        <form id="new_notification" on:submit=add_notification />
+        <FormModal
+            on:submit=add_event
+            title="Event hinzufügen"
+            has_error=has_error
+            error_message="Das Event konnte leider nicht hinzugefügt werden, bitte wende dich an den Bambussupport."
+            error_message_header="Fehler beim Hinzufügen"
+        >
             <ModalContent slot>
-                <Show when=has_error>
-                    <AlertMessage header="Fehler beim Hinzufügen">
-                        <MessageContent slot>
-                            Das Event konnte leider nicht hinzugefügt werden, bitte wende dich an den Bambussupport.
-                        </MessageContent>
-                    </AlertMessage>
-                </Show>
+                <input type="hidden" id="" />
                 <Show when=move || current_grove_id.read().is_some()>
                     <input
                         type="hidden"
@@ -370,12 +431,13 @@ fn AddEventDialog(
                         value=move || current_grove_id.get().unwrap().id
                     />
                 </Show>
-                <Textbox width=InputWidth::Medium label="Titel" required=true name="title" />
+                <Textbox width=InputWidth::Medium label="Titel" required=true name="title" value=title />
                 <Textarea
                     width=InputWidth::Medium
                     label="Beschreibung"
                     name="description"
                     required=false
+                    value=description
                 />
                 <BambooColorSelect
                     label="Farbe"
@@ -404,12 +466,14 @@ fn AddEventDialog(
                         label="Startzeit"
                         required=true
                         name="start_time"
+                        value=start_time
                     />
                     <TimePicker
                         width=InputWidth::Medium
                         label="Endzeit"
                         required=true
                         name="end_time"
+                        value=end_time
                     />
                 </Show>
                 <Show when=move || grove_id.read().is_none()>
@@ -424,29 +488,61 @@ fn AddEventDialog(
                         selected=selected_grove
                     />
                 </Show>
+                <span class="cosmo-input__header">Benachrichtigungen</span>
+                <label class="cosmo-label" for="new-option">
+                    Zeitpunkt
+                </label>
+                <div class="cosmo-input is--group">
+                    <input
+                        class="cosmo-input"
+                        id="new-option"
+                        type="datetime-local"
+                        bind:value=new_notification
+                        form="new_notification"
+                    />
+                    <button
+                        type="submit"
+                        class="cosmo-button is--primary is--addon"
+                        form="new_notification"
+                    >
+                        <Icon width="1rem" height="1rem" icon=LuPlus />
+                    </button>
+                </div>
+                {move || {
+                    notifications
+                        .get()
+                        .into_iter()
+                        .map(|when| {
+                            view! {
+                                <div class="pandas-custom-fields__option is--new">
+                                    <span>{when.format_localized("%A %e %B %Y, %R", Locale::de_DE).to_string()}</span>
+                                    <button
+                                        type="button"
+                                        class="cosmo-button is--negative is--custom-fields is--edit"
+                                        on:click=move |_| delete_notification.run(when)
+                                    >
+                                        <Icon width="1.25rem" height="1.25rem" icon=LuTrash />
+                                    </button>
+                                </div>
+                            }
+                        })
+                        .collect_view()
+                }}
             </ModalContent>
             <ModalButton label="Abbrechen" on_click=move || is_open.set(false) slot />
             <ModalButton label="Event speichern" is_submit=true slot />
-        </ActionFormModal>
+        </FormModal>
     }
 }
 
 #[component]
 fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView {
-    let update_action = ServerAction::<UpdateEventAction>::new();
     let delete_action = ServerAction::<DeleteEventAction>::new();
 
-    let update_value = update_action.value();
     let delete_value = delete_action.value();
 
-    let has_update_error = move || update_value.with(|val| matches!(val, Some(Err(_))));
+    let has_update_error = RwSignal::new(false);
     let has_delete_error = move || delete_value.with(|val| matches!(val, Some(Err(_))));
-
-    Effect::new(move |_| {
-        if update_value.read().is_some() {
-            is_open.set(false);
-        }
-    });
 
     Effect::new(move |_| {
         if delete_value.read().is_some() {
@@ -468,6 +564,74 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 
     let has_time = RwSignal::new(event.start_time.is_some());
 
+    let has_error = RwSignal::new(false);
+
+    let notifications = RwSignal::new(
+        event
+            .notifications
+            .into_iter()
+            .map(|notification| notification.when)
+            .collect::<Vec<DateTime<Utc>>>(),
+    );
+    let new_notification = RwSignal::new(
+        day.and_hms_opt(12, 0, 0)
+            .unwrap()
+            .format("%FT%R")
+            .to_string(),
+    );
+    let add_notification = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        if !new_notification.read().is_empty() {
+            notifications.update(|notifications| {
+                let notification =
+                    NaiveDateTime::parse_from_str(&new_notification.get(), "%FT%R").unwrap();
+                notifications.push(notification.and_utc());
+            });
+            new_notification.set("".to_string());
+        }
+    };
+    let save_event = move |ev: SubmitEvent| {
+        ev.prevent_default();
+        spawn_local(async move {
+            let start_time = if has_time.read() == true {
+                None
+            } else {
+                Some(start_time.get_untracked())
+            };
+            let end_time = if has_time.read() == true {
+                None
+            } else {
+                Some(end_time.get_untracked())
+            };
+
+            has_error.set(
+                match update_event(
+                    event.id,
+                    title.get_untracked(),
+                    Some(description.get_untracked()),
+                    color.get_untracked(),
+                    start_date.get_untracked(),
+                    end_date.get_untracked(),
+                    start_time,
+                    end_time,
+                    notifications.get_untracked(),
+                )
+                .await
+                {
+                    Err(_) => true,
+                    Ok(_) => {
+                        is_open.set(false);
+                        false
+                    }
+                },
+            );
+        });
+    };
+    let delete_notification = {
+        Callback::new(move |time: DateTime<Utc>| {
+            notifications.update(|values| values.retain(|when| when != &time));
+        })
+    };
     let delete_event = move || {
         use_modals().confirm(
             "Event löschen",
@@ -484,15 +648,15 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 
     view! {
         <Show when=move || *is_open.read()>
-            <ActionFormModal action=update_action title="Event bearbeiten">
+            <form id="new_notification" on:submit=add_notification />
+            <FormModal
+                on:submit=save_event
+                title="Event hinzufügen"
+                has_error=has_update_error
+                error_message="Das Event konnte leider nicht gespeichert werden, bitte wende dich an den Bambussupport."
+                error_message_header="Fehler beim Speichern"
+            >
                 <ModalContent slot>
-                    <Show when=has_update_error>
-                        <AlertMessage header="Fehler beim Speichern">
-                            <MessageContent slot>
-                                Das Event konnte leider nicht gespeichert werden, bitte wende dich an den Bambussupport.
-                            </MessageContent>
-                        </AlertMessage>
-                    </Show>
                     <Show when=has_delete_error>
                         <AlertMessage header="Fehler beim Löschen">
                             <MessageContent slot>
@@ -546,6 +710,46 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                             value=end_time
                         />
                     </Show>
+                    <span class="cosmo-input__header">Benachrichtigungen</span>
+                    <label class="cosmo-label" for="new-option">
+                        Zeitpunkt
+                    </label>
+                    <div class="cosmo-input is--group">
+                        <input
+                            class="cosmo-input"
+                            id="new-option"
+                            type="datetime-local"
+                            bind:value=new_notification
+                            form="new_notification"
+                        />
+                        <button
+                            type="submit"
+                            class="cosmo-button is--primary is--addon"
+                            form="new_notification"
+                        >
+                            <Icon width="1rem" height="1rem" icon=LuPlus />
+                        </button>
+                    </div>
+                    {move || {
+                        notifications
+                            .get()
+                            .into_iter()
+                            .map(|when| {
+                                view! {
+                                    <div class="pandas-custom-fields__option is--new">
+                                        <span>{when.format_localized("%A %e %B %Y, %R", Locale::de_DE).to_string()}</span>
+                                        <button
+                                            type="button"
+                                            class="cosmo-button is--negative is--custom-fields is--edit"
+                                            on:click=move |_| delete_notification.run(when)
+                                        >
+                                            <Icon width="1.25rem" height="1.25rem" icon=LuTrash />
+                                        </button>
+                                    </div>
+                                }
+                            })
+                            .collect_view()
+                    }}
                 </ModalContent>
                 <ModalButton label="Abbrechen" on_click=move || is_open.set(false) slot />
                 <ModalButton
@@ -555,7 +759,7 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
                     slot
                 />
                 <ModalButton label="Event speichern" is_submit=true slot />
-            </ActionFormModal>
+            </FormModal>
         </Show>
     }
 }

@@ -81,7 +81,7 @@ pub async fn get_free_company_housing(
         dbal::get_free_company_housing(auth_state.user.id, fc.id, &db)
             .await
             .map_err(ServerFnError::new)
-            .map(|housing| Some(housing))
+            .map(Some)
     } else {
         Ok(None)
     }

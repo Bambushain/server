@@ -102,6 +102,14 @@ impl Model {
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
+pub struct GroveEventNotification {
+    pub id: i32,
+    pub when: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
+#[cfg_attr(feature = "backend", derive(Responder))]
+#[serde(rename_all = "camelCase")]
 pub struct GroveEvent {
     pub id: i32,
     pub title: String,
@@ -114,6 +122,7 @@ pub struct GroveEvent {
     pub is_private: bool,
     pub user: Option<WebUser>,
     pub grove: Option<Grove>,
+    pub notifications: Vec<GroveEventNotification>,
 }
 
 impl GroveEvent {
@@ -130,22 +139,6 @@ impl GroveEvent {
             is_private: self.is_private,
             user_id: self.user.clone().map(|user| user.id),
             grove_id: self.grove.clone().map(|grove| grove.id),
-        }
-    }
-
-    pub fn from_event(event: Event, user: Option<WebUser>, grove: Option<Grove>) -> Self {
-        Self {
-            id: event.id,
-            title: event.title,
-            description: event.description,
-            start_date: event.start_date,
-            end_date: event.end_date,
-            start_time: event.start_time,
-            end_time: event.end_time,
-            color: event.color,
-            is_private: event.is_private,
-            user,
-            grove,
         }
     }
 }

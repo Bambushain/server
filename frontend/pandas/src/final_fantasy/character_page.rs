@@ -313,7 +313,7 @@ fn EditCharacterDialog(
                                                 .options
                                                 .iter()
                                                 .cloned()
-                                                .map(|option| (option.label.clone(), option.label.clone()))
+                                                .map(|option| (option.label.clone(), option.label))
                                                 .collect::<Vec<_>>();
                                             custom_fields
                                                 .try_update(|fields| {
@@ -468,7 +468,7 @@ fn CreateCharacterDialog(on_save: Callback<()>, on_close: Callback<()>) -> impl 
                                                 .options
                                                 .iter()
                                                 .cloned()
-                                                .map(|option| (option.label.clone(), option.label.clone()))
+                                                .map(|option| (option.label.clone(), option.label))
                                                 .collect::<Vec<_>>();
                                             custom_fields
                                                 .try_update(|fields| {

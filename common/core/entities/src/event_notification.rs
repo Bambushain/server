@@ -10,7 +10,7 @@ use bamboo_common_backend_macros::*;
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
-    sea_orm(table_name = "notification_settings", schema_name = "bamboo")
+    sea_orm(table_name = "event_notification", schema_name = "bamboo")
 )]
 #[serde(rename_all = "camelCase")]
 pub struct Model {

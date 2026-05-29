@@ -1,17 +1,18 @@
 use crate::error_tag;
 use bamboo_common_core::entities::event;
-use bamboo_common_core::entities::event::GroveEvent;
+use bamboo_common_core::entities::event::{GroveEvent, GroveEventNotification};
 use bamboo_common_core::entities::user::WebUser;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 use bamboo_common_core::queueing::EventAction;
 use chrono::{NaiveDate, Timelike};
 use date_range::DateRange;
+use itertools::Itertools;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::IntoCondition;
 use sea_orm::{
     Condition, FromQueryResult, IntoActiveModel, JoinType, NotSet, QueryOrder, QuerySelect,
-    SelectModel, Selector, Set,
+    SelectModel, Selector, Set, TransactionTrait,
 };
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, FromQueryResult)]
@@ -33,32 +34,39 @@ struct LoadEvent {
     pub grove_name: Option<String>,
 }
 
-impl From<LoadEvent> for GroveEvent {
-    fn from(value: LoadEvent) -> Self {
-        let user = value.user_id.map(|id| WebUser {
+impl LoadEvent {
+    fn into_grove_event(self, notifications: Vec<EventNotification>) -> GroveEvent {
+        let user = self.user_id.map(|id| WebUser {
             id,
-            email: value.email.unwrap(),
-            display_name: value.display_name.unwrap(),
-            discord_name: value.discord_name.unwrap_or("".to_string()),
+            email: self.email.unwrap(),
+            display_name: self.display_name.unwrap(),
+            discord_name: self.discord_name.unwrap_or("".to_string()),
         });
-        let grove = value.grove_id.map(|id| Grove {
+        let grove = self.grove_id.map(|id| Grove {
             id,
-            name: value.grove_name.unwrap(),
+            name: self.grove_name.unwrap(),
             invite_secret: None,
         });
 
         GroveEvent {
-            id: value.event_id,
-            title: value.title,
-            description: value.description,
-            start_date: value.start_date,
-            end_date: value.end_date,
-            start_time: value.start_time,
-            end_time: value.end_time,
-            color: value.color,
-            is_private: value.is_private,
+            id: self.event_id,
+            title: self.title,
+            description: self.description,
+            start_date: self.start_date,
+            end_date: self.end_date,
+            start_time: self.start_time,
+            end_time: self.end_time,
+            color: self.color,
+            is_private: self.is_private,
             user,
             grove,
+            notifications: notifications
+                .into_iter()
+                .map(|notification| GroveEventNotification {
+                    id: notification.id,
+                    when: notification.time,
+                })
+                .collect_vec(),
         }
     }
 }
@@ -148,7 +156,7 @@ pub async fn get_events(
         .add(event::Column::StartDate.between(range.since(), range.until()))
         .add(event::Column::EndDate.between(range.since(), range.until()));
 
-    get_event_query(
+    let events = get_event_query(
         user_id,
         if let Some(grove_id) = grove_id {
             Condition::all()
@@ -160,17 +168,20 @@ pub async fn get_events(
     )
     .all(db)
     .await
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))
-    .map(|events| {
-        events
-            .iter()
-            .cloned()
-            .map(|event| event.into())
-            .collect::<Vec<GroveEvent>>()
-    })
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to load events"))?;
+
+    let mut result = vec![];
+    for event in events {
+        let notifications = get_notifications_for_event(event.event_id, db).await?;
+        result.push(event.into_grove_event(notifications));
+    }
+
+    Ok(result)
 }
 
 pub async fn get_event(id: i32, user_id: i32, db: &DatabaseConnection) -> BambooResult<GroveEvent> {
+    let notifications = get_notifications_for_event(id, db).await?;
+
     get_event_query(user_id, Condition::all().add(event::Column::Id.eq(id)))
         .one(db)
         .await
@@ -183,7 +194,7 @@ pub async fn get_event(id: i32, user_id: i32, db: &DatabaseConnection) -> Bamboo
                         "The event was not found",
                     ))
                 },
-                |data| Ok(data.into()),
+                |data| Ok(data.into_grove_event(notifications)),
             )
         })?
 }
@@ -197,8 +208,34 @@ pub async fn create_event(
     model.id = NotSet;
     model.user_id = Set(Some(user_id));
 
+    let tx = db
+        .begin()
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+
     let created = model
-        .insert(db)
+        .insert(&tx)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+
+    event_notification::Entity::delete_many()
+        .filter(event_notification::Column::EventId.eq(created.id))
+        .exec(&tx)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+
+    event_notification::Entity::insert_many(event.notifications.into_iter().map(|notification| {
+        event_notification::ActiveModel {
+            id: NotSet,
+            event_id: Set(created.id),
+            time: Set(notification.when),
+        }
+    }))
+    .exec(&tx)
+    .await
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+
+    tx.commit()
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
 
@@ -214,6 +251,11 @@ pub async fn update_event(
     event: GroveEvent,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
+    let tx = db
+        .begin()
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update event"))?;
+
     event::Entity::update_many()
         .filter(event::Column::Id.eq(id))
         .filter(event::Column::UserId.eq(user_id))
@@ -224,7 +266,28 @@ pub async fn update_event(
         .col_expr(event::Column::Description, Expr::value(event.description))
         .col_expr(event::Column::Title, Expr::value(event.title))
         .col_expr(event::Column::Color, Expr::value(event.color))
-        .exec(db)
+        .exec(&tx)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update event"))?;
+
+    event_notification::Entity::delete_many()
+        .filter(event_notification::Column::EventId.eq(id))
+        .exec(&tx)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update event"))?;
+
+    event_notification::Entity::insert_many(event.notifications.into_iter().map(|notification| {
+        event_notification::ActiveModel {
+            id: NotSet,
+            event_id: Set(id),
+            time: Set(notification.when),
+        }
+    }))
+    .exec(&tx)
+    .await
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to update event"))?;
+
+    tx.commit()
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to update event"))?;
 
@@ -298,7 +361,11 @@ pub async fn create_event_notification(
         .map_err(|_| BambooError::database(error_tag!(), "Failed to create event notification"))
 }
 
-pub async fn delete_event_notification(event_id: i32, notification_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+pub async fn delete_event_notification(
+    event_id: i32,
+    notification_id: i32,
+    db: &DatabaseConnection,
+) -> BambooErrorResult {
     event_notification::Entity::delete_many()
         .filter(event_notification::Column::Id.eq(notification_id))
         .filter(event_notification::Column::EventId.eq(event_id))
