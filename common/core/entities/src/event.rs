@@ -61,6 +61,8 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Grove,
+    #[sea_orm(has_many = "super::event_notification::Entity")]
+    Notification,
 }
 
 #[cfg(feature = "backend")]
@@ -74,6 +76,13 @@ impl Related<super::user::Entity> for Entity {
 impl Related<super::grove::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Grove.def()
+    }
+}
+
+#[cfg(feature = "backend")]
+impl Related<super::event_notification::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Notification.def()
     }
 }
 
