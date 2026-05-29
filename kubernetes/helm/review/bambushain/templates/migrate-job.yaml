@@ -8,8 +8,8 @@ metadata:
     {{- include "bambushain.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "5"
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-failed,hook-succeeded
 spec:
   parallelism: 1
   template:
@@ -17,6 +17,21 @@ spec:
       labels:
         {{- include "bambushain.labels" . | nindent 8 }}
     spec:
+      initContainers:
+        - name: set-search-path
+          image: library/postgres:18
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGPASSWORD
+              value: bamboo
+            - name: PGUSER
+              value: bamboo
+          command:
+            - sh
+            - -c
+            - |
+              psql -d bamboo -c "ALTER DATABASE bamboo SET search_path TO public;"
       containers:
         - name: migrate-database
           image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.migrator }}:{{ .Values.image.tag }}"
