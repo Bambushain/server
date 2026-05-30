@@ -136,14 +136,16 @@ impl NotificationBroadcaster {
                     }
                 }
                 QueueNotification::GroveInviteEnable(grove)
-                | QueueNotification::GroveInviteDisable(grove) => {
-                    if dbal::check_grove_mod_status(grove.id, user.id, db).await.unwrap_or(false) {
-                        send_futures.push(Box::pin(async move {
-                            sender
-                                .send(Notification::from_notification(notification.clone()).into())
-                                .await
-                        }));
-                    }
+                | QueueNotification::GroveInviteDisable(grove)
+                    if dbal::check_grove_mod_status(grove.id, user.id, db)
+                        .await
+                        .unwrap_or(false) =>
+                {
+                    send_futures.push(Box::pin(async move {
+                        sender
+                            .send(Notification::from_notification(notification.clone()).into())
+                            .await
+                    }));
                 }
                 _ => {}
             }

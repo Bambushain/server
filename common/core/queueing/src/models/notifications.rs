@@ -22,9 +22,9 @@ pub enum Notification {
     #[serde(rename = "gd")]
     GroveDelete(Grove, Vec<user::GroveUser>),
     #[serde(rename = "upc")]
-    UserPasswordChange(user::WebUser),
+    UserPasswordChange(user::BambooUser),
     #[serde(rename = "uad")]
-    UserAccountDelete(user::WebUser),
+    UserAccountDelete(user::BambooUser),
 }
 
 impl Display for Notification {

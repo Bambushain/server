@@ -1,7 +1,9 @@
 use crate::error_tag;
+use bamboo_common_backend_notification::notify;
 use bamboo_common_core::entities::user::{BambooUser, WebUser};
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
+use bamboo_common_core::queueing::Notification;
 use chrono::{Days, Local, NaiveDate};
 use sea_orm::prelude::*;
 use sea_orm::sea_query::extension::postgres::PgExpr;
@@ -162,6 +164,47 @@ pub async fn get_users_by_grove(
         db,
     )
     .await
+}
+
+pub async fn get_user_by_grove(
+    user_id: i32,
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Option<user::GroveUser>> {
+    let filter = Condition::all()
+        .add(user::Column::Id.eq(user_id))
+        .add(grove_user::Column::GroveId.eq(grove_id))
+        .add(grove_user::Column::IsBanned.eq(false));
+
+    user::Entity::find()
+        .select_only()
+        .distinct_on(vec![Alias::new("display_name")])
+        .column_as(user::Column::Id, "id")
+        .column_as(user::Column::Email, "email")
+        .column_as(user::Column::DiscordName, "discord_name")
+        .column_as(user::Column::DisplayName, "display_name")
+        .column_as(grove_user::Column::IsMod, "is_mod")
+        .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            grove_user::Entity::belongs_to(user::Entity)
+                .from(grove_user::Column::UserId)
+                .to(user::Column::Id)
+                .into(),
+        )
+        .filter(filter)
+        .order_by_asc(user::Column::DisplayName)
+        .into_model()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load user"))
 }
 
 pub async fn get_all_users_by_grove(
@@ -340,11 +383,18 @@ pub async fn create_user(
 }
 
 pub async fn delete_user(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    let user = get_user(id, db).await;
+
     user::Entity::delete_by_id(id)
         .exec(db)
         .await
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete user"))
-        .map(|_| ())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete user"))?;
+
+    if let Ok(user) = user {
+        notify(Notification::UserAccountDelete(user)).await
+    }
+
+    Ok(())
 }
 
 pub async fn set_password(id: i32, password: &str, db: &DatabaseConnection) -> BambooErrorResult {
@@ -369,8 +419,13 @@ pub async fn set_password(id: i32, password: &str, db: &DatabaseConnection) -> B
         .filter(user::Column::Id.eq(id))
         .exec(db)
         .await
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to update user"))
-        .map(|_| ())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update user"))?;
+
+    if let Ok(user) = get_user(id, db).await {
+        notify(Notification::UserPasswordChange(user)).await
+    }
+
+    Ok(())
 }
 
 pub async fn set_forgot_password_token(
