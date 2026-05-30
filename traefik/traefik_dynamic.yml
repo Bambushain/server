@@ -9,7 +9,7 @@ http:
       rule: PathPrefix(`/api`)
       service: services-api
     services-events:
-      rule: Path(`/sse/event`)
+      rule: PathPrefix(`/sse`)
       service: services-events
     pandas-ui:
       rule: PathPrefix(`/pandas`)

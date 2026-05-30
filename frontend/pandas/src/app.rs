@@ -2,6 +2,8 @@ use crate::api::{get_all_groves, get_current_user, LogoutAction};
 use crate::state::AllGroves;
 use crate::{bamboo, final_fantasy, groves, my, support};
 use bamboo_common::core::entities::BambooUser;
+use bamboo_common::core::queueing::Notification;
+use chrono::Locale;
 use leptos::prelude::*;
 use leptos_cosmo::icons::*;
 use leptos_cosmo::prelude::*;
@@ -10,6 +12,10 @@ use leptos_router::components::*;
 use leptos_router::hooks::use_location;
 use leptos_router::path;
 use leptos_use::use_window;
+use leptos_use::{
+    use_web_notification_with_options, NotificationDirection, ShowOptions, UseWebNotificationOptions,
+    UseWebNotificationReturn,
+};
 use std::future::IntoFuture;
 
 #[component]
@@ -140,6 +146,41 @@ fn PandasRoutes() -> impl IntoView {
     }
 }
 
+fn handle_notification(notification: Notification, show: impl Fn(ShowOptions) + Clone + Send + Sync) {
+    let (title, message) = match notification {
+        Notification::EventReminder(event, _) => {
+            let when = if let Some(start_time) = event.start_time {
+                event
+                    .start_date
+                    .and_time(start_time)
+                    .and_utc()
+                    .format_localized("%A den %-d. %B %Y um %R", Locale::de_DE_euro)
+            } else {
+                event
+                    .start_date
+                    .format_localized("%A den %-d. %B %Y", Locale::de_DE_euro)
+            };
+            (
+                "Ereignis findet bald statt",
+                format!("Das Ereignis {} findet {when} statt!", event.title),
+            )
+        }
+        Notification::GroveInviteEnable(grove) => (
+            "Einladung aktiviert",
+            format!("Für den Hain {} wurden Einladungen aktiviert!", grove.name),
+        ),
+        Notification::GroveInviteDisable(grove) => (
+            "Einladung deaktiviert",
+            format!(
+                "Für den Hain {} wurden Einladungen deaktiviert!",
+                grove.name
+            ),
+        ),
+        _ => return,
+    };
+    show(ShowOptions::default().title(title).body(message));
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
@@ -152,6 +193,39 @@ pub fn App() -> impl IntoView {
 
     provide_context(current_user_ctx);
     provide_context(groves_ctx);
+
+    let leptos_use::UseEventSourceReturn {
+        message: notification,
+        ..
+    } = leptos_use::use_event_source_with_options::<Notification, codee::string::JsonSerdeCodec>(
+        "/sse/notifications",
+        leptos_use::UseEventSourceOptions::default().named_events(vec![
+            Notification::GroveInviteDisable(Default::default()).to_string(),
+            Notification::GroveInviteEnable(Default::default()).to_string(),
+            Notification::EventReminder(Default::default(), Default::default()).to_string(),
+        ]),
+    );
+    let UseWebNotificationReturn { show, .. } = use_web_notification_with_options(
+        UseWebNotificationOptions::default()
+            .direction(NotificationDirection::Auto)
+            .language("de")
+            .renotify(true),
+    );
+
+    let _ = Effect::watch(
+        move || notification.get(),
+        move |data, _, _| {
+            if let Some(data) = data && matches!(
+                data.data,
+                Notification::GroveInviteDisable(..)
+                    | Notification::GroveInviteEnable(..)
+                    | Notification::EventReminder(..)
+            ) {
+                handle_notification(data.data.clone(), show.clone());
+            }
+        },
+        false,
+    );
 
     view! {
         <Stylesheet id="leptos" href="/pandas/pkg/frontend-pandas.css" />
