@@ -1,13 +1,13 @@
 delete:
-  summary: Delete event notification
-  description: Delete a grove event notification
+  summary: Delete event reminder
+  description: Delete a grove event reminder
   parameters:
     - name: event_id
       in: path
       required: true
       schema:
         type: integer
-    - name: notification_id
+    - name: reminder_id
       in: path
       required: true
       schema:

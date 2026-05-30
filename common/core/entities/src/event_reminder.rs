@@ -10,7 +10,7 @@ use bamboo_common_backend_macros::*;
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
-    sea_orm(table_name = "event_notification", schema_name = "bamboo")
+    sea_orm(table_name = "event_reminder", schema_name = "bamboo")
 )]
 #[serde(rename_all = "camelCase")]
 pub struct Model {
@@ -20,6 +20,8 @@ pub struct Model {
     #[serde(skip)]
     pub event_id: i32,
     pub time: chrono::DateTime<Utc>,
+    #[serde(skip)]
+    pub notified: bool,
 }
 
 #[cfg(feature = "backend")]

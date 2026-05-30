@@ -671,6 +671,7 @@ dependencies = [
  "bamboo-backend-api",
  "bamboo-backend-mailer",
  "bamboo-backend-mailer-notifications",
+ "bamboo-backend-reminder",
  "bamboo-backend-sse",
 ]
 
@@ -707,6 +708,18 @@ dependencies = [
 
 [[package]]
 name = "bamboo-backend-mailer-notifications"
+version = "4.0.0"
+dependencies = [
+ "async-nats",
+ "bamboo-common",
+ "futures-util",
+ "log",
+ "sea-orm",
+ "tokio",
+]
+
+[[package]]
+name = "bamboo-backend-reminder"
 version = "4.0.0"
 dependencies = [
  "async-nats",

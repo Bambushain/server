@@ -1,12 +1,12 @@
 use std::fmt::{Display, Formatter};
-use bamboo_common_core_entities::event::GroveEventNotification;
+use bamboo_common_core_entities::event::GroveEventReminder;
 use bamboo_common_core_entities::{user, Grove, GroveEvent};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
 pub enum Notification {
     #[serde(rename = "er")]
-    EventReminder(GroveEvent, GroveEventNotification),
+    EventReminder(GroveEvent, GroveEventReminder),
     #[serde(rename = "gj")]
     GroveJoin(Grove, user::GroveUser),
     #[serde(rename = "gb")]

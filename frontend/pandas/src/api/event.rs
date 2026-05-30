@@ -19,7 +19,7 @@ pub async fn create_event(
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
-    use bamboo_common::core::entities::event::GroveEventNotification;
+    use bamboo_common::core::entities::event::GroveEventReminder;
     use leptos_actix::extract;
 
     use crate::authentication::AuthState;
@@ -50,9 +50,9 @@ pub async fn create_event(
         is_private,
         user: None,
         grove,
-        notifications: notifications
+        reminder: notifications
             .into_iter()
-            .map(|notification| GroveEventNotification {
+            .map(|notification| GroveEventReminder {
                 id: -1,
                 when: notification,
             })
@@ -80,7 +80,7 @@ pub async fn update_event(
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
-    use bamboo_common::core::entities::event::GroveEventNotification;
+    use bamboo_common::core::entities::event::GroveEventReminder;
     use leptos_actix::extract;
 
     use crate::authentication::AuthState;
@@ -105,9 +105,9 @@ pub async fn update_event(
         is_private: event.is_private,
         user: None,
         grove: event.grove,
-        notifications: notifications
+        reminder: notifications
             .into_iter()
-            .map(|notification| GroveEventNotification {
+            .map(|notification| GroveEventReminder {
                 id: -1,
                 when: notification,
             })

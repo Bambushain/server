@@ -1,4 +1,4 @@
-use crate::api::{create_event, update_event, get_events, DeleteEventAction};
+use crate::api::{create_event, get_events, update_event, DeleteEventAction};
 use crate::state::AllGroves;
 use bamboo_common::core::entities::{BambooUser, GroveEvent};
 use bamboo_common::core::queueing::EventType;
@@ -323,7 +323,9 @@ fn AddEventDialog(
 
     let notifications = RwSignal::new(vec![]);
     let new_notification = RwSignal::new(
-        day.and_hms_opt(12, 0, 0)
+        day.checked_sub_days(Days::new(1))
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
             .unwrap()
             .format("%FT%R")
             .to_string(),
@@ -373,14 +375,14 @@ fn AddEventDialog(
         ev.prevent_default();
         spawn_local(async move {
             let start_time = if has_time.read() == true {
-                None
-            } else {
                 Some(start_time.get_untracked())
+            } else {
+                None
             };
             let end_time = if has_time.read() == true {
-                None
-            } else {
                 Some(end_time.get_untracked())
+            } else {
+                None
             };
 
             has_error.set(
@@ -568,13 +570,15 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
 
     let notifications = RwSignal::new(
         event
-            .notifications
+            .reminder
             .into_iter()
             .map(|notification| notification.when)
             .collect::<Vec<DateTime<Utc>>>(),
     );
     let new_notification = RwSignal::new(
-        day.and_hms_opt(12, 0, 0)
+        day.checked_sub_days(Days::new(1))
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
             .unwrap()
             .format("%FT%R")
             .to_string(),
@@ -594,14 +598,14 @@ fn EditEventDialog(event: GroveEvent, is_open: RwSignal<bool>) -> impl IntoView 
         ev.prevent_default();
         spawn_local(async move {
             let start_time = if has_time.read() == true {
-                None
+                Some(end_time.get_untracked())
             } else {
-                Some(start_time.get_untracked())
+                None
             };
             let end_time = if has_time.read() == true {
-                None
-            } else {
                 Some(end_time.get_untracked())
+            } else {
+                None
             };
 
             has_error.set(

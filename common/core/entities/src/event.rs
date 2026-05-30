@@ -61,8 +61,8 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Grove,
-    #[sea_orm(has_many = "super::event_notification::Entity")]
-    Notification,
+    #[sea_orm(has_many = "super::event_reminder::Entity")]
+    Reminder,
 }
 
 #[cfg(feature = "backend")]
@@ -80,9 +80,9 @@ impl Related<super::grove::Entity> for Entity {
 }
 
 #[cfg(feature = "backend")]
-impl Related<super::event_notification::Entity> for Entity {
+impl Related<super::event_reminder::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Notification.def()
+        Relation::Reminder.def()
     }
 }
 
@@ -102,7 +102,7 @@ impl Model {
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
-pub struct GroveEventNotification {
+pub struct GroveEventReminder {
     pub id: i32,
     pub when: chrono::DateTime<chrono::Utc>,
 }
@@ -122,7 +122,7 @@ pub struct GroveEvent {
     pub is_private: bool,
     pub user: Option<WebUser>,
     pub grove: Option<Grove>,
-    pub notifications: Vec<GroveEventNotification>,
+    pub reminder: Vec<GroveEventReminder>,
 }
 
 impl GroveEvent {

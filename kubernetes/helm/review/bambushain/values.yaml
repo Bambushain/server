@@ -17,14 +17,15 @@ image:
 bamboo:
   replicas: 1
   image:
-    authentication: bambushain/server/authentication
-    pandas: bambushain/server/pandas
-    public: bambushain/server/public
-    sse: bambushain/server/sse
     api: bambushain/server/api
+    authentication: bambushain/server/authentication
     mailer: bambushain/server/mailer
     mailerNotifications: bambushain/server/mailer-notifications
     migrator: bambushain/server/migrator
+    pandas: bambushain/server/pandas
+    public: bambushain/server/public
+    reminder: bambushain/server/reminder
+    sse: bambushain/server/sse
   config:
     databaseUrl: "postgres://bamboo:bamboo@postgres:5432/bamboo"
     mailer:

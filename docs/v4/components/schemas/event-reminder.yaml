@@ -3,8 +3,8 @@ properties:
   id:
     type: integer
     format: int32
-  time:
+  when:
     type: string
-    format: time
+    format: date-time
 required:
-  - time
+  - when

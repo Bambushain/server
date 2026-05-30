@@ -11,7 +11,7 @@ use bamboo_common::core::error::*;
 
 use crate::path;
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
-use bamboo_common::core::entities::EventNotification;
+use bamboo_common::core::entities::EventReminder;
 
 #[derive(Deserialize)]
 pub struct GetEventsQuery {
@@ -84,48 +84,48 @@ pub async fn delete_event(
 }
 
 #[get(
-    "/api/bamboo-grove/event/{event_id}/notification",
+    "/api/bamboo-grove/event/{event_id}/reminder",
     wrap = "authenticate!()"
 )]
-pub async fn get_event_notifications(
+pub async fn get_event_reminders(
     path: Option<path::EventPath>,
     db: DbConnection,
 ) -> BambooApiResponseResult {
-    let path = check_invalid_path!(path, "event_notification")?;
+    let path = check_invalid_path!(path, "reminder_id")?;
 
-    dbal::get_notifications_for_event(path.event_id, &db)
+    dbal::get_event_reminder_by_event(path.event_id, &db)
         .await
         .map(|data| list!(data))
 }
 
 #[post(
-    "/api/bamboo-grove/event/{event_id}/notification",
+    "/api/bamboo-grove/event/{event_id}/reminder",
     wrap = "authenticate!()"
 )]
-pub async fn create_event_notification(
+pub async fn create_event_reminder(
     path: Option<path::EventPath>,
-    body: Option<web::Json<EventNotification>>,
+    body: Option<web::Json<EventReminder>>,
     db: DbConnection,
-) -> BambooApiResult<EventNotification> {
-    let path = check_invalid_path!(path, "event_notification")?;
-    let body = check_missing_fields!(body, "event_notification")?;
+) -> BambooApiResult<EventReminder> {
+    let path = check_invalid_path!(path, "event_reminder")?;
+    let body = check_missing_fields!(body, "event_reminder")?;
 
-    dbal::create_event_notification(path.event_id, body.time, &db)
+    dbal::create_event_reminder(path.event_id, body.time, &db)
         .await
         .map(|data| created!(data))
 }
 
 #[delete(
-    "/api/bamboo-grove/event/{event_id}/notification/{notification_id}",
+    "/api/bamboo-grove/event/{event_id}/notification/{reminder_id}",
     wrap = "authenticate!()"
 )]
-pub async fn delete_event_notification(
+pub async fn delete_event_reminder(
     path: Option<path::EventNotificationPath>,
     db: DbConnection,
 ) -> BambooApiResponseResult {
-    let path = check_invalid_path!(path, "event_notification")?;
+    let path = check_invalid_path!(path, "event_reminder")?;
 
-    dbal::delete_event_notification(path.event_id, path.notification_id, &db)
+    dbal::delete_event_reminder(path.event_id, path.reminder_id, &db)
         .await
         .map(|_| no_content!())
 }

@@ -17,6 +17,16 @@ spec:
         {{- include "bambushain.labels" . | nindent 8 }}
     spec:
       containers:
+        - name: api
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.api }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4010
         - name: authentication
           image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.authentication }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -30,6 +40,32 @@ spec:
               value: 0.0.0.0:4090
           ports:
             - containerPort: 4090
+        - name: events
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.sse }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4020
+        - name: mailer
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailer }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+        - name: mailer-notifications
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailerNotifications }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
         - name: pandas
           image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.pandas }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -56,36 +92,8 @@ spec:
               value: /public/assets
           ports:
             - containerPort: 4070
-        - name: events
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.sse }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          envFrom:
-            - secretRef:
-                name: bamboo
-            - secretRef:
-                name: passwords
-          ports:
-            - containerPort: 4020
-        - name: api
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.api }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          envFrom:
-            - secretRef:
-                name: bamboo
-            - secretRef:
-                name: passwords
-          ports:
-            - containerPort: 4010
-        - name: mailer
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailer }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          envFrom:
-            - secretRef:
-                name: bamboo
-            - secretRef:
-                name: passwords
-        - name: mailer-notifications
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailerNotifications }}:{{ .Values.image.tag }}"
+        - name: reminder
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.reminder }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:

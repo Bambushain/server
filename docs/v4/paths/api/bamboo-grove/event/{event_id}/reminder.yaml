@@ -1,6 +1,6 @@
 get:
-  summary: Get notifications for event
-  description: Gets the notifications for the passed event id
+  summary: Get reminder for event
+  description: Gets the reminder for the passed event id
   parameters:
     - name: event_id
       in: path
@@ -10,13 +10,13 @@ get:
         type: integer
   responses:
     "200":
-      description: Event notifications
+      description: Event reminder
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: "../../../../../components/schemas/event-notification.yaml"
+              $ref: "../../../../../components/schemas/event-reminder.yaml"
     "400":
       description: Invalid dates
       content:
@@ -44,17 +44,17 @@ get:
   tags:
     - calendar
 post:
-  summary: Create event notification
-  description: Create a new grove event notification
+  summary: Create event reminder
+  description: Create a new grove event reminder
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: "../../../../../components/schemas/event-notification.yaml"
+          $ref: "../../../../../components/schemas/event-reminder.yaml"
   responses:
     "201":
-      description: Event notification created successfully
+      description: Event reminder created successfully
       content:
         application/json:
           schema:

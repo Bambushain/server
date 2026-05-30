@@ -46,7 +46,7 @@ pub struct EventPathInfo {
 #[derive(Deserialize)]
 pub struct EventNotificationPathInfo {
     pub event_id: i32,
-    pub notification_id: i32,
+    pub reminder_id: i32,
 }
 
 #[derive(Deserialize)]

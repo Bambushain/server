@@ -18,14 +18,6 @@ path = "src/bin/api.rs"
 name = "bamboo-api"
 
 [[bin]]
-path = "src/bin/sse.rs"
-name = "bamboo-sse"
-
-[[bin]]
-path = "src/bin/public.rs"
-name = "bamboo-public"
-
-[[bin]]
 path = "src/bin/mailer.rs"
 name = "bamboo-mailer"
 
@@ -36,6 +28,18 @@ name = "bamboo-mailer-notifications"
 [[bin]]
 path = "src/bin/migrator.rs"
 name = "bamboo-migrator"
+
+[[bin]]
+path = "src/bin/public.rs"
+name = "bamboo-public"
+
+[[bin]]
+path = "src/bin/reminder.rs"
+name = "bamboo-reminder"
+
+[[bin]]
+path = "src/bin/sse.rs"
+name = "bamboo-sse"
 
 [workspace]
 members = [
@@ -63,6 +67,7 @@ members = [
     "backend/api",
     "backend/mailer",
     "backend/mailer-notifications",
+    "backend/reminder",
     "backend/sse",
     "frontend",
     "frontend/authentication",

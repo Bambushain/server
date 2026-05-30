@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(EventNotification::Id))
                     .col(integer(EventNotification::EventId))
                     .col(timestamp_with_time_zone(EventNotification::Time))
+                    .col(boolean(EventNotification::Notified).default(false))
                     .foreign_key(
                         ForeignKey::create()
                             .from(
@@ -51,4 +52,5 @@ enum EventNotification {
     Id,
     EventId,
     Time,
+    Notified,
 }
