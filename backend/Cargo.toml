@@ -9,3 +9,4 @@ license.workspace = true
 bamboo-backend-api = { path = "api" }
 bamboo-backend-events = { path = "events" }
 bamboo-backend-mailer = { path = "mailer" }
+bamboo-backend-mailer-notifications = { path = "mailer-notifications" }

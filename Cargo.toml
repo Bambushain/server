@@ -30,6 +30,10 @@ path = "src/bin/mailer.rs"
 name = "bamboo-mailer"
 
 [[bin]]
+path = "src/bin/mailer-notifications.rs"
+name = "bamboo-mailer-notifications"
+
+[[bin]]
 path = "src/bin/migrator.rs"
 name = "bamboo-migrator"
 
@@ -59,10 +63,11 @@ members = [
     "backend/api",
     "backend/events",
     "backend/mailer",
+    "backend/mailer-notifications",
     "frontend",
     "frontend/authentication",
     "frontend/pandas",
-    "frontend/public",
+    "frontend/public"
 ]
 
 [workspace.package]

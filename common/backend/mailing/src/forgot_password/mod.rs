@@ -35,14 +35,14 @@ pub async fn enqueue_forgot_password_mail(email: &str, db: &DatabaseConnection) 
                 user.email.clone(),
                 mail_body,
                 None as Option<String>,
-                "Passwort zurücksetzen",
-                format!(
+                Some("Passwort zurücksetzen"),
+                Some(format!(
                     "https://bambushain.app/authentication/reset-password?token={token}&email={}",
                     user.email
-                ),
+                )),
             ),
             db,
         )
-            .await;
+        .await;
     }
 }

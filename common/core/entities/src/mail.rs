@@ -54,8 +54,8 @@ impl Model {
         to: impl Into<String>,
         body: impl Into<String>,
         reply_to: Option<impl Into<String>>,
-        action_label: impl Into<String>,
-        action_link: impl Into<String>,
+        action_label: Option<impl Into<String>>,
+        action_link: Option<impl Into<String>>,
     ) -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -64,8 +64,8 @@ impl Model {
             body: body.into(),
             reply_to: reply_to.map(|reply_to| reply_to.into()),
             templated: true,
-            action_label: Some(action_label.into()),
-            action_link: Some(action_link.into()),
+            action_label: action_label.map(|action_label| action_label.into()),
+            action_link: action_link.map(|action_link| action_link.into()),
             error: None,
             status: MAIL_STATUS_OPEN,
         }

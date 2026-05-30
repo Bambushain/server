@@ -23,6 +23,7 @@ bamboo:
     events: bambushain/server/events
     api: bambushain/server/api
     mailer: bambushain/server/mailer
+    mailerNotifications: bambushain/server/mailer-notifications
     migrator: bambushain/server/migrator
   config:
     databaseUrl: "postgres://bamboo:bamboo@postgres:5432/bamboo"

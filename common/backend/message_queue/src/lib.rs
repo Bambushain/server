@@ -8,13 +8,13 @@ pub async fn get_nats() -> Result<async_nats::Client, NotificationError> {
     let client = async_nats::connect(
         std::env::var("NATS_SERVER").map_err(|err| NotificationError::new(err.to_string()))?,
     )
-        .await
-        .map_err(|err| NotificationError::new(err.to_string()))?;
+    .await
+    .map_err(|err| NotificationError::new(err.to_string()))?;
 
     Ok(client)
 }
 
-pub async fn publish<P: IntoBytes>(queue: Queue, payload: P) -> Result<(), NotificationError> {
+pub async fn publish<P: IntoBytes, Q: ToSubject>(queue: Q, payload: P) -> Result<(), NotificationError> {
     let client = get_nats().await?;
 
     client
@@ -30,12 +30,14 @@ pub async fn publish<P: IntoBytes>(queue: Queue, payload: P) -> Result<(), Notif
 #[derive(EnumIter)]
 pub enum Queue {
     Events,
+    Notifications,
 }
 
 impl Display for Queue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Queue::Events => f.write_str("bamboo.events"),
+            Queue::Notifications => f.write_str("bamboo.notifications"),
         }
     }
 }

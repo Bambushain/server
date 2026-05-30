@@ -84,3 +84,11 @@ spec:
                 name: bamboo
             - secretRef:
                 name: passwords
+        - name: mailer-notifications
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailerNotifications }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords

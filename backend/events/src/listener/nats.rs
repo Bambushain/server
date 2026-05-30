@@ -19,8 +19,8 @@ pub async fn start_listening(
 
     Ok(tokio::spawn(spawn_listen(
         db.clone(),
-        nats_client.clone(),
-        notifier_state.clone(),
+        nats_client,
+        notifier_state,
     )))
 }
 
@@ -37,8 +37,9 @@ pub(crate) async fn spawn_listen(
     if let Ok(mut subscriber) = subscriber {
         loop {
             tokio::select! {
-                _ = handle_message(subscriber.next().await, notifier_state.clone(), db.clone()) => { continue; }
+                _ = handle_message(subscriber.next().await, &notifier_state, &db) => { continue; }
                 _ = tokio::signal::ctrl_c() => {
+                    let _ = subscriber.unsubscribe().await;
                     break;
                 }
             }
@@ -48,15 +49,14 @@ pub(crate) async fn spawn_listen(
 
 async fn handle_message(
     message: Option<Message>,
-    notifier_state: NotifierState,
-    db: DatabaseConnection,
+    notifier_state: &NotifierState,
+    db: &DatabaseConnection,
 ) {
     if let Some(message) = message
         && let Ok(event_action) =
-        EventAction::from_message(message).map_err(|err| log::error!("{err}"))
+            EventAction::from_message(message).map_err(|err| log::error!("{err}"))
+        && let Ok(groves) = dbal::get_all_groves(db).await
     {
-        if let Ok(groves) = dbal::get_all_groves(&db).await {
-            notifier_state.send_event(event_action, groves).await;
-        }
+        notifier_state.send_event(event_action, groves).await;
     }
 }
