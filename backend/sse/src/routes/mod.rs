@@ -6,5 +6,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     let environment_service = EnvService::new(EnvironmentService::new());
 
     cfg.app_data(environment_service)
-        .service(sse::event_sse_client);
+        .service(sse::event_sse_client)
+        .service(sse::notifications_sse_client);
 }

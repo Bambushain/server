@@ -1,4 +1,5 @@
 mod event;
-pub mod notifications;
+mod notifications;
 
 pub use event::*;
+pub use notifications::*;

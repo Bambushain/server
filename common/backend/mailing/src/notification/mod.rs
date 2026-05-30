@@ -1,7 +1,7 @@
 use crate::enqueue_mail;
 use bamboo_common_backend_dbal as dbal;
 use bamboo_common_core::entities::{Grove, GroveEvent, Mail};
-use bamboo_common_core::queueing::notifications::Notification;
+use bamboo_common_core::queueing::Notification;
 use chrono::Locale;
 use maud::html;
 use sea_orm::DatabaseConnection;

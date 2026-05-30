@@ -1,4 +1,9 @@
-pub use notifier_state::{Notifier, NotifierState};
+pub use event_notifier_state::{EventNotifier, EventNotifierState};
+pub use notifications_notifier_state::{
+    NotificationsNotifier, NotificationsNotifierState,
+};
 
 mod event;
-pub mod notifier_state;
+pub mod notifications_notifier_state;
+pub mod event_notifier_state;
+pub mod notification;

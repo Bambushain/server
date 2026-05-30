@@ -7,11 +7,11 @@ use bamboo_common::core::entities::user::BambooUser;
 use bamboo_common::core::queueing::EventAction;
 
 #[derive(Clone)]
-pub struct NotifierState {
+pub struct EventNotifierState {
     event_broadcaster: Arc<EventBroadcaster>,
 }
 
-impl NotifierState {
+impl EventNotifierState {
     pub(crate) async fn send_event(&self, event_action: EventAction, groves: Vec<Model>) {
         self.event_broadcaster
             .send_event(event_action, groves)
@@ -19,7 +19,7 @@ impl NotifierState {
     }
 }
 
-impl NotifierState {
+impl EventNotifierState {
     pub fn new() -> Self {
         let event_broadcaster = EventBroadcaster::create();
 
@@ -32,10 +32,10 @@ impl NotifierState {
     }
 }
 
-impl Default for NotifierState {
+impl Default for EventNotifierState {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub type Notifier = web::Data<NotifierState>;
+pub type EventNotifier = web::Data<EventNotifierState>;

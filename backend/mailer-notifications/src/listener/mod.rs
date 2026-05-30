@@ -1,8 +1,8 @@
 use async_nats::Message;
 use bamboo_common::backend::database::get_database;
 use bamboo_common::backend::mq::{get_nats, Queue};
-use bamboo_common::core::queueing::notifications::Notification;
-use bamboo_common::core::queueing::{FromMessage, NotificationError};
+use bamboo_common::core::queueing::{FromMessage, Notification};
+use bamboo_common::core::queueing::NotificationError;
 use futures_util::StreamExt;
 use sea_orm::DatabaseConnection;
 
@@ -21,7 +21,7 @@ pub async fn start_listening() -> std::io::Result<()> {
 
     loop {
         tokio::select! {
-            _ = handle_message(subscriber.next().await, &db) => { continue; }
+            message = subscriber.next() => { handle_message(message, &db).await }
             _ = tokio::signal::ctrl_c() => {
                 let _ = subscriber.unsubscribe().await;
                 break;

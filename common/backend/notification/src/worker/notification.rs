@@ -1,5 +1,5 @@
 use bamboo_common_backend_mq::{publish, Queue};
-use bamboo_common_core::queueing::notifications::Notification;
+use bamboo_common_core::queueing::Notification;
 
 pub async fn notify(notification: Notification) {
     log::debug!("Push notification to nats");
