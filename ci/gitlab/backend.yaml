@@ -23,12 +23,12 @@ build-backend:
     - cp -r $CI_PROJECT_DIR/public $CI_PROJECT_DIR/$ARCH/public
   artifacts:
     paths:
+      - $ARCH/bamboo-api
       - $ARCH/bamboo-mailer
       - $ARCH/bamboo-mailer-notifications
-      - $ARCH/bamboo-api
-      - $ARCH/bamboo-events
       - $ARCH/bamboo-migrator
       - $ARCH/bamboo-public
+      - $ARCH/bamboo-sse
       - $ARCH/public
   tags:
     - runner-$ARCH

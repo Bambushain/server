@@ -51,7 +51,6 @@
       <sourceFolder url="file://$MODULE_DIR$/common/backend/actix/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common/backend/notification/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/api/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/backend/events/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/mailer/listener/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/mailer/service/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/mailer/src" isTestSource="false" />
@@ -59,25 +58,6 @@
       <sourceFolder url="file://$MODULE_DIR$/backend/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/sse/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common/backend/logging/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/common/backend/message_queue/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/api/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/controls/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/error/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/routing/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/base/storage/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/authentication/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/bamboo/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/final-fantasy/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/groves/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/layout/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/legal/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/licenses/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/mod-area/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/my-profile/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/sections/support/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/frontend/pandas-yew/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/authentication/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common/core/queueing/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/common/core/dependencies/src" isTestSource="false" />

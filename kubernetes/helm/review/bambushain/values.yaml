@@ -20,7 +20,7 @@ bamboo:
     authentication: bambushain/server/authentication
     pandas: bambushain/server/pandas
     public: bambushain/server/public
-    events: bambushain/server/events
+    sse: bambushain/server/sse
     api: bambushain/server/api
     mailer: bambushain/server/mailer
     mailerNotifications: bambushain/server/mailer-notifications

@@ -7,6 +7,7 @@ license.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 bamboo-backend-api = { path = "api" }
-bamboo-backend-events = { path = "events" }
 bamboo-backend-mailer = { path = "mailer" }
 bamboo-backend-mailer-notifications = { path = "mailer-notifications" }
+
+bamboo-backend-sse = { path = "sse" }

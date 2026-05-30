@@ -18,8 +18,8 @@ path = "src/bin/api.rs"
 name = "bamboo-api"
 
 [[bin]]
-path = "src/bin/events.rs"
-name = "bamboo-events"
+path = "src/bin/sse.rs"
+name = "bamboo-sse"
 
 [[bin]]
 path = "src/bin/public.rs"
@@ -61,9 +61,9 @@ members = [
     "common/frontend/api",
     "backend",
     "backend/api",
-    "backend/events",
     "backend/mailer",
     "backend/mailer-notifications",
+    "backend/sse",
     "frontend",
     "frontend/authentication",
     "frontend/pandas",

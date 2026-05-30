@@ -57,7 +57,7 @@ spec:
           ports:
             - containerPort: 4070
         - name: events
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.events }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.sse }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:

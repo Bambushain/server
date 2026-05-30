@@ -669,9 +669,9 @@ name = "bamboo-backend"
 version = "4.0.0"
 dependencies = [
  "bamboo-backend-api",
- "bamboo-backend-events",
  "bamboo-backend-mailer",
  "bamboo-backend-mailer-notifications",
+ "bamboo-backend-sse",
 ]
 
 [[package]]
@@ -690,26 +690,6 @@ dependencies = [
  "sea-orm",
  "serde",
  "totp-rs",
-]
-
-[[package]]
-name = "bamboo-backend-events"
-version = "4.0.0"
-dependencies = [
- "actix-web",
- "actix-web-lab",
- "async-nats",
- "bamboo-common",
- "bytestring",
- "futures-util",
- "log",
- "parking_lot",
- "sea-orm",
- "serde",
- "serde_json",
- "tokio",
- "tokio-stream",
- "tokio-util",
 ]
 
 [[package]]
@@ -735,6 +715,26 @@ dependencies = [
  "log",
  "sea-orm",
  "tokio",
+]
+
+[[package]]
+name = "bamboo-backend-sse"
+version = "4.0.0"
+dependencies = [
+ "actix-web",
+ "actix-web-lab",
+ "async-nats",
+ "bamboo-common",
+ "bytestring",
+ "futures-util",
+ "log",
+ "parking_lot",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
 ]
 
 [[package]]
