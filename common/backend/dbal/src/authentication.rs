@@ -2,6 +2,7 @@ use sea_orm::prelude::Expr;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, NotSet, QueryFilter,
+    QuerySelect,
 };
 
 use bamboo_common_core::entities::user::BambooUser;
@@ -21,13 +22,13 @@ pub async fn create_token(username: &str, db: &DatabaseConnection) -> BambooResu
         token: Set(uuid::Uuid::new_v4().to_string()),
         user_id: Set(user.id),
     }
-        .insert(db)
-        .await
-        .map(|token| LoginResult {
-            token: token.token,
-            user,
-        })
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to create token"))
+    .insert(db)
+    .await
+    .map(|token| LoginResult {
+        token: token.token,
+        user,
+    })
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to create token"))
 }
 
 pub async fn validate_auth(
@@ -130,12 +131,62 @@ async fn validate_totp_token(
             Some("Bambushain".to_string()),
             user.display_name.clone(),
         )
-            .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))?,
+        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))?,
     )
-        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-        .map(|totp| {
-            totp.check_current(code)
-                .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-                .map(|_| ())
-        })?
+    .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
+    .map(|totp| {
+        totp.check_current(code)
+            .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
+            .map(|_| ())
+    })?
+}
+
+pub async fn create_firebase_token(
+    user_id: i32,
+    token: &str,
+    db: &DatabaseConnection,
+) -> BambooResult<()> {
+    firebase_token::ActiveModel {
+        id: NotSet,
+        user_id: Set(user_id),
+        token: Set(token.to_string()),
+    }
+    .insert(db)
+    .await
+    .map_err(|_| BambooError::database(error_tag!(), "Failed to create firebase token"))
+    .map(|_| ())
+}
+
+pub async fn delete_firebase_token(
+    user_id: i32,
+    token: &str,
+    db: &DatabaseConnection,
+) -> BambooErrorResult {
+    firebase_token::Entity::delete_many()
+        .filter(firebase_token::Column::UserId.eq(user_id))
+        .filter(firebase_token::Column::Token.eq(token))
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete the firebase token"))
+        .map(|_| ())
+}
+
+pub async fn delete_all_firebase_token(user_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    firebase_token::Entity::delete_many()
+        .filter(firebase_token::Column::UserId.eq(user_id))
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete the firebase tokens"))
+        .map(|_| ())
+}
+
+pub async fn get_firebase_tokens_by_user(
+    user_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<FirebaseToken>> {
+    firebase_token::Entity::find()
+        .filter(firebase_token::Column::UserId.eq(user_id))
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to fetch firebase tokens"))
 }

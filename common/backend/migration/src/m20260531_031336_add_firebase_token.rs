@@ -11,15 +11,18 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(FirebaseToken::Table)
+                    .table((Schemas::Authentication, FirebaseToken::Table))
                     .if_not_exists()
                     .col(pk_auto(FirebaseToken::Id))
                     .col(string(FirebaseToken::Token))
-                    .col(string(FirebaseToken::UserId))
+                    .col(integer(FirebaseToken::UserId))
                     .foreign_key(
                         ForeignKey::create()
-                            .from((Schemas::Authentication, User::Table), User::Id)
-                            .to((Schemas::Authentication, FirebaseToken::Table), FirebaseToken::UserId),
+                            .from(
+                                (Schemas::Authentication, FirebaseToken::Table),
+                                FirebaseToken::UserId,
+                            )
+                            .to((Schemas::Authentication, User::Table), User::Id),
                     )
                     .to_owned(),
             )

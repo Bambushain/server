@@ -57,6 +57,30 @@ pub async fn get_user_by_token(token: &str, db: &DatabaseConnection) -> BambooRe
         ))
 }
 
+pub async fn get_user_by_firebase_token(token: &str, db: &DatabaseConnection) -> BambooResult<BambooUser> {
+    user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(ColumnRef::TableColumn(
+                    Alias::new("user").into_iden(),
+                    user::Column::Id.into_iden(),
+                )))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .filter(firebase_token::Column::Token.eq(token))
+        .join(JoinType::InnerJoin, user::Relation::FirebaseToken.def())
+        .into_model::<BambooUser>()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::unauthorized(error_tag!(), "Firebase token or user not found"))?
+        .ok_or(BambooError::unauthorized(
+            error_tag!(),
+            "Firebase token or user not found",
+        ))
+}
+
 pub async fn get_user_by_email_or_username(
     username: &str,
     db: &DatabaseConnection,
