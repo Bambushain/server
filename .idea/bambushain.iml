@@ -64,6 +64,8 @@
       <sourceFolder url="file://$MODULE_DIR$/common/core/macros/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/pandas/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/mailer-notifications/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/backend/reminder/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/common/backend/message_queue/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/public/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/common/backend/target" />
       <excludeFolder url="file://$MODULE_DIR$/common/core/target" />

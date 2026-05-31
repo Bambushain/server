@@ -56,3 +56,4 @@ pub mod mail;
 pub mod support;
 pub mod token;
 pub mod user;
+pub mod firebase_token;
