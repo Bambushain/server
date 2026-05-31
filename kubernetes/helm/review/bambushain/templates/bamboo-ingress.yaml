@@ -14,16 +14,6 @@ spec:
               service:
                 name: bamboo
                 port:
-                  name: pandas
-            pathType: Prefix
-            path: /pandas
-    - host: "{{ .Values.branch }}-review.bambushain.app"
-      http:
-        paths:
-          - backend:
-              service:
-                name: bamboo
-                port:
                   name: api
             pathType: Prefix
             path: /api
@@ -44,9 +34,9 @@ spec:
               service:
                 name: bamboo
                 port:
-                  name: events
+                  name: pandas
             pathType: Prefix
-            path: /sse/event
+            path: /pandas
     - host: "{{ .Values.branch }}-review.bambushain.app"
       http:
         paths:
@@ -57,3 +47,13 @@ spec:
                   name: public
             pathType: Prefix
             path: /
+    - host: "{{ .Values.branch }}-review.bambushain.app"
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo
+                port:
+                  name: sse
+            pathType: Prefix
+            path: /sse

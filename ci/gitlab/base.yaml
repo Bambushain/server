@@ -66,6 +66,7 @@
     matrix:
       - APP:
           - api
+          - firebase
           - mailer
           - mailer-notifications
           - migrator

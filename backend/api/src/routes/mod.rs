@@ -31,6 +31,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
                 .to(HttpResponse::NoContent)
                 .wrap(authenticate!()),
         )
+        .service(authentication::firebase_login)
+        .service(authentication::firebase_logout)
         .service(grove::get_groves)
         .service(grove::create_grove)
         .service(grove::get_grove)

@@ -14,7 +14,7 @@ spec:
       name: api
     - protocol: TCP
       port: 4020
-      name: events
+      name: sse
     - protocol: TCP
       port: 4070
       name: public

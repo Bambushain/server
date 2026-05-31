@@ -40,7 +40,7 @@ spec:
               value: 0.0.0.0:4090
           ports:
             - containerPort: 4090
-        - name: events
+        - name: firebase
           image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.sse }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
@@ -100,3 +100,13 @@ spec:
                 name: bamboo
             - secretRef:
                 name: passwords
+        - name: sse
+          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.sse }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4020

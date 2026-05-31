@@ -91,7 +91,7 @@ pub async fn firebase_logout(
     db: DbConnection,
 ) -> BambooApiResponseResult {
     let body = check_missing_fields!(body, "authentication")?;
-    dbal::delete_firebase_token(authentication.user.id, &body.token, &db)
+    dbal::delete_firebase_token_by_user(authentication.user.id, &body.token, &db)
         .await
         .map(|_| no_content!())
 }

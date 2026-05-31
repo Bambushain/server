@@ -1,7 +1,7 @@
 use sea_orm::prelude::Expr;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, NotSet, QueryFilter,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, JoinType, NotSet, QueryFilter,
     QuerySelect,
 };
 
@@ -157,7 +157,16 @@ pub async fn create_firebase_token(
     .map(|_| ())
 }
 
-pub async fn delete_firebase_token(
+pub async fn delete_firebase_token(token: &str, db: &DatabaseConnection) -> BambooErrorResult {
+    firebase_token::Entity::delete_many()
+        .filter(firebase_token::Column::Token.eq(token))
+        .exec(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete the firebase token"))
+        .map(|_| ())
+}
+
+pub async fn delete_firebase_token_by_user(
     user_id: i32,
     token: &str,
     db: &DatabaseConnection,
@@ -186,6 +195,37 @@ pub async fn get_firebase_tokens_by_user(
 ) -> BambooResult<Vec<FirebaseToken>> {
     firebase_token::Entity::find()
         .filter(firebase_token::Column::UserId.eq(user_id))
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to fetch firebase tokens"))
+}
+
+pub async fn get_firebase_tokens_by_users(
+    user_ids: Vec<i32>,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<FirebaseToken>> {
+    firebase_token::Entity::find()
+        .filter(firebase_token::Column::UserId.is_in(user_ids))
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to fetch firebase tokens"))
+}
+
+pub async fn get_firebase_tokens_for_grove_mods(
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<FirebaseToken>> {
+    firebase_token::Entity::find()
+        .join(
+            JoinType::InnerJoin,
+            firebase_token::Entity::belongs_to(grove_user::Entity)
+                .from(firebase_token::Column::UserId)
+                .to(grove_user::Column::UserId)
+                .into(),
+        )
+        .filter(grove_user::Column::IsMod.eq(true))
+        .filter(grove_user::Column::IsBanned.eq(false))
+        .filter(grove_user::Column::GroveId.eq(grove_id))
         .all(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to fetch firebase tokens"))

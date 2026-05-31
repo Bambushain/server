@@ -19,6 +19,7 @@ bamboo:
   image:
     api: bambushain/server/api
     authentication: bambushain/server/authentication
+    firebase: bambushain/server/firebase
     mailer: bambushain/server/mailer
     mailerNotifications: bambushain/server/mailer-notifications
     migrator: bambushain/server/migrator
