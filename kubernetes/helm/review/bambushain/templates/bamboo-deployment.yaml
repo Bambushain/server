@@ -48,8 +48,14 @@ spec:
                 name: bamboo
             - secretRef:
                 name: passwords
+          env:
+            - name: FCM_SERVICE_ACCOUNT_JSON
+              value: "/firebase/fcm-service-account.json"
           ports:
             - containerPort: 4020
+          volumeMounts:
+            - mountPath: /firebase
+              name: fcm-service-account
         - name: mailer
           image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.mailer }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -110,3 +116,8 @@ spec:
                 name: passwords
           ports:
             - containerPort: 4020
+      volumes:
+        - name: fcm-service-account
+          secret:
+            secretName: fcm-service-account
+            defaultMode: 0600

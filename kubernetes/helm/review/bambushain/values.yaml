@@ -46,6 +46,8 @@ bamboo:
       usePathStyle: "true"
       accessKey: ""
       secretKey: ""
+    firebase:
+      serviceAccount: ""
 
 # NATS configuration
 nats:
