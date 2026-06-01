@@ -11,17 +11,17 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table((Schemas::Bamboo, EventNotification::Table))
+                    .table((Schemas::Bamboo, EventReminder::Table))
                     .if_not_exists()
-                    .col(pk_auto(EventNotification::Id))
-                    .col(integer(EventNotification::EventId))
-                    .col(timestamp_with_time_zone(EventNotification::Time))
-                    .col(boolean(EventNotification::Notified).default(false))
+                    .col(pk_auto(EventReminder::Id))
+                    .col(integer(EventReminder::EventId))
+                    .col(timestamp_with_time_zone(EventReminder::Time))
+                    .col(boolean(EventReminder::Notified).default(false))
                     .foreign_key(
                         ForeignKey::create()
                             .from(
-                                (Schemas::Bamboo, EventNotification::Table),
-                                EventNotification::EventId,
+                                (Schemas::Bamboo, EventReminder::Table),
+                                EventReminder::EventId,
                             )
                             .to((Schemas::Bamboo, Event::Table), Event::Id)
                             .on_delete(ForeignKeyAction::Cascade),
@@ -35,19 +35,19 @@ impl MigrationTrait for Migration {
         manager
             .drop_foreign_key(
                 ForeignKey::drop()
-                    .table((Schemas::Bamboo, EventNotification::Table))
+                    .table((Schemas::Bamboo, EventReminder::Table))
                     .name("event_notification_event_id_fkey")
                     .to_owned(),
             )
             .await?;
         manager
-            .drop_table(Table::drop().table(EventNotification::Table).to_owned())
+            .drop_table(Table::drop().table(EventReminder::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum EventNotification {
+enum EventReminder {
     Table,
     Id,
     EventId,
