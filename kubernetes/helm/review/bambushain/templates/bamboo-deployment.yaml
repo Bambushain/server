@@ -51,8 +51,6 @@ spec:
           env:
             - name: FCM_SERVICE_ACCOUNT_JSON
               value: "/firebase/fcm-service-account.json"
-          ports:
-            - containerPort: 4020
           volumeMounts:
             - mountPath: /firebase
               name: fcm-service-account
