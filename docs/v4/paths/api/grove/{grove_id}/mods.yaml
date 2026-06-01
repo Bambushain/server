@@ -3,6 +3,7 @@ put:
   operationId: updateGroveMods
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path

@@ -3,6 +3,7 @@ post:
   operationId: joinGrove
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path
@@ -46,6 +47,7 @@ get:
   operationId: checkJoinStatus
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path

@@ -46,6 +46,13 @@ get:
 post:
   summary: Create event reminder
   description: Create a new grove event reminder
+  parameters:
+    - name: event_id
+      in: path
+      required: true
+      description: ID of the event to update
+      schema:
+        type: integer
   requestBody:
     required: true
     content:

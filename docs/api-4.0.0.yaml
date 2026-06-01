@@ -1,0 +1,3147 @@
+openapi: 3.0.3
+info:
+  title: Bambushain API
+  description: API for Bambushain application
+  version: 4.0.0
+  contact:
+    name: Panda Helferlein
+    url: https://bambushain.app
+    email: panda.helferlein@bambushain.app
+  x-logo:
+    url: /assets/bamboo.webp
+    backgroundColor: '#FFFFFF'
+    altText: Bambushain logo
+servers:
+  - url: https://bambushain.app/
+    description: Production Server
+  - url: https://testing.bambushain.app/
+    description: Beta Server
+  - url: https://v4-review.bambushain.app/
+    description: V4 Alpha Server
+tags:
+  - name: authentication
+    description: User authentication
+    x-displayName: User authentication
+  - name: my-profile
+    description: My profile
+    x-displayName: My profile
+  - name: groves
+    description: Groves and their management
+    x-displayName: Groves
+  - name: calendar
+    description: Calendar and its management
+    x-displayName: Calendar
+  - name: pandas
+    description: Pandas and their management
+    x-displayName: Pandas
+  - name: legal
+    description: Licenses and other legal stuff
+    x-displayName: Legal
+  - name: support
+    description: Bamboo support
+    x-displayName: Support
+  - name: characters
+    description: Final Fantasy Characters
+    x-displayName: Characters
+  - name: fighters
+    description: Final Fantasy Fighters
+    x-displayName: Fighters
+  - name: gatherers
+    description: Final Fantasy Gatherers
+    x-displayName: Gatherers
+  - name: crafters
+    description: Final Fantasy Crafters
+    x-displayName: Crafters
+  - name: housing
+    description: Final Fantasy Housing
+    x-displayName: Housing
+  - name: free-companies
+    description: Final Fantasy Free Companies
+    x-displayName: Free Companies
+  - name: custom-fields
+    description: Final Fantasy Custom Character Fields
+    x-displayName: Custom Fields
+paths:
+  /api/login:
+    post:
+      summary: Login to the application
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/login-result'
+        '204':
+          description: Two-factor authentication required
+        '401':
+          description: Invalid login credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - authentication
+    delete:
+      summary: Logout from the application
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Successfully logged out
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - authentication
+    head:
+      summary: Check if token is valid
+      operationId: checkToken
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Token is valid
+        '401':
+          description: Token is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - authentication
+  /api/forgot-password:
+    post:
+      summary: Request password reset
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/forgot-password'
+      responses:
+        '204':
+          description: Password reset email sent
+      tags:
+        - authentication
+  /api/reset-password:
+    post:
+      summary: Reset password using token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reset-password'
+      responses:
+        '204':
+          description: Password reset successful
+        '400':
+          description: Invalid token or request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - authentication
+  /api/my/profile:
+    get:
+      summary: Get current user profile
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+    put:
+      summary: Update current user profile
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update-profile'
+      responses:
+        '204':
+          description: Profile updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+  /api/my/password:
+    put:
+      summary: Change current user password
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/change-password'
+      responses:
+        '204':
+          description: Password changed successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+  /api/my/totp:
+    post:
+      summary: Enable totp
+      operationId: enableTotp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/totp-qr-code'
+      responses:
+        '204':
+          description: Totp enablement request send successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+    delete:
+      summary: Disable totp
+      operationId: disableTotp
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Totp disabled successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+  /api/my/totp/validate:
+    put:
+      summary: Validate the totp registration
+      operationId: validateTotp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/validate-totp'
+      responses:
+        '204':
+          description: Totp validated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - my-profile
+  /api/grove:
+    get:
+      summary: Get all groves for authenticated user
+      operationId: getGroves
+      responses:
+        '200':
+          description: List of groves
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/grove'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    post:
+      summary: Create a new grove
+      operationId: createGrove
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-grove'
+      responses:
+        '201':
+          description: Grove created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}:
+    get:
+      summary: Get a specific grove
+      operationId: getGrove
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '200':
+          description: Grove details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    put:
+      summary: Update grove (requires moderator permissions)
+      operationId: updateGrove
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grove'
+      responses:
+        '204':
+          description: Grove updated successfully
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    delete:
+      summary: Delete grove (requires moderator permissions)
+      operationId: deleteGrove
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '204':
+          description: Grove deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}/user:
+    get:
+      summary: Get users of a grove
+      operationId: getGroveUsers
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '200':
+          description: Grove details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/grove-user'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}/invite:
+    put:
+      summary: Enable grove invites (requires moderator permissions)
+      operationId: enableInvite
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '204':
+          description: Invites enabled successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    delete:
+      summary: Disable grove invites (requires moderator permissions)
+      operationId: disableInvite
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '204':
+          description: Invites disabled successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}/join:
+    post:
+      summary: Join a grove
+      operationId: joinGrove
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/join-grove'
+      responses:
+        '204':
+          description: Successfully joined grove
+        '400':
+          description: Invalid request body or invite secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Not allowed to join (banned or invites disabled)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    get:
+      summary: Check join status for a grove
+      operationId: checkJoinStatus
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '200':
+          description: Join status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/join-grove-status'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}/mods:
+    put:
+      summary: Update grove moderators (requires moderator permissions)
+      operationId: updateGroveMods
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int32
+      responses:
+        '204':
+          description: Moderators updated successfully
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/grove/{grove_id}/user/{user_id}/ban:
+    put:
+      summary: Ban user from grove (requires moderator permissions)
+      operationId: banUser
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+        - name: user_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '204':
+          description: User banned successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+    delete:
+      summary: Unban user from grove (requires moderator permissions)
+      operationId: unbanUser
+      parameters:
+        - name: grove_id
+          required: true
+          schema:
+            type: string
+          in: path
+        - name: user_id
+          required: true
+          schema:
+            type: string
+          in: path
+      responses:
+        '204':
+          description: User unbanned successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Grove or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - groves
+  /api/bamboo-grove/event:
+    get:
+      summary: Get events
+      description: Retrieve events within a date range, optionally filtered by grove
+      parameters:
+        - name: start
+          in: query
+          required: true
+          description: Start date for event range
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          description: End date for event range
+          schema:
+            type: string
+            format: date
+        - name: grove
+          in: query
+          required: false
+          description: Optional grove ID to filter events
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of events retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/grove-event'
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+    post:
+      summary: Create event
+      description: Create a new grove event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grove-event'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove-event'
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+  /api/bamboo-grove/event/{event_id}:
+    put:
+      summary: Update event
+      description: Update an existing grove event
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID of the event to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grove-event'
+      responses:
+        '204':
+          description: Event updated successfully
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+    delete:
+      summary: Delete event
+      description: Delete a grove event
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID of the event to delete
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event deleted successfully
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+  /api/bamboo-grove/event/{event_id}/reminder:
+    get:
+      summary: Get reminder for event
+      description: Gets the reminder for the passed event id
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID of the event to update
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event reminder
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/event-reminder'
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+    post:
+      summary: Create event reminder
+      description: Create a new grove event reminder
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID of the event to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/event-reminder'
+      responses:
+        '201':
+          description: Event reminder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove-event'
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove-event'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove-event'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grove-event'
+      tags:
+        - calendar
+  /api/bamboo-grove/event/{event_id}/reminder/{reminder_id}:
+    delete:
+      summary: Delete event reminder
+      description: Delete a grove event reminder
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: reminder_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event deleted successfully
+        '400':
+          description: Invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - calendar
+  /api/user:
+    get:
+      summary: Get all users
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: grove
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: banned
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: all
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - pandas
+  /api/user/{user_id}/picture:
+    get:
+      summary: Get a user"s profile picture
+      operationId: getProfilePicture
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Profile picture
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - pandas
+  /api/support:
+    post:
+      summary: Send a support request
+      operationId: sendSupportRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/support-request'
+      responses:
+        '204':
+          description: Support request sent successfully
+      tags:
+        - support
+  /api/licenses:
+    get:
+      summary: Get all licenses
+      operationId: getLicenses
+      responses:
+        '200':
+          description: List of licenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/license'
+      tags:
+        - legal
+  /api/final-fantasy/character:
+    get:
+      summary: Get all characters
+      operationId: getCharacters
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/character'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - characters
+    post:
+      summary: Create a new character
+      operationId: createCharacter
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/character'
+      responses:
+        '201':
+          description: Character created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/character'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - characters
+  /api/final-fantasy/character/{character_id}:
+    get:
+      summary: Get a specific character
+      operationId: getCharacter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Character details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/character'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - characters
+    put:
+      summary: Update a character
+      operationId: updateCharacter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/character'
+      responses:
+        '204':
+          description: Character updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - characters
+    delete:
+      summary: Delete a character
+      operationId: deleteCharacter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Character deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - characters
+  /api/final-fantasy/character/{character_id}/housing:
+    get:
+      summary: Get all housings for a character
+      operationId: getCharacterHousings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of character housings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/character-housing'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - housing
+    post:
+      summary: Create a new housing for a character
+      operationId: createCharacterHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/character-housing'
+      responses:
+        '201':
+          description: Character housing created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/character-housing'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - housing
+  /api/final-fantasy/character/{character_id}/housing/{character_housing_id}:
+    get:
+      summary: Get a specific housing for a character
+      operationId: getCharacterHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: character_housing_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Character housing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/character-housing'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - housing
+    put:
+      summary: Update a housing for a character
+      operationId: updateCharacterHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: character_housing_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/character-housing'
+      responses:
+        '204':
+          description: Character housing updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - housing
+    delete:
+      summary: Delete a housing for a character
+      operationId: deleteCharacterHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: character_housing_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Character housing deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - housing
+  /api/final-fantasy/character/{character_id}/crafter:
+    get:
+      summary: Get all crafters for a character
+      operationId: getCrafters
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of crafters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/crafter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - crafters
+    post:
+      summary: Create a new crafter for a character
+      operationId: createCrafter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/crafter'
+      responses:
+        '201':
+          description: Crafter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/crafter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - crafters
+  /api/final-fantasy/character/{character_id}/crafter/{crafter_id}:
+    get:
+      summary: Get a specific crafter for a character
+      operationId: getCrafter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: crafter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Crafter details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/crafter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Crafter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - crafters
+    put:
+      summary: Update a crafter for a character
+      operationId: updateCrafter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: crafter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/crafter'
+      responses:
+        '204':
+          description: Crafter updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Crafter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - crafters
+    delete:
+      summary: Delete a crafter for a character
+      operationId: deleteCrafter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: crafter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Crafter deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Crafter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - crafters
+  /api/final-fantasy/character/{character_id}/fighter:
+    get:
+      summary: Get all fighters for a character
+      operationId: getFighters
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of fighters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/fighter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - fighters
+    post:
+      summary: Create a new fighter for a character
+      operationId: createFighter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fighter'
+      responses:
+        '201':
+          description: Fighter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fighter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - fighters
+  /api/final-fantasy/character/{character_id}/fighter/{fighter_id}:
+    get:
+      summary: Get a specific fighter for a character
+      operationId: getFighter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: fighter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Fighter details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fighter'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Fighter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - fighters
+    put:
+      summary: Update a fighter for a character
+      operationId: updateFighter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: fighter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fighter'
+      responses:
+        '204':
+          description: Fighter updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Fighter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - fighters
+    delete:
+      summary: Delete a fighter for a character
+      operationId: deleteFighter
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: fighter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Fighter deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Fighter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - fighters
+  /api/final-fantasy/character/{character_id}/gatherer:
+    get:
+      summary: Get all gatherers for a character
+      operationId: getGatherers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of gatherers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/gatherer'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - gatherers
+    post:
+      summary: Create a new gatherer for a character
+      operationId: createGatherer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gatherer'
+      responses:
+        '201':
+          description: Gatherer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gatherer'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - gatherers
+  /api/final-fantasy/character/{character_id}/gatherer/{gatherer_id}:
+    get:
+      summary: Get a specific gatherer for a character
+      operationId: getGatherer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: gatherer_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Gatherer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gatherer'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Gatherer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - gatherers
+    put:
+      summary: Update a gatherer for a character
+      operationId: updateGatherer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: gatherer_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gatherer'
+      responses:
+        '204':
+          description: Gatherer updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Gatherer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - gatherers
+    delete:
+      summary: Delete a gatherer for a character
+      operationId: deleteGatherer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: character_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: gatherer_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Gatherer deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Gatherer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - gatherers
+  /api/final-fantasy/free-company:
+    get:
+      summary: Get all free companies
+      operationId: getFreeCompanies
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of free companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/free-company'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-companies
+    post:
+      summary: Create a new free company
+      operationId: createFreeCompany
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/free-company'
+      responses:
+        '201':
+          description: Free company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/free-company'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-companies
+  /api/final-fantasy/free-company/{free_company_id}:
+    get:
+      summary: Get a specific free company
+      operationId: getFreeCompany
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Free company details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/free-company'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Free company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-companies
+    put:
+      summary: Update a free company
+      operationId: updateFreeCompany
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/free-company'
+      responses:
+        '204':
+          description: Free company updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Free company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-companies
+    delete:
+      summary: Delete a free company
+      operationId: deleteFreeCompany
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Free company deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Free company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-companies
+  /api/final-fantasy/free-company/{free_company_id}/housing:
+    get:
+      summary: Get the housing for the given free company
+      operationId: getFreeCompanyHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Free company housing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/free-company-housing'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Free company housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-company
+    put:
+      summary: Set a housing for a free company
+      operationId: setFreeCompanyHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/free-company-housing'
+      responses:
+        '204':
+          description: Free company housing set successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Character housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-company
+    delete:
+      summary: Delete the housing for a free company
+      operationId: deleteFreeCompanyHousing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: free_company_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Free company housing deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Free company housing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - free-company
+  /api/final-fantasy/character/custom-field:
+    get:
+      summary: Get all custom fields
+      operationId: getCustomFields
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of custom fields
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/custom-field'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+    post:
+      summary: Create a new custom field
+      operationId: createCustomField
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/custom-field'
+      responses:
+        '201':
+          description: Custom field created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/custom-field'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+  /api/final-fantasy/character/custom-field/{field_id}:
+    get:
+      summary: Get a specific custom field
+      operationId: getCustomField
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Custom field details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/custom-field'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+    put:
+      summary: Update a custom field
+      operationId: updateCustomField
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/custom-field'
+      responses:
+        '204':
+          description: Custom field updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+    delete:
+      summary: Delete a custom field
+      operationId: deleteCustomField
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Custom field deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+  /api/final-fantasy/character/custom-field/{field_id}/option:
+    get:
+      summary: Get all options for a custom field
+      operationId: getCustomFieldOptions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of custom field options
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/custom-field-option'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+    post:
+      summary: Create a new option for a custom field
+      operationId: createCustomFieldOption
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Custom field option created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/custom-field-option'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+  /api/final-fantasy/character/custom-field/{field_id}/option/{option_id}:
+    put:
+      summary: Update an option for a custom field
+      operationId: updateCustomFieldOption
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: option_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '204':
+          description: Custom field option updated successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field option not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+    delete:
+      summary: Delete an option for a custom field
+      operationId: deleteCustomFieldOption
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: option_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Custom field option deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field option not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+  /api/final-fantasy/character/custom-field/{field_id}/{position}:
+    put:
+      summary: Move a custom field to a new position
+      operationId: moveCustomField
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: position
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Custom field moved successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Custom field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - custom-fields
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        twoFactorCode:
+          type: string
+      required:
+        - email
+        - password
+    user:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        discordName:
+          type: string
+        appTotpEnabled:
+          type: boolean
+          nullable: true
+        profilePicture:
+          type: string
+    login-result:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/user'
+        token:
+          type: string
+    error:
+      type: object
+      properties:
+        entityType:
+          type: string
+        message:
+          type: string
+        errorType:
+          type: string
+    forgot-password:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    reset-password:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - token
+        - password
+    update-profile:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        discordName:
+          type: string
+      required:
+        - email
+        - displayName
+        - discordName
+    change-password:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+      required:
+        - oldPassword
+        - newPassword
+    totp-qr-code:
+      type: object
+      properties:
+        qrCode:
+          type: string
+        secret:
+          type: string
+    validate-totp:
+      type: object
+      properties:
+        code:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - code
+        - password
+    grove:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        inviteEnabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    create-grove:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - name
+    grove-user:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        discordName:
+          type: string
+        isMod:
+          type: boolean
+        isBanned:
+          type: boolean
+    join-grove-status:
+      type: string
+      enum:
+        - joined
+        - not-joined
+        - banned
+    join-grove:
+      type: object
+      properties:
+        groveId:
+          type: string
+          format: uuid
+      required:
+        - groveId
+    event-reminder:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        when:
+          type: string
+          format: date-time
+      required:
+        - when
+    grove-event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        reminder:
+          type: array
+          items:
+            $ref: '#/components/schemas/event-reminder'
+      required:
+        - title
+        - description
+        - startDate
+        - endDate
+    support-request:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        message:
+          type: string
+      required:
+        - name
+        - email
+        - message
+    license:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        license:
+          type: string
+    character-race:
+      type: string
+      enum:
+        - hyur
+        - elezen
+        - lalafell
+        - miqote
+        - roegadyn
+        - au-ra
+        - hrothgar
+        - viera
+    custom-field-option:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        label:
+          type: string
+      required:
+        - label
+    custom-field:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        label:
+          type: string
+        position:
+          type: integer
+          format: int32
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/custom-field-option'
+    free-company:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+      required:
+        - name
+    character:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        race:
+          $ref: '#/components/schemas/character-race'
+        name:
+          type: string
+        world:
+          type: string
+        datacenter:
+          type: string
+        customFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/custom-field'
+        freeCompany:
+          $ref: '#/components/schemas/free-company'
+      required:
+        - race
+        - name
+        - world
+    housing-district:
+      type: string
+      enum:
+        - the-lavender-beds
+        - mist
+        - the-goblet
+        - shirogane
+        - empyreum
+    housing-type:
+      type: string
+      enum:
+        - private
+        - shared-apartment
+    character-housing:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        district:
+          $ref: '#/components/schemas/housing-district'
+        housingType:
+          $ref: '#/components/schemas/housing-type'
+        ward:
+          type: integer
+          format: int16
+        plot:
+          type: integer
+          format: int16
+        characterId:
+          type: integer
+          format: int32
+      required:
+        - district
+        - housingType
+        - ward
+        - plot
+    crafter-job:
+      type: string
+      enum:
+        - carpenter
+        - blacksmith
+        - armorer
+        - goldsmith
+        - leatherworker
+        - weaver
+        - alchemist
+    crafter:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        job:
+          $ref: '#/components/schemas/crafter-job'
+        level:
+          type: string
+        characterId:
+          type: integer
+          format: int32
+      required:
+        - job
+        - level
+    fighter-job:
+      type: string
+      enum:
+        - paladin
+        - warrior
+        - dark-knight
+        - gunbreaker
+        - white-mage
+        - scholar
+        - astrologian
+        - sage
+        - monk
+        - dragoon
+        - ninja
+        - samurai
+        - reaper
+        - bard
+        - machinist
+        - dancer
+        - black_mage
+        - summoner
+        - red-mage
+        - blue-mage
+        - viper
+        - pictomancer
+    fighter:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        job:
+          $ref: '#/components/schemas/fighter-job'
+        level:
+          type: string
+        gearScore:
+          type: string
+        characterId:
+          type: integer
+          format: int32
+      required:
+        - job
+    gatherer-job:
+      type: string
+      enum:
+        - culinarian
+        - miner
+        - botanist
+        - fisher
+    gatherer:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        job:
+          $ref: '#/components/schemas/gatherer-job'
+        level:
+          type: string
+        characterId:
+          type: integer
+          format: int32
+      required:
+        - job
+    free-company-housing:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        district:
+          $ref: '#/components/schemas/housing-district'
+        ward:
+          type: integer
+          format: int16
+        plot:
+          type: integer
+          format: int16
+        freeCompanyId:
+          type: integer
+          format: int32
+      required:
+        - district
+        - ward
+        - plot
+x-tagGroups:
+  - name: my-bamboo
+    description: My Bamboo and authentication
+    x-displayName: My Bamboo
+    tags:
+      - authentication
+      - my-profile
+  - name: bamboo
+    x-displayName: Bamboo
+    description: All about Bambushain
+    tags:
+      - groves
+      - calendar
+      - pandas
+      - legal
+      - support
+  - name: final-fantasy
+    description: All things Final Fantasy XIV
+    x-displayName: Final Fantasy
+    tags:
+      - characters
+      - fighters
+      - gatherers
+      - crafters
+      - housing
+      - free-companies
+      - custom-fields
