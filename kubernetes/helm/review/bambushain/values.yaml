@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 
 # Namespace configuration
-namespace:
+namespace: ""
 
 # Branch name for review environments
 branch: ""
@@ -16,17 +16,55 @@ image:
 # Bamboo application configuration
 bamboo:
   replicas: 1
-  image:
-    api: bambushain/server/api
-    authentication: bambushain/server/authentication
-    firebase: bambushain/server/firebase
-    mailer: bambushain/server/mailer
-    mailerNotifications: bambushain/server/mailer-notifications
-    migrator: bambushain/server/migrator
-    pandas: bambushain/server/pandas
-    public: bambushain/server/public
-    reminder: bambushain/server/reminder
-    sse: bambushain/server/sse
+  services:
+    api:
+      image: bambushain/server/api
+      ports:
+        - 4010
+    authentication:
+      image: bambushain/server/authentication
+      ports:
+        - 4090
+      env:
+        - name: LEPTOS_SITE_ADDR
+          value: 0.0.0.0:4090
+    firebase:
+      image: bambushain/server/firebase
+      env:
+        - name: FCM_SERVICE_ACCOUNT_JSON
+          value: "/firebase/fcm-service-account.json"
+      volumeMounts:
+        - mountPath: /firebase
+          name: fcm-service-account
+      volumes:
+        - name: fcm-service-account
+          secret:
+            secretName: fcm-service-account
+            defaultMode: 0600
+    mailer:
+      image: bambushain/server/mailer
+    mailerNotifications:
+      image: bambushain/server/mailer-notifications
+    pandas:
+      image: bambushain/server/pandas
+      ports:
+        - 4080
+      env:
+        - name: LEPTOS_SITE_ADDR
+          value: 0.0.0.0:4080
+    public:
+      image: bambushain/server/public
+      ports:
+        - 4070
+      env:
+        - name: STATIC_DIR
+          value: /public/assets
+    reminder:
+      image: bambushain/server/reminder
+    sse:
+      image: bambushain/server/sse
+      ports:
+        - 4020
   config:
     databaseUrl: "postgres://bamboo:bamboo@postgres:5432/bamboo"
     mailer:
@@ -76,6 +114,7 @@ postgres:
 # Database migration job
 migrate:
   enabled: true
+  image: bambushain/server/migrator
 
 # Labels to apply to all resources
 labels:

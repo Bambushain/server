@@ -34,7 +34,7 @@ spec:
               psql -d bamboo -c "ALTER DATABASE bamboo SET search_path TO public;"
       containers:
         - name: migrate-database
-          image: "{{ .Values.image.registry }}/{{ .Values.bamboo.image.migrator }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.migrate.image }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:

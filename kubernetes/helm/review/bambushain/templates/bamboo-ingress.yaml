@@ -12,7 +12,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-api
                 port:
                   name: api
             pathType: Prefix
@@ -22,7 +22,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-authentication
                 port:
                   name: authentication
             pathType: Prefix
@@ -32,7 +32,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-pandas
                 port:
                   name: pandas
             pathType: Prefix
@@ -42,7 +42,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-public
                 port:
                   name: public
             pathType: Prefix
@@ -52,7 +52,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-sse
                 port:
                   name: sse
             pathType: Prefix

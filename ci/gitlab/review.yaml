@@ -1,8 +1,18 @@
-
+read-secure-files:
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  stage: deploy-testing
+  script:
+    - glab auth login --job-token $CI_JOB_TOKEN --hostname $CI_SERVER_FQDN --api-protocol $CI_SERVER_PROTOCOL
+    - glab -R $CI_PROJECT_PATH securefile download --all --output-dir="/secure-files"
+  artifacts:
+    paths:
+      - /secure-files
 
 deploy-review:
   extends:
     - .base-review
+  needs:
+    - read-secure-files
   variables:
     TAG: 4.0.0-alpha.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME.$CI_PIPELINE_IID
   script:
