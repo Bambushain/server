@@ -3,8 +3,6 @@
 deploy-review:
   extends:
     - .base-review
-  needs:
-    - read-secure-files
   variables:
     TAG: 4.0.0-alpha.$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME.$CI_PIPELINE_IID
   script:
