@@ -37,8 +37,8 @@ async fn setup_google_playstore_user(db: &sea_orm::DatabaseConnection) -> std::i
             password,
             db,
         )
-            .await
-            .map_err(std::io::Error::other)?;
+        .await
+        .map_err(std::io::Error::other)?;
         setup_google_playstore_grove(user.id, db).await
     }
 }

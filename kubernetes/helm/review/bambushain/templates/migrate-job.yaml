@@ -23,15 +23,19 @@ spec:
           env:
             - name: PGHOST
               value: postgres
+            - name: PGDATABASE
+              value: bamboo
             - name: PGPASSWORD
               value: bamboo
             - name: PGUSER
               value: bamboo
           command:
             - sh
-            - -c
+            - -ec
             - |
-              psql -d bamboo -c "ALTER DATABASE bamboo SET search_path TO public;"
+              psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE bamboo SET search_path TO public;"
+              psql -v ON_ERROR_STOP=1 -c "ALTER ROLE bamboo IN DATABASE bamboo SET search_path TO public;"
+              psql -v ON_ERROR_STOP=1 -c "SHOW search_path;"
       containers:
         - name: migrate-database
           image: "{{ .Values.image.registry }}/{{ .Values.migrate.image }}:{{ .Values.image.tag }}"

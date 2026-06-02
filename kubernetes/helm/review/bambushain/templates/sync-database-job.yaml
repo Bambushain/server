@@ -8,11 +8,9 @@ metadata:
 data:
   dump-live.sh: |
     #!/usr/bin/env sh
-    pg_dump {{ .Values.postgres.sync.liveDatabase.database }} --format=p --create --if-exists --file=/data/{{ .Values.postgres.sync.liveDatabase.database }}.sql
-
+    pg_dump {{ .Values.postgres.sync.liveDatabase.database }} --format=p --inserts --file=/data/{{ .Values.postgres.sync.liveDatabase.database }}.sql
     echo 'SET search_path TO public;' > /data/bamboo.sql
     echo 'DROP SCHEMA IF EXISTS final_fantasy CASCADE;' >> /data/bamboo.sql
-    echo 'DROP SCHEMA IF EXISTS authentication CASCADE;' >> /data/bamboo.sql
     echo 'DROP SCHEMA IF EXISTS grove CASCADE;' >> /data/bamboo.sql
     echo 'DROP SCHEMA IF EXISTS bamboo CASCADE;' >> /data/bamboo.sql
     echo 'DROP SCHEMA IF EXISTS mailing CASCADE;' >> /data/bamboo.sql
@@ -35,7 +33,7 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   parallelism: 1
   template:
