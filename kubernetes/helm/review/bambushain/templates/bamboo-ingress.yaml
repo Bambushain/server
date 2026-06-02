@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: bamboo
   namespace: {{ include "bambushain.namespace" . }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
   labels:
     {{- include "bambushain.labels" . | nindent 4 }}
 spec:

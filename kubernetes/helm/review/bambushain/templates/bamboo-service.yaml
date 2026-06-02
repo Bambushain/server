@@ -17,6 +17,7 @@ spec:
     - protocol: TCP
       port: {{ $port }}
       targetPort: {{ $port }}
+      name: {{ $key | lower }}
     {{- end }}
 {{- end }}
 {{- end }}
