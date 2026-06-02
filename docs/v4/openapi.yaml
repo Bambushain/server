@@ -27,6 +27,7 @@ x-tagGroups:
       - authentication
       - my-profile
   - name: bamboo
+    x-displayName: Bamboo
     description: All about Bambushain
     tags:
       - groves
@@ -36,6 +37,7 @@ x-tagGroups:
       - support
   - name: final-fantasy
     description: All things Final Fantasy XIV
+    x-displayName: Final Fantasy
     tags:
       - characters
       - fighters
@@ -66,6 +68,27 @@ tags:
   - name: support
     description: Bamboo support
     x-displayName: Support
+  - name: characters
+    description: Final Fantasy Characters
+    x-displayName: Characters
+  - name: fighters
+    description: Final Fantasy Fighters
+    x-displayName: Fighters
+  - name: gatherers
+    description: Final Fantasy Gatherers
+    x-displayName: Gatherers
+  - name: crafters
+    description: Final Fantasy Crafters
+    x-displayName: Crafters
+  - name: housing
+    description: Final Fantasy Housing
+    x-displayName: Housing
+  - name: free-companies
+    description: Final Fantasy Free Companies
+    x-displayName: Free Companies
+  - name: custom-fields
+    description: Final Fantasy Custom Character Fields
+    x-displayName: Custom Fields
 components:
   securitySchemes:
     bearerAuth:
@@ -104,6 +127,10 @@ paths:
     $ref: "paths/api/bamboo-grove/event.yaml"
   /api/bamboo-grove/event/{event_id}:
     $ref: "paths/api/bamboo-grove/event/{event_id}.yaml"
+  /api/bamboo-grove/event/{event_id}/reminder:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/reminder.yaml"
+  /api/bamboo-grove/event/{event_id}/reminder/{reminder_id}:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/reminder/{reminder_id}.yaml"
   /api/user:
     $ref: "paths/api/user.yaml"
   /api/user/{user_id}/picture:

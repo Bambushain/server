@@ -52,11 +52,9 @@ fn Login() -> impl IntoView {
     };
 
     Effect::new(move |_| {
-        if let Some(Ok(value)) = value.get() {
-            if value.login_success {
-                let window = use_window();
-                let _ = window.as_ref().unwrap().location().set_href("/pandas");
-            }
+        if let Some(Ok(value)) = value.get() && value.login_success {
+            let window = use_window();
+            let _ = window.as_ref().unwrap().location().set_href("/pandas");
         }
     });
 
@@ -167,15 +165,13 @@ fn ResetPassword() -> impl IntoView {
     let reset_enabled = move || password.get().eq(&password_repeat.get());
 
     Effect::new(move |_| {
-        if let Some(Ok(value)) = value.get() {
-            if value {
-                let window = use_window();
-                let _ = window
-                    .as_ref()
-                    .unwrap()
-                    .location()
-                    .set_href("/authentication");
-            }
+        if let Some(Ok(value)) = value.get() && value {
+            let window = use_window();
+            let _ = window
+                .as_ref()
+                .unwrap()
+                .location()
+                .set_href("/authentication");
         }
     });
 

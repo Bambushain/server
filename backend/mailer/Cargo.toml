@@ -7,8 +7,6 @@ license.workspace = true
 [dependencies]
 bamboo-common = { path = "../../common", features = ["backend"] }
 
-async-nats = { workspace = true }
-futures-util = { workspace = true }
 html2text = { workspace = true }
 lettre = { workspace = true }
 log = { workspace = true }

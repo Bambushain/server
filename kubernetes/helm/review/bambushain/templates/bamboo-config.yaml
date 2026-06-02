@@ -31,3 +31,13 @@ stringData:
   MAILER_PASSWORD: {{ .Values.bamboo.config.mailer.password | quote }}
   S3_ACCESS_KEY: {{ .Values.bamboo.config.s3.accessKey | quote }}
   S3_SECRET_KEY: {{ .Values.bamboo.config.s3.secretKey | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fcm-service-account
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+data:
+  fcm-service-account.json: {{ tpl (.Files.Get .Values.bamboo.config.firebase.serviceAccount) . | b64enc | quote }}

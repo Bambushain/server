@@ -3,6 +3,7 @@ put:
   operationId: enableInvite
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path
@@ -34,6 +35,7 @@ delete:
   operationId: disableInvite
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path

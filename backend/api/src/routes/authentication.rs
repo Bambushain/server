@@ -18,11 +18,11 @@ pub async fn login(body: Option<web::Json<Login>>, db: DbConnection) -> BambooAp
         body.two_factor_code.clone(),
         &db,
     )
-        .await
-        .map_err(|err| {
-            log::error!("Failed to login {err}");
-            BambooError::unauthorized("user", "Login data is invalid")
-        })?;
+    .await
+    .map_err(|err| {
+        log::error!("Failed to login {err}");
+        BambooError::unauthorized("user", "Login data is invalid")
+    })?;
 
     if data.requires_two_factor_code {
         Ok(no_content!())
@@ -61,8 +61,37 @@ pub async fn reset_password(
 }
 
 #[delete("/api/login", wrap = "authenticate!()")]
-pub async fn logout(auth: Authentication, db: DbConnection) -> HttpResponse {
-    let _ = dbal::delete_token(auth.token.clone(), &db).await;
+pub async fn logout(authentication: Authentication, db: DbConnection) -> HttpResponse {
+    let _ = dbal::delete_token(authentication.token.clone(), &db).await;
 
     no_content!()
+}
+
+#[derive(serde::Deserialize, Debug, Default)]
+struct FirebaseTokenBody {
+    token: String,
+}
+
+#[post("/api/firebase/login", wrap = "authenticate!()")]
+pub async fn firebase_login(
+    body: Option<web::Json<FirebaseTokenBody>>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let body = check_missing_fields!(body, "authentication")?;
+    dbal::create_firebase_token(authentication.user.id, &body.token, &db)
+        .await
+        .map(|_| no_content!())
+}
+
+#[post("/api/firebase/logout", wrap = "authenticate!()")]
+pub async fn firebase_logout(
+    body: Option<web::Json<FirebaseTokenBody>>,
+    authentication: Authentication,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let body = check_missing_fields!(body, "authentication")?;
+    dbal::delete_firebase_token_by_user(authentication.user.id, &body.token, &db)
+        .await
+        .map(|_| no_content!())
 }

@@ -39,12 +39,12 @@ pub async fn enqueue_register_mail(
             &email,
             mail_body,
             None as Option<String>,
-            "Erstell deinen Account",
-            format!(
+            Some("Erstell deinen Account"),
+            Some(format!(
                 "https://bambushain.app/create-account?name={base64_name}&email={base64_email}"
-            ),
+            )),
         ),
         db,
     )
-        .await;
+    .await;
 }

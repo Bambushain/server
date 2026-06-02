@@ -31,6 +31,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
                 .to(HttpResponse::NoContent)
                 .wrap(authenticate!()),
         )
+        .service(authentication::firebase_login)
+        .service(authentication::firebase_logout)
         .service(grove::get_groves)
         .service(grove::create_grove)
         .service(grove::get_grove)
@@ -49,6 +51,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(event::create_event)
         .service(event::update_event)
         .service(event::delete_event)
+        .service(event::get_event_reminders)
+        .service(event::create_event_reminder)
+        .service(event::delete_event_reminder)
         .service(my::get_profile)
         .service(my::update_profile)
         .service(my::change_password)

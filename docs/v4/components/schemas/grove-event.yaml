@@ -19,6 +19,10 @@ properties:
   endTime:
     type: string
     format: time
+  reminder:
+    type: array
+    items:
+      $ref: "./event-reminder.yaml"
 required:
   - title
   - description

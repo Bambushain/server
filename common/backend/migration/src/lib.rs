@@ -38,6 +38,8 @@ mod m20241229_011028_add_character_column_datacenter;
 mod m20250623_205832_mailer_queue;
 mod m20250707_203805_times_for_calendar;
 mod m20250712_014852_free_company_housing;
+mod m20260529_025141_add_event_notifications;
+mod m20260531_031336_add_firebase_token;
 
 pub struct Migrator;
 
@@ -83,6 +85,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20250623_205832_mailer_queue::Migration),
             Box::new(m20250707_203805_times_for_calendar::Migration),
             Box::new(m20250712_014852_free_company_housing::Migration),
+            Box::new(m20260529_025141_add_event_notifications::Migration),
+            Box::new(m20260531_031336_add_firebase_token::Migration),
         ]
     }
 }

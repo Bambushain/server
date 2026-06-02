@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: bamboo
   namespace: {{ include "bambushain.namespace" . }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
   labels:
     {{- include "bambushain.labels" . | nindent 4 }}
 spec:
@@ -12,17 +14,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
-                port:
-                  name: pandas
-            pathType: Prefix
-            path: /pandas
-    - host: "{{ .Values.branch }}-review.bambushain.app"
-      http:
-        paths:
-          - backend:
-              service:
-                name: bamboo
+                name: bamboo-api
                 port:
                   name: api
             pathType: Prefix
@@ -32,7 +24,7 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-authentication
                 port:
                   name: authentication
             pathType: Prefix
@@ -42,18 +34,28 @@ spec:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-pandas
                 port:
-                  name: events
+                  name: pandas
             pathType: Prefix
-            path: /sse/event
+            path: /pandas
     - host: "{{ .Values.branch }}-review.bambushain.app"
       http:
         paths:
           - backend:
               service:
-                name: bamboo
+                name: bamboo-public
                 port:
                   name: public
             pathType: Prefix
             path: /
+    - host: "{{ .Values.branch }}-review.bambushain.app"
+      http:
+        paths:
+          - backend:
+              service:
+                name: bamboo-sse
+                port:
+                  name: sse
+            pathType: Prefix
+            path: /sse

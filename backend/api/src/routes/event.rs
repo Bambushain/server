@@ -11,6 +11,7 @@ use bamboo_common::core::error::*;
 
 use crate::path;
 use bamboo_common::backend::actix::middleware::{authenticate, Authentication};
+use bamboo_common::core::entities::EventReminder;
 
 #[derive(Deserialize)]
 pub struct GetEventsQuery {
@@ -64,7 +65,7 @@ pub async fn update_event(
         body.into_inner(),
         &db,
     )
-        .await?;
+    .await?;
 
     Ok(no_content!())
 }
@@ -80,4 +81,51 @@ pub async fn delete_event(
     dbal::delete_event(authentication.user.id, path.event_id, &db).await?;
 
     Ok(no_content!())
+}
+
+#[get(
+    "/api/bamboo-grove/event/{event_id}/reminder",
+    wrap = "authenticate!()"
+)]
+pub async fn get_event_reminders(
+    path: Option<path::EventPath>,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "reminder_id")?;
+
+    dbal::get_event_reminder_by_event(path.event_id, &db)
+        .await
+        .map(|data| list!(data))
+}
+
+#[post(
+    "/api/bamboo-grove/event/{event_id}/reminder",
+    wrap = "authenticate!()"
+)]
+pub async fn create_event_reminder(
+    path: Option<path::EventPath>,
+    body: Option<web::Json<EventReminder>>,
+    db: DbConnection,
+) -> BambooApiResult<EventReminder> {
+    let path = check_invalid_path!(path, "event_reminder")?;
+    let body = check_missing_fields!(body, "event_reminder")?;
+
+    dbal::create_event_reminder(path.event_id, body.time, &db)
+        .await
+        .map(|data| created!(data))
+}
+
+#[delete(
+    "/api/bamboo-grove/event/{event_id}/notification/{reminder_id}",
+    wrap = "authenticate!()"
+)]
+pub async fn delete_event_reminder(
+    path: Option<path::EventNotificationPath>,
+    db: DbConnection,
+) -> BambooApiResponseResult {
+    let path = check_invalid_path!(path, "event_reminder")?;
+
+    dbal::delete_event_reminder(path.event_id, path.reminder_id, &db)
+        .await
+        .map(|_| no_content!())
 }

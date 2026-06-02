@@ -65,10 +65,13 @@
   parallel:
     matrix:
       - APP:
-          - mailer
-          - events
           - api
+          - firebase
+          - mailer
+          - mailer-notifications
           - migrator
+          - reminder
+          - sse
         TYPE:
           - backend
       - APP:

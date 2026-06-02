@@ -19,7 +19,7 @@ async fn setup_google_playstore_grove(
 }
 
 async fn setup_google_playstore_user(db: &sea_orm::DatabaseConnection) -> std::io::Result<()> {
-    let email = "playstore@google.bambushain";
+    let email = "playstore@bambushain.app";
     let password = "NkWHoLDmzg4aVEx";
 
     if let Ok(user) = dbal::get_user_by_email_or_username(email, db).await {
@@ -37,8 +37,8 @@ async fn setup_google_playstore_user(db: &sea_orm::DatabaseConnection) -> std::i
             password,
             db,
         )
-            .await
-            .map_err(std::io::Error::other)?;
+        .await
+        .map_err(std::io::Error::other)?;
         setup_google_playstore_grove(user.id, db).await
     }
 }

@@ -1,7 +1,9 @@
-use crate::error_tag;
+use crate::{error_tag, get_grove_mods, get_user_by_grove};
+use bamboo_common_backend_notification::notify;
 use bamboo_common_core::entities::user::JoinStatus;
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
+use bamboo_common_core::queueing::Notification;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::Keyword::Null;
 use sea_orm::ActiveValue::Set;
@@ -34,6 +36,17 @@ pub async fn get_grove(id: i32, user_id: i32, db: &DatabaseConnection) -> Bamboo
         .inner_join(grove_user::Entity)
         .filter(grove_user::Column::UserId.eq(user_id))
         .filter(grove_user::Column::IsBanned.eq(false))
+        .one(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
+        .ok_or(BambooError::not_found(
+            error_tag!(),
+            "The grove was not found",
+        ))
+}
+
+pub async fn get_grove_by_id(id: i32, db: &DatabaseConnection) -> BambooResult<Grove> {
+    grove::Entity::find_by_id(id)
         .one(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
@@ -153,19 +166,35 @@ pub async fn update_grove_mods(
             Ok(())
         })
     })
-        .await
-        .map_err(|_: TransactionError<BambooError>| {
-            BambooError::database(error_tag!(), "Failed to update grove mods")
-        })
-        .map(|_| ())
+    .await
+    .map_err(|_: TransactionError<BambooError>| {
+        BambooError::database(error_tag!(), "Failed to update grove mods")
+    })?;
+
+    let grove = get_grove_by_id(id, db).await;
+    if let Ok(grove) = grove {
+        notify(Notification::GroveModChange(grove)).await;
+    }
+
+    Ok(())
 }
 
 pub async fn delete_grove(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    let grove = get_grove_by_id(id, db).await;
+    let mods = get_grove_mods(id, db).await;
+
     grove::Entity::delete_by_id(id)
         .exec(db)
         .await
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete grove"))
-        .map(|_| ())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete grove"))?;
+
+    if let Ok(grove) = grove
+        && let Ok(mods) = mods
+    {
+        notify(Notification::GroveDelete(grove, mods)).await
+    }
+
+    Ok(())
 }
 
 pub async fn ban_user_from_grove(
@@ -184,8 +213,18 @@ pub async fn ban_user_from_grove(
         .col_expr(grove_user::Column::IsMod, Expr::value(false))
         .exec(db)
         .await
-        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to ban user"))
-        .map(|_| ())
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to ban user"))?;
+
+    let grove = get_grove_by_id(grove_id, db).await;
+    let user = get_user_by_grove(user_id, grove_id, db).await;
+
+    if let Ok(grove) = grove
+        && let Ok(Some(user)) = user
+    {
+        notify(Notification::GroveBan(grove, user)).await
+    }
+
+    Ok(())
 }
 
 pub async fn unban_user_from_grove(
@@ -202,8 +241,18 @@ pub async fn unban_user_from_grove(
         )
         .exec(db)
         .await
-        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to unban user"))
-        .map(|_| ())
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to unban user"))?;
+
+    let grove = get_grove_by_id(grove_id, db).await;
+    let user = get_user_by_grove(user_id, grove_id, db).await;
+
+    if let Ok(grove) = grove
+        && let Ok(Some(user)) = user
+    {
+        notify(Notification::GroveUnban(grove, user)).await
+    }
+
+    Ok(())
 }
 
 pub async fn enable_grove_invite(grove_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
@@ -219,8 +268,17 @@ pub async fn enable_grove_invite(grove_id: i32, db: &DatabaseConnection) -> Bamb
         )
         .exec(db)
         .await
-        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to enable invites"))
-        .map(|_| ())
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to enable invites"))?;
+
+    let grove = grove::Entity::find_by_id(grove_id)
+        .one(db)
+        .await
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to enable invites"));
+    if let Ok(Some(grove)) = grove {
+        notify(Notification::GroveInviteEnable(grove)).await
+    }
+
+    Ok(())
 }
 
 pub async fn disable_grove_invite(grove_id: i32, db: &DatabaseConnection) -> BambooErrorResult {
@@ -229,8 +287,17 @@ pub async fn disable_grove_invite(grove_id: i32, db: &DatabaseConnection) -> Bam
         .col_expr(grove::Column::InviteSecret, Expr::value(Null))
         .exec(db)
         .await
-        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to disable invites"))
-        .map(|_| ())
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to disable invites"))?;
+
+    let grove = grove::Entity::find_by_id(grove_id)
+        .one(db)
+        .await
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to enable invites"));
+    if let Ok(Some(grove)) = grove {
+        notify(Notification::GroveInviteDisable(grove)).await
+    }
+
+    Ok(())
 }
 
 pub async fn check_grove_join_status(
@@ -256,6 +323,23 @@ pub async fn check_grove_join_status(
                 JoinStatus::NotJoined
             }
         })
+}
+
+pub async fn check_grove_mod_status(
+    grove_id: i32,
+    user_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<bool> {
+    grove_user::Entity::find()
+        .select_only()
+        .column(grove_user::Column::IsMod)
+        .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::GroveId.eq(grove_id))
+        .into_tuple::<bool>()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::unknown(error_tag!(), "Join status cannot be checked"))
+        .map(|res| res.unwrap_or(false))
 }
 
 pub async fn join_grove(
@@ -307,8 +391,20 @@ pub async fn join_grove(
         grove_id: Set(grove_id),
         user_id: Set(user_id),
     }
-        .insert(db)
+    .insert(db)
+    .await
+    .map_err(|_| BambooError::unknown(error_tag!(), "Failed to join grove"))?;
+
+    let grove_user = get_user_by_grove(user_id, grove_id, db).await;
+    let grove = grove::Entity::find_by_id(grove_id)
+        .one(db)
         .await
-        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to join grove"))
-        .map(|_| ())
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to enable invites"));
+    if let Ok(Some(grove)) = grove
+        && let Ok(Some(grove_user)) = grove_user
+    {
+        notify(Notification::GroveJoin(grove, grove_user)).await
+    }
+
+    Ok(())
 }

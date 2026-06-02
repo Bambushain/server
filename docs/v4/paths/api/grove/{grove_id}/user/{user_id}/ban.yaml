@@ -3,10 +3,12 @@ put:
   operationId: banUser
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path
     - name: user_id
+      required: true
       schema:
         type: string
       in: path
@@ -38,10 +40,12 @@ delete:
   operationId: unbanUser
   parameters:
     - name: grove_id
+      required: true
       schema:
         type: string
       in: path
     - name: user_id
+      required: true
       schema:
         type: string
       in: path

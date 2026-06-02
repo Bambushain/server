@@ -20,14 +20,14 @@ pub(crate) async fn check_grove_mod(
         middleware::get_user_and_token_by_cookie(&db, auth_cookie).await?
     };
 
-    if let Some(path) = path {
-        if !dbal::is_grove_mod(path.grove_id, user.id, &db).await? {
-            return Err(BambooError::insufficient_rights(
-                "grove",
-                "You don't have the right to manage this grove",
-            )
-                .into());
-        }
+    if let Some(path) = path
+        && !dbal::is_grove_mod(path.grove_id, user.id, &db).await?
+    {
+        return Err(BambooError::insufficient_rights(
+            "grove",
+            "You don't have the right to manage this grove",
+        )
+        .into());
     }
 
     next.call(req).await

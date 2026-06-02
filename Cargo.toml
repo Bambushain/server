@@ -18,20 +18,32 @@ path = "src/bin/api.rs"
 name = "bamboo-api"
 
 [[bin]]
-path = "src/bin/events.rs"
-name = "bamboo-events"
-
-[[bin]]
-path = "src/bin/public.rs"
-name = "bamboo-public"
+path = "src/bin/firebase.rs"
+name = "bamboo-firebase"
 
 [[bin]]
 path = "src/bin/mailer.rs"
 name = "bamboo-mailer"
 
 [[bin]]
+path = "src/bin/mailer-notifications.rs"
+name = "bamboo-mailer-notifications"
+
+[[bin]]
 path = "src/bin/migrator.rs"
 name = "bamboo-migrator"
+
+[[bin]]
+path = "src/bin/public.rs"
+name = "bamboo-public"
+
+[[bin]]
+path = "src/bin/reminder.rs"
+name = "bamboo-reminder"
+
+[[bin]]
+path = "src/bin/sse.rs"
+name = "bamboo-sse"
 
 [workspace]
 members = [
@@ -57,12 +69,15 @@ members = [
     "common/frontend/api",
     "backend",
     "backend/api",
-    "backend/events",
+    "backend/firebase",
     "backend/mailer",
+    "backend/mailer-notifications",
+    "backend/reminder",
+    "backend/sse",
     "frontend",
     "frontend/authentication",
     "frontend/pandas",
-    "frontend/public",
+    "frontend/public"
 ]
 
 [workspace.package]
@@ -92,6 +107,7 @@ dotenvy = "0.15"
 email_address = "0.2"
 env_logger = "0.11"
 fast_qr = { version = "0.13", features = ["svg"] }
+fcm-notification = "0.1"
 futures = "0.3"
 futures-util = "0.3"
 getrandom = "0.4"
@@ -117,6 +133,7 @@ parking_lot = "0.12"
 pbkdf2 = "0.13"
 quote = "1"
 rand = "0.10"
+reqwest = { version = "0.13", features = ["json", "rustls"] }
 rust-s3 = "0.37"
 sea-orm = { version = "1", features = ["with-json", "runtime-actix-rustls", "sqlx-postgres"] }
 sea-orm-migration = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
@@ -133,7 +150,9 @@ totp-rs = { version = "5", features = ["qr", "gen_secret"] }
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
+yup-oauth2 = "12"
 
 [profile.web-dev]
 inherits = "dev"

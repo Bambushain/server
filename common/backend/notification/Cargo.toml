@@ -8,10 +8,4 @@ license.workspace = true
 bamboo-common-backend-mq = { path = "../message_queue" }
 bamboo-common-core = { path = "../../core" }
 
-async-nats = { workspace = true }
-bytes = { workspace = true }
-ciborium = { workspace = true }
 log = { workspace = true }
-
-[package.metadata.cargo-machete]
-ignored = ["async-nats", "bytes", "ciborium"]

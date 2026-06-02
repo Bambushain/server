@@ -33,7 +33,7 @@ fn UpdateProfileDialog(
 
     Effect::new(move |_| {
         if let Some(Ok(res)) = update_profile_action.value().get() {
-            if res.success && res.user.is_some() {
+            if res.success && let Some(user) = res.user {
                 if let Some(profile_picture) = profile_picture.get() {
                     let files = gloo_file::FileList::from(profile_picture);
                     if let Some(file) = files.iter().next().cloned() {
@@ -46,13 +46,13 @@ fn UpdateProfileDialog(
                                     error_message.set("Das Profilbild konnte leider nicht hochgeladen werden, bitte wende dich an den Bambussupport".into());
                                     error_message_header.set("Fehler beim Hochladen".into());
                                 }
-                                current_user_ctx.set(res.user.unwrap());
+                                current_user_ctx.set(user);
                             } else {
                                 on_saved.run(())
                             }
                         });
                     } else {
-                        current_user_ctx.set(res.user.unwrap());
+                        current_user_ctx.set(user);
                         on_saved.run(())
                     }
                 } else {

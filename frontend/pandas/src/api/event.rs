@@ -1,5 +1,6 @@
+#![allow(clippy::too_many_arguments)]
 use bamboo_common::core::entities::GroveEvent;
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use leptos::prelude::{server, ServerFnError};
 
 #[server(CreateEventAction, "/pandas/calendar")]
@@ -7,41 +8,25 @@ pub async fn create_event(
     title: String,
     description: Option<String>,
     color: String,
-    start_date: String,
-    end_date: String,
-    start_time: Option<String>,
-    end_time: Option<String>,
-    is_private: Option<String>,
+    start_date: NaiveDate,
+    end_date: NaiveDate,
+    start_time: Option<NaiveTime>,
+    end_time: Option<NaiveTime>,
+    is_private: bool,
     grove: Option<i32>,
+    notifications: Vec<DateTime<Utc>>,
 ) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
-    use chrono::NaiveTime as Time;
+    use bamboo_common::core::entities::event::GroveEventReminder;
     use leptos_actix::extract;
-    use leptos_cosmo::prelude::NaiveDate;
 
     use crate::authentication::AuthState;
 
     let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
 
     let user = auth_state.user.clone();
-
-    let start_date =
-        NaiveDate::parse_from_str(start_date.as_str(), "%F").map_err(ServerFnError::new)?;
-    let end_date =
-        NaiveDate::parse_from_str(end_date.as_str(), "%F").map_err(ServerFnError::new)?;
-
-    let start_time = if let Some(start_time) = start_time {
-        Some(Time::parse_from_str(start_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
-    } else {
-        None
-    };
-    let end_time = if let Some(end_time) = end_time {
-        Some(Time::parse_from_str(end_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
-    } else {
-        None
-    };
 
     let grove = if let Some(grove) = grove {
         Some(
@@ -62,11 +47,16 @@ pub async fn create_event(
         start_time,
         end_time,
         color,
-        is_private: is_private
-            .map(|val| val.to_lowercase() == "on")
-            .unwrap_or(false),
+        is_private,
         user: None,
         grove,
+        reminder: notifications
+            .into_iter()
+            .map(|notification| GroveEventReminder {
+                id: -1,
+                when: notification,
+            })
+            .collect(),
     };
 
     dbal::create_event(event, user.id, &db)
@@ -81,39 +71,23 @@ pub async fn update_event(
     title: String,
     description: Option<String>,
     color: String,
-    start_date: String,
-    end_date: String,
-    start_time: Option<String>,
-    end_time: Option<String>,
+    start_date: NaiveDate,
+    end_date: NaiveDate,
+    start_time: Option<NaiveTime>,
+    end_time: Option<NaiveTime>,
+    notifications: Vec<DateTime<Utc>>,
 ) -> Result<(), ServerFnError> {
     use bamboo_common::backend::dbal;
     use bamboo_common::backend::services::DbConnection;
     use bamboo_common::core::entities::GroveEvent;
-    use chrono::NaiveTime as Time;
+    use bamboo_common::core::entities::event::GroveEventReminder;
     use leptos_actix::extract;
-    use leptos_cosmo::prelude::NaiveDate;
 
     use crate::authentication::AuthState;
 
     let (db, auth_state) = extract::<(DbConnection, AuthState)>().await?;
 
     let user = auth_state.user.clone();
-
-    let start_date =
-        NaiveDate::parse_from_str(start_date.as_str(), "%F").map_err(ServerFnError::new)?;
-    let end_date =
-        NaiveDate::parse_from_str(end_date.as_str(), "%F").map_err(ServerFnError::new)?;
-
-    let start_time = if let Some(start_time) = start_time {
-        Some(Time::parse_from_str(start_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
-    } else {
-        None
-    };
-    let end_time = if let Some(end_time) = end_time {
-        Some(Time::parse_from_str(end_time.as_str(), "%H:%M").map_err(ServerFnError::new)?)
-    } else {
-        None
-    };
 
     let event = dbal::get_event(id, user.id, &db)
         .await
@@ -131,6 +105,13 @@ pub async fn update_event(
         is_private: event.is_private,
         user: None,
         grove: event.grove,
+        reminder: notifications
+            .into_iter()
+            .map(|notification| GroveEventReminder {
+                id: -1,
+                when: notification,
+            })
+            .collect(),
     };
 
     dbal::update_event(user.id, id, event, &db)
@@ -175,6 +156,6 @@ pub async fn get_events(
         grove_id,
         &db,
     )
-        .await
-        .map_err(ServerFnError::new)
+    .await
+    .map_err(ServerFnError::new)
 }
