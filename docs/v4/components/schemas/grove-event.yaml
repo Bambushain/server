@@ -19,6 +19,8 @@ properties:
   endTime:
     type: string
     format: time
+  color:
+    type: string
   reminder:
     type: array
     items:
