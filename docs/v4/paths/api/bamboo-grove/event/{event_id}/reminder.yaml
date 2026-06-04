@@ -1,6 +1,7 @@
 get:
   summary: Get reminder for event
   description: Gets the reminder for the passed event id
+  operationId: getEventReminder
   parameters:
     - name: event_id
       in: path
@@ -46,6 +47,7 @@ get:
 post:
   summary: Create event reminder
   description: Create a new grove event reminder
+  operationId: createEventReminder
   parameters:
     - name: event_id
       in: path

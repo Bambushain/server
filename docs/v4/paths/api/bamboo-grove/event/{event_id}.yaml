@@ -1,6 +1,7 @@
 put:
   summary: Update event
   description: Update an existing grove event
+  operationId: updateEvent
   parameters:
     - name: event_id
       in: path
@@ -46,6 +47,7 @@ put:
 delete:
   summary: Delete event
   description: Delete a grove event
+  operationId: deleteEvent
   parameters:
     - name: event_id
       in: path

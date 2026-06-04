@@ -1,6 +1,7 @@
 delete:
   summary: Delete event reminder
   description: Delete a grove event reminder
+  operationId: deleteEventReminder
   parameters:
     - name: event_id
       in: path

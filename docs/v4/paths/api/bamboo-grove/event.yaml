@@ -1,6 +1,7 @@
 get:
   summary: Get events
   description: Retrieve events within a date range, optionally filtered by grove
+  operationId: getEvents
   parameters:
     - name: start
       in: query
@@ -57,6 +58,7 @@ get:
 post:
   summary: Create event
   description: Create a new grove event
+  operationId: createEvent
   requestBody:
     required: true
     content:
