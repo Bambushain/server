@@ -327,7 +327,7 @@ pub async fn update_event(
     event: GroveEvent,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
-    let event = get_event(id, user_id, db).await?;
+    let _ = get_event(id, user_id, db).await?;
 
     let tx = db
         .begin()
