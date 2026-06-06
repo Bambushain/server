@@ -107,7 +107,6 @@ dotenvy = "0.15"
 email_address = "0.2"
 env_logger = "0.11"
 fast_qr = { version = "0.13", features = ["svg"] }
-fcm-notification = "0.1"
 futures = "0.3"
 futures-util = "0.3"
 getrandom = "0.4"
@@ -150,7 +149,6 @@ totp-rs = { version = "5", features = ["qr", "gen_secret"] }
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 yup-oauth2 = "12"
 
