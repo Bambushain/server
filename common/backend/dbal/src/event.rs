@@ -327,6 +327,8 @@ pub async fn update_event(
     event: GroveEvent,
     db: &DatabaseConnection,
 ) -> BambooErrorResult {
+    let event = get_event(id, user_id, db).await?;
+
     let tx = db
         .begin()
         .await
@@ -334,7 +336,6 @@ pub async fn update_event(
 
     event::Entity::update_many()
         .filter(event::Column::Id.eq(id))
-        .filter(event::Column::UserId.eq(user_id))
         .col_expr(event::Column::StartDate, Expr::value(event.start_date))
         .col_expr(event::Column::EndDate, Expr::value(event.end_date))
         .col_expr(event::Column::StartTime, Expr::value(event.start_time))
@@ -381,7 +382,6 @@ pub async fn delete_event(user_id: i32, id: i32, db: &DatabaseConnection) -> Bam
 
     let res = event::Entity::delete_many()
         .filter(event::Column::Id.eq(id))
-        .filter(event::Column::UserId.eq(user_id))
         .exec(db)
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to delete event"))?;
