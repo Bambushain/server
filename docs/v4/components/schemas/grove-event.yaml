@@ -19,12 +19,18 @@ properties:
   endTime:
     type: string
     format: time
+  isPrivate:
+    type: boolean
   color:
     type: string
   reminder:
     type: array
     items:
       $ref: "./event-reminder.yaml"
+  user:
+    $ref: "./web-user.yaml"
+  grove:
+    $ref: "./grove.yaml"
 required:
   - title
   - description

@@ -103,6 +103,7 @@ impl Model {
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
 pub struct GroveEventReminder {
+    #[serde(default)]
     pub id: i32,
     pub when: chrono::DateTime<chrono::Utc>,
 }
@@ -111,17 +112,23 @@ pub struct GroveEventReminder {
 #[cfg_attr(feature = "backend", derive(Responder))]
 #[serde(rename_all = "camelCase")]
 pub struct GroveEvent {
+    #[serde(default)]
     pub id: i32,
     pub title: String,
     pub description: String,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
+    #[serde(default)]
     pub start_time: Option<Time>,
+    #[serde(default)]
     pub end_time: Option<Time>,
     pub color: String,
     pub is_private: bool,
+    #[serde(default)]
     pub user: Option<WebUser>,
+    #[serde(default)]
     pub grove: Option<Grove>,
+    #[serde(default)]
     pub reminder: Vec<GroveEventReminder>,
 }
 

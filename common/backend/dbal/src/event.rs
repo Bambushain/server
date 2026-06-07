@@ -293,23 +293,25 @@ pub async fn create_event(
         .await
         .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
 
-    event_reminder::Entity::delete_many()
-        .filter(event_reminder::Column::EventId.eq(created.id))
-        .exec(&tx)
-        .await
-        .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+    if event.reminder.len() > 0 {
+        event_reminder::Entity::delete_many()
+            .filter(event_reminder::Column::EventId.eq(created.id))
+            .exec(&tx)
+            .await
+            .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
 
-    event_reminder::Entity::insert_many(event.reminder.into_iter().map(|notification| {
-        event_reminder::ActiveModel {
-            id: NotSet,
-            event_id: Set(created.id),
-            time: Set(notification.when),
-            notified: Set(notification.when < Utc::now()),
-        }
-    }))
-    .exec(&tx)
-    .await
-    .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+        event_reminder::Entity::insert_many(event.reminder.into_iter().map(|notification| {
+            event_reminder::ActiveModel {
+                id: NotSet,
+                event_id: Set(created.id),
+                time: Set(notification.when),
+                notified: Set(notification.when < Utc::now()),
+            }
+        }))
+            .exec(&tx)
+            .await
+            .map_err(|_| BambooError::database(error_tag!(), "Failed to create event"))?;
+    }
 
     tx.commit()
         .await
