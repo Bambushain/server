@@ -13,9 +13,6 @@ properties:
   plot:
     type: integer
     format: int16
-  characterId:
-    type: integer
-    format: int32
 required:
   - district
   - housingType

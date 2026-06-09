@@ -569,6 +569,13 @@ fn EditFreeCompanyDialog(
             on_save.run(())
         }
     });
+    Effect::new(move |_| {
+        if *has_housing.read() {
+            selected_district.set(Some(HousingDistrict::TheLavenderBeds.get_serde_name()));
+            selected_ward.set(Some("1".to_string()));
+            selected_plot.set(Some("1".to_string()));
+        }
+    });
 
     view! {
         <ActionFormModal action=action title=format!("{} bearbeiten", name.read().to_string())>

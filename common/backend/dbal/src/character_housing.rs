@@ -116,7 +116,7 @@ pub async fn create_character_housing(
         housing.plot,
         db,
     )
-        .await?
+    .await?
     {
         return Err(BambooError::exists_already(
             error_tag!(),
@@ -124,7 +124,9 @@ pub async fn create_character_housing(
         ));
     }
 
-    if private_housing_exists_already(user_id, character_id, db).await? {
+    if housing.housing_type == HousingType::Private
+        && private_housing_exists_already(user_id, character_id, db).await?
+    {
         return Err(BambooError::exists_already(
             error_tag!(),
             "A private housing exists already for that character",
@@ -157,7 +159,7 @@ pub async fn update_character_housing(
         housing.plot,
         db,
     )
-        .await?
+    .await?
     {
         return Err(BambooError::exists_already(
             error_tag!(),

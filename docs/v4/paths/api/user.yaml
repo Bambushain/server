@@ -30,7 +30,7 @@ get:
           schema:
             type: array
             items:
-              $ref: "../../components/schemas/user.yaml"
+              $ref: "../../components/schemas/web-user.yaml"
     "401":
       description: Unauthorized
       content:

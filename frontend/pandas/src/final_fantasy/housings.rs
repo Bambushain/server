@@ -29,7 +29,7 @@ fn CreateHousingDialog(
             == 0;
 
         HousingType::iter()
-            .filter(|t| t != &HousingType::Private || private_allowed)
+            .filter(|t| (t != &HousingType::Private || private_allowed) && t != &HousingType::FreeCompany)
             .map(|t| (Some(t.get_serde_name()), t.to_string()))
             .collect::<Vec<_>>()
     });

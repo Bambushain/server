@@ -24,20 +24,28 @@ use crate::{CustomField, FreeCompany};
 pub enum CharacterRace {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "hyur"))]
+    #[serde(rename = "hyur")]
     Hyur,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "elezen"))]
+    #[serde(rename = "elezen")]
     Elezen,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "lalafell"))]
+    #[serde(rename = "lalafell")]
     Lalafell,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "miqote"))]
+    #[serde(rename = "miqote")]
     Miqote,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "roegadyn"))]
+    #[serde(rename = "roegadyn")]
     Roegadyn,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "au_ra"))]
+    #[serde(rename = "au-ra")]
     AuRa,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "hrothgar"))]
+    #[serde(rename = "hrothgar")]
     Hrothgar,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "viera"))]
+    #[serde(rename = "viera")]
     Viera,
 }
 

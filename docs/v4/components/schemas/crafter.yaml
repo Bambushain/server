@@ -7,9 +7,6 @@ properties:
     $ref: ./crafter-job.yaml
   level:
     type: string
-  characterId:
-    type: integer
-    format: int32
 required:
   - job
   - level
