@@ -7,6 +7,8 @@ read-secure-files:
   artifacts:
     paths:
       - $CI_PROJECT_PATH/secure-files
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 deploy-review:
   extends:
