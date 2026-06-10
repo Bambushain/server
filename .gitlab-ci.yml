@@ -13,3 +13,4 @@ include:
   - /ci/gitlab/frontend.yaml
   - /ci/gitlab/review.yaml
   - /ci/gitlab/stages.yaml
+  - /ci/gitlab/deployment.yaml
