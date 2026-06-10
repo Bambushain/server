@@ -94,78 +94,10 @@ async fn handle_message(
                     log::error!("Failed to send firebase notification: {err}")
                 }
             }
-            Notification::GroveJoin(grove, panda) => {
-                if let Ok(user_json) = serde_json::to_string(&panda)
-                    && let Ok(grove_json) = serde_json::to_string(&grove)
-                    && let Ok(tokens) = dbal::get_firebase_tokens_for_grove_mods(grove.id, db).await
-                {
-                    let mut data = HashMap::new();
-                    data.insert("user", user_json);
-                    data.insert("grove", grove_json);
-
-                    let payload = &FcmMessage {
-                        message_type: "groveJoin".to_string(),
-                        payload: data,
-                    };
-                    if let Err(err) = send_firebase(
-                        fcm_service_account,
-                        tokens.into_iter().map(|token| token.token).collect(),
-                        payload,
-                        db,
-                    )
-                    .await
-                    {
-                        log::error!("Failed to send firebase notification: {err}")
-                    }
-                }
-            }
-            Notification::GroveInviteEnable(grove) => {
-                if let Ok(grove_json) = serde_json::to_string(&grove)
-                    && let Ok(tokens) = dbal::get_firebase_tokens_for_grove_mods(grove.id, db).await
-                {
-                    let mut data = HashMap::new();
-                    data.insert("grove", grove_json);
-
-                    let payload = &FcmMessage {
-                        message_type: "groveInviteEnable".to_string(),
-                        payload: data,
-                    };
-                    if let Err(err) = send_firebase(
-                        fcm_service_account,
-                        tokens.into_iter().map(|token| token.token).collect(),
-                        payload,
-                        db,
-                    )
-                    .await
-                    {
-                        log::error!("Failed to send firebase notification: {err}")
-                    }
-                }
-            }
-            Notification::GroveInviteDisable(grove) => {
-                if let Ok(grove_json) = serde_json::to_string(&grove)
-                    && let Ok(tokens) = dbal::get_firebase_tokens_for_grove_mods(grove.id, db).await
-                {
-                    let mut data = HashMap::new();
-                    data.insert("grove", grove_json);
-
-                    let payload = &FcmMessage {
-                        message_type: "groveInviteDisable".to_string(),
-                        payload: data,
-                    };
-                    if let Err(err) = send_firebase(
-                        fcm_service_account,
-                        tokens.into_iter().map(|token| token.token).collect(),
-                        payload,
-                        db,
-                    )
-                    .await
-                    {
-                        log::error!("Failed to send firebase notification: {err}")
-                    }
-                }
-            }
-            Notification::GroveBan(_, _)
+            Notification::GroveJoin(_, _)
+            | Notification::GroveInviteEnable(_)
+            | Notification::GroveInviteDisable(_)
+            | Notification::GroveBan(_, _)
             | Notification::GroveUnban(_, _)
             | Notification::GroveModChange(_)
             | Notification::GroveDelete(_, _)
