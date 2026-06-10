@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      bambushain.app/app: nats
+  replicas: {{ .Values.nats.replicas }}
+  template:
+    metadata:
+      labels:
+        bambushain.app/app: nats
+        {{- include "bambushain.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: nats
+          image: "{{ .Values.nats.image.repository }}:{{ .Values.nats.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - -js
+            - -m
+            - "8222"
+          ports:
+            - containerPort: 4222
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8222
+            initialDelaySeconds: 5
+            periodSeconds: 5

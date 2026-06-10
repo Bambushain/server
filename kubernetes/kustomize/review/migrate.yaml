@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-database
+spec:
+  parallelism: 1
+  template:
+    spec:
+      containers:
+        - name: export-database
+          image: registry.ulbricht.casa/bambushain/server/migrator:$TAG
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: bamboo
+      restartPolicy: Never

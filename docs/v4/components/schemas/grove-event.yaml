@@ -1,0 +1,38 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  title:
+    type: string
+  description:
+    type: string
+  startDate:
+    type: string
+    format: date
+  endDate:
+    type: string
+    format: date
+  startTime:
+    type: string
+    format: time
+  endTime:
+    type: string
+    format: time
+  isPrivate:
+    type: boolean
+  color:
+    type: string
+  reminder:
+    type: array
+    items:
+      $ref: "./event-reminder.yaml"
+  user:
+    $ref: "./web-user.yaml"
+  grove:
+    $ref: "./grove.yaml"
+required:
+  - title
+  - description
+  - startDate
+  - endDate

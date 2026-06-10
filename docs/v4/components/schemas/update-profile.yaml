@@ -1,0 +1,13 @@
+type: object
+properties:
+  email:
+    type: string
+    format: email
+  displayName:
+    type: string
+  discordName:
+    type: string
+required:
+  - email
+  - displayName
+  - discordName

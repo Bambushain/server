@@ -1,0 +1,40 @@
+.bamboo-banner.is--home {
+    width: 100vw;
+    height: 20rem;
+    display: grid;
+    grid-template-areas: "area";
+}
+
+.bamboo-banner__container.is--home {
+    width: 100vw;
+    height: 20rem;
+    display: grid;
+    grid-template-areas: "area";
+}
+
+.bamboo-banner__title {
+    background: none;
+
+    &.is--home:not(&.is--primary):not(&.is--sub) {
+        flex-flow: column;
+        align-items: start;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    &.is--home.is--primary,
+    &.is--home.is--sub {
+        padding: 0;
+        backdrop-filter: none;
+    }
+
+    &.is--home.is--primary {
+        font-size: 4rem;
+        font-weight: 600;
+        font-family: Urbanist, sans-serif;
+    }
+
+    &.is--home.is--sub {
+        font-size: 3rem;
+    }
+}

@@ -1,0 +1,17 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  name:
+    type: string
+  description:
+    type: string
+  inviteEnabled:
+    type: boolean
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time

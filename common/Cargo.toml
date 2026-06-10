@@ -12,6 +12,6 @@ bamboo-common-frontend = { path = "frontend", optional = true }
 [features]
 default = ["core"]
 
-backend = ["dep:bamboo-common-backend", "core"]
+backend = ["dep:bamboo-common-backend", "core", "bamboo-common-core/backend"]
 core = ["dep:bamboo-common-core"]
-frontend = ["dep:bamboo-common-frontend", "core"]
+frontend = ["dep:bamboo-common-frontend", "core", "bamboo-common-core/frontend"]

@@ -1,0 +1,11 @@
+[package]
+name = "bamboo-common-backend-mq"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bamboo-common-core = { path = "../../core" }
+
+async-nats = { workspace = true }
+strum = { workspace = true }

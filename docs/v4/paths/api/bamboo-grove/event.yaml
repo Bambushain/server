@@ -1,0 +1,94 @@
+get:
+  summary: Get events
+  description: Retrieve events within a date range, optionally filtered by grove
+  operationId: getEvents
+  parameters:
+    - name: start
+      in: query
+      required: true
+      description: Start date for event range
+      schema:
+        type: string
+        format: date
+    - name: end
+      in: query
+      required: true
+      description: End date for event range
+      schema:
+        type: string
+        format: date
+    - name: grove
+      in: query
+      required: false
+      description: Optional grove ID to filter events
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: List of events retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/grove-event.yaml"
+    "400":
+      description: Invalid dates
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - calendar
+post:
+  summary: Create event
+  description: Create a new grove event
+  operationId: createEvent
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../components/schemas/grove-event.yaml"
+  responses:
+    "201":
+      description: Event created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/grove-event.yaml"
+    "400":
+      description: Invalid dates
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - calendar

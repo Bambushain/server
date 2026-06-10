@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      bambushain.app/app: postgres
+  replicas: {{ .Values.postgres.replicas }}
+  template:
+    metadata:
+      labels:
+        bambushain.app/app: postgres
+        {{- include "bambushain.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_PASSWORD
+              value: bamboo
+            - name: POSTGRES_USER
+              value: bamboo
+            - name: POSTGRES_DB
+              value: bamboo
+            - name: PGDATA
+              value: /var/lib/postgresql/data/bamboo
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/bamboo
+              name: data
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command:
+                - psql
+                - -w
+                - -U
+                - bamboo
+                - -d
+                - bamboo
+                - -c
+                - SELECT 1
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command:
+                - psql
+                - -w
+                - -U
+                - bamboo
+                - -d
+                - bamboo
+                - -c
+                - SELECT 1
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres

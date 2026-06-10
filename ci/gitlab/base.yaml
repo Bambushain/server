@@ -1,0 +1,95 @@
+.base-cargo:
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+
+.base-backend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/rust-docker-base-image:latest
+    pull_policy: always
+  variables:
+    ARCH: amd64
+  extends:
+    - .base-cargo
+  cache:
+    key: $CI_PROJECT_NAME-$ARCH-server
+    paths:
+      - $CI_PROJECT_DIR/.cargo/registry/       # dep sources
+      - $CI_PROJECT_DIR/.cargo/git/            # git deps
+      - $CI_PROJECT_DIR/target/release/.fingerprint/
+      - $CI_PROJECT_DIR/target/release/deps/
+
+.base-frontend-cache:
+  image:
+    name: registry.ulbricht.casa/docker-images/leptos-docker-base-image:latest
+    pull_policy: always
+  extends:
+    - .base-cargo
+  variables:
+    CARGO_PROFILE_RELEASE_PANIC: abort
+    CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
+    CARGO_PROFILE_RELEASE_OPT_LEVEL: z
+    CARGO_PROFILE_RELEASE_DEBUG: "false"
+    CARGO_PROFILE_RELEASE_LTO: "true"
+    CARGO_PROFILE_RELEASE_STRIP: "symbols"
+    ARCH: amd64
+  cache:
+    key: $CI_PROJECT_NAME-$ARCH-leptos
+    paths:
+      # Cargo registry — the most valuable part to cache
+      - $CI_PROJECT_DIR/.cargo/registry/cache/
+      - $CI_PROJECT_DIR/.cargo/registry/src/
+      - $CI_PROJECT_DIR/.cargo/git/db/
+
+      # Only cache incremental artifacts, not full output
+      - $CI_PROJECT_DIR/target/release/incremental/
+      - $CI_PROJECT_DIR/target/wasm32-unknown-unknown/release/incremental/
+
+
+.base-docker:
+  image: registry.ulbricht.casa/docker-images/buildah:latest
+  variables:
+    ARCH: amd64
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$CI_JOB_TOKEN" | buildah login -u gitlab-ci-token --password-stdin gitlab.imanuel.dev:443
+
+.base-docker-build:
+  extends: .base-docker
+  stage: docker
+  variables:
+    TAG: test
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP:$TAG
+  script:
+    - buildah build --platform=linux/$ARCH --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX --build-arg APP=bamboo-$APP --build-arg PKG_DIR=$APP/pkg -f $CI_PROJECT_DIR/ci/docker/$TYPE.dockerfile -t $IMAGE_TAG $CI_PROJECT_DIR/$ARCH
+    - "[[ -z '$NO_PUSH' ]] || buildah push $IMAGE_TAG"
+  parallel:
+    matrix:
+      - APP:
+          - api
+          - firebase
+          - mailer
+          - mailer-notifications
+          - migrator
+          - reminder
+          - sse
+        TYPE:
+          - backend
+      - APP:
+          - pandas
+          - authentication
+        TYPE:
+          - frontend
+      - APP:
+          - public
+        TYPE:
+          - public
+  tags:
+    - runner-$ARCH
+
+.base-review:
+  image:
+    name: registry.ulbricht.casa/docker-images/kubectl:latest
+    entrypoint: [ '' ]
+  stage: deploy-testing
+  tags:
+    - kube

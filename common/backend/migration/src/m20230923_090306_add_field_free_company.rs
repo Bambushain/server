@@ -84,7 +84,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum FreeCompany {
+pub enum FreeCompany {
     Table,
     Id,
     Name,

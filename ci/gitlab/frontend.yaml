@@ -1,0 +1,36 @@
+lint-frontend:
+  extends:
+    - .base-frontend-cache
+  stage: lint
+  script:
+    - cd frontend/$APP
+    - cargo clippy --release --features ssr --features hydrate
+  parallel:
+    matrix:
+      - APP:
+          - pandas
+          - authentication
+  tags:
+    - runner-$ARCH
+
+build-frontend:
+  extends:
+    - .base-frontend-cache
+  stage: build
+  script:
+    - cd frontend/$APP
+    - cargo leptos build --release
+    - mkdir -p $CI_PROJECT_DIR/$ARCH/$APP
+    - cp $CI_PROJECT_DIR/target/release/bamboo-frontend-$APP $CI_PROJECT_DIR/$ARCH/bamboo-$APP
+    - cp -r $CI_PROJECT_DIR/target/frontend-$APP $CI_PROJECT_DIR/$ARCH/$APP/pkg
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/$ARCH/bamboo-$APP
+      - $CI_PROJECT_DIR/$ARCH/$APP/pkg
+  parallel:
+    matrix:
+      - APP:
+          - pandas
+          - authentication
+  tags:
+    - runner-$ARCH

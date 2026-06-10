@@ -1,0 +1,38 @@
+post:
+  summary: Enable totp
+  operationId: enableTotp
+  security:
+    - bearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../components/schemas/totp-qr-code.yaml"
+  responses:
+    "204":
+      description: Totp enablement request send successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - my-profile
+delete:
+  summary: Disable totp
+  operationId: disableTotp
+  security:
+    - bearerAuth: [ ]
+  responses:
+    "204":
+      description: Totp disabled successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/error.yaml"
+  tags:
+    - my-profile

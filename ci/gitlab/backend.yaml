@@ -1,0 +1,23 @@
+lint-backend:
+  extends:
+    - .base-backend-cache
+  stage: lint
+  script:
+    - cargo clippy --release --bins
+  tags:
+    - runner-$ARCH
+
+build-backend:
+  extends:
+    - .base-backend-cache
+  stage: build
+  script:
+    - cargo build --release --bins
+    - mkdir -p $CI_PROJECT_DIR/$ARCH
+    - cp $CI_PROJECT_DIR/target/release/bamboo-* $CI_PROJECT_DIR/$ARCH/
+    - cp -r $CI_PROJECT_DIR/public $CI_PROJECT_DIR/$ARCH/public
+  artifacts:
+    paths:
+      - $ARCH/
+  tags:
+    - runner-$ARCH

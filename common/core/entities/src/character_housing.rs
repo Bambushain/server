@@ -1,70 +1,87 @@
-use std::cmp::Ordering;
-
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.district"
+        enum_name = "final_fantasy\".\"district"
     )
 )]
 pub enum HousingDistrict {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "the_lavender_beds"))]
+    #[serde(rename = "the-lavender-beds")]
     TheLavenderBeds,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "mist"))]
+    #[serde(rename = "mist")]
     Mist,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "the_goblet"))]
+    #[serde(rename = "the-goblet")]
     TheGoblet,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "shirogane"))]
+    #[serde(rename = "shirogane")]
     Shirogane,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "empyreum"))]
+    #[serde(rename = "empyreum")]
     Empyreum,
 }
 
 impl HousingDistrict {
     pub fn get_name(self) -> String {
         match self {
-            HousingDistrict::TheLavenderBeds => "the_lavender_beds",
+            HousingDistrict::TheLavenderBeds => "TheLavenderBeds",
+            HousingDistrict::Mist => "Mist",
+            HousingDistrict::TheGoblet => "TheGoblet",
+            HousingDistrict::Shirogane => "Shirogane",
+            HousingDistrict::Empyreum => "Empyreum",
+        }
+            .to_string()
+    }
+
+    pub fn get_serde_name(self) -> String {
+        match self {
+            HousingDistrict::TheLavenderBeds => "the-lavender-beds",
             HousingDistrict::Mist => "mist",
-            HousingDistrict::TheGoblet => "the_goblet",
+            HousingDistrict::TheGoblet => "the-goblet",
             HousingDistrict::Shirogane => "shirogane",
             HousingDistrict::Empyreum => "empyreum",
         }
-        .to_string()
+            .to_string()
     }
 }
 
-impl ToString for HousingDistrict {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for HousingDistrict {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
             HousingDistrict::TheLavenderBeds => "Lavendelbeete",
             HousingDistrict::Mist => "Dorf des Nebels",
             HousingDistrict::TheGoblet => "Kelchkuppe",
             HousingDistrict::Shirogane => "Shirogane",
             HousingDistrict::Empyreum => "Empyreum",
-        }
-        .to_string()
+        })
     }
 }
 
 impl From<String> for HousingDistrict {
     fn from(value: String) -> Self {
-        match value.as_str() {
-            "the_lavender_beds" => HousingDistrict::TheLavenderBeds,
+        match value.to_lowercase().as_str() {
+            "the_lavender_beds" | "the-lavender-beds" | "thelavenderbeds" => {
+                HousingDistrict::TheLavenderBeds
+            }
+            "the_goblet" | "the-goblet" | "thegoblet" => HousingDistrict::TheGoblet,
             "mist" => HousingDistrict::Mist,
-            "the_goblet" => HousingDistrict::TheGoblet,
             "shirogane" => HousingDistrict::Shirogane,
             "empyreum" => HousingDistrict::Empyreum,
             _ => unreachable!(),
@@ -84,54 +101,65 @@ impl Ord for HousingDistrict {
     }
 }
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.housing_type"
+        enum_name = "final_fantasy\".\"housing_type"
     )
 )]
 pub enum HousingType {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "private"))]
+    #[serde(rename = "private")]
     Private,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "free_company"))]
+    #[serde(rename = "free-company")]
     FreeCompany,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "shared_apartment"))]
+    #[serde(rename = "shared-apartment")]
     SharedApartment,
 }
 
 impl HousingType {
-    pub fn get_name(self) -> String {
+    pub fn get_name(&self) -> String {
+        match self {
+            HousingType::Private => "Private",
+            HousingType::FreeCompany => "FreeCompany",
+            HousingType::SharedApartment => "SharedApartment",
+        }
+            .to_string()
+    }
+
+    pub fn get_serde_name(&self) -> String {
         match self {
             HousingType::Private => "private",
-            HousingType::FreeCompany => "free_company",
-            HousingType::SharedApartment => "shared_appartment",
+            HousingType::FreeCompany => "free-company",
+            HousingType::SharedApartment => "shared-apartment",
         }
-        .to_string()
+            .to_string()
     }
 }
 
-impl ToString for HousingType {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for HousingType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
             HousingType::Private => "Private Unterkunft",
             HousingType::FreeCompany => "Unterkunft einer Freien Gesellschaft",
             HousingType::SharedApartment => "Wohngemeinschaft",
-        }
-        .to_string()
+        })
     }
 }
 
 impl From<String> for HousingType {
     fn from(value: String) -> Self {
-        match value.as_str() {
+        match value.to_lowercase().as_str() {
             "private" => HousingType::Private,
-            "free_company" => HousingType::FreeCompany,
-            "shared_appartment" => HousingType::SharedApartment,
+            "free_company" | "freecompany" => HousingType::FreeCompany,
+            "shared_appartment" | "sharedapartment" => HousingType::SharedApartment,
             _ => unreachable!(),
         }
     }
@@ -149,7 +177,7 @@ impl Ord for HousingType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
@@ -164,6 +192,7 @@ pub struct Model {
     pub housing_type: HousingType,
     pub ward: i16,
     pub plot: i16,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

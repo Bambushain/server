@@ -1,7 +1,6 @@
-version: "3"
 services:
   bamboo-postgres:
-    image: library/postgres:14-alpine
+    image: library/postgres:18-alpine
     environment:
       POSTGRES_DB: bamboo
       POSTGRES_PASSWORD: bamboo
@@ -17,3 +16,34 @@ services:
     ports:
       - "1325:1025"
       - "8325:8025"
+  bamboo-nats:
+    image: library/nats:2
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
+    command:
+      - -js
+      - -m
+      - "8222"
+  bamboo-nats-dashboard:
+    image: mdawar/nats-dashboard
+    environment:
+      REVERSE_PROXY_UPSTREAM: 'bamboo-nats:8222'
+    ports:
+      - "8282:80"
+  bamboo-proxy:
+    image: library/traefik:latest
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "8070:80"
+      - "8060:8060"
+    volumes:
+      - "./traefik/traefik_dynamic.yml:/dynamic.yml:ro"
+    command:
+      - --entryPoints.web.address=:80
+      - --entryPoints.traefik.address=:8060
+      - --providers.file.filename=/dynamic.yml
+      - --api.insecure=true
+      - --api.dashboard=true

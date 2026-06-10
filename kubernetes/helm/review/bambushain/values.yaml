@@ -1,0 +1,121 @@
+# Default values for bambushain.
+# This is a YAML-formatted file.
+
+# Namespace configuration
+namespace: ""
+
+# Branch name for review environments
+branch: ""
+
+# Global image settings
+image:
+  registry: registry.ulbricht.casa
+  tag:
+  pullPolicy: IfNotPresent
+
+# Bamboo application configuration
+bamboo:
+  replicas: 1
+  services:
+    api:
+      image: bambushain/server/api
+      ports:
+        - 4010
+    authentication:
+      image: bambushain/server/authentication
+      ports:
+        - 4090
+      env:
+        - name: LEPTOS_SITE_ADDR
+          value: 0.0.0.0:4090
+    firebase:
+      image: bambushain/server/firebase
+      env:
+        - name: FCM_SERVICE_ACCOUNT_JSON
+          value: "/firebase/fcm-service-account.json"
+      volumeMounts:
+        - mountPath: /firebase
+          name: fcm-service-account
+      volumes:
+        - name: fcm-service-account
+          secret:
+            secretName: fcm-service-account
+            defaultMode: 0600
+    mailer:
+      image: bambushain/server/mailer
+    mailerNotifications:
+      image: bambushain/server/mailer-notifications
+    pandas:
+      image: bambushain/server/pandas
+      ports:
+        - 4080
+      env:
+        - name: LEPTOS_SITE_ADDR
+          value: 0.0.0.0:4080
+    public:
+      image: bambushain/server/public
+      ports:
+        - 4070
+      env:
+        - name: STATIC_DIR
+          value: /public/assets
+    reminder:
+      image: bambushain/server/reminder
+    sse:
+      image: bambushain/server/sse
+      ports:
+        - 4020
+  config:
+    databaseUrl: "postgres://bamboo:bamboo@postgres:5432/bamboo"
+    mailer:
+      encryption: "ssl"
+      from: "panda.helferlein@bambushain.app"
+      port: "465"
+      server: "mail.ulbricht.cloud"
+      starttls: "false"
+      username: "panda.helferlein@bambushain.app"
+      password: ""
+    natsServer: "nats:4222"
+    rustLog: "info"
+    s3:
+      bucket: "bambushain-review"
+      endpoint: "https://ceph.storage.ulbricht.casa"
+      region: "default"
+      usePathStyle: "true"
+      accessKey: ""
+      secretKey: ""
+    firebase:
+      serviceAccount: ""
+
+# NATS configuration
+nats:
+  replicas: 1
+  image:
+    repository: nats
+    tag: 2-alpine
+
+# PostgreSQL configuration
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: 18-alpine
+  persistence:
+    enabled: true
+    size: 1Gi
+  sync:
+    enabled: true
+    liveDatabase:
+      host: postgres.ulbricht.casa
+      user: app_bambushain_pandas
+      password: app_bambushain_pandas
+      database: app_bambushain_pandas
+
+# Database migration job
+migrate:
+  enabled: true
+  image: bambushain/server/migrator
+
+# Labels to apply to all resources
+labels:
+  app: bambushain

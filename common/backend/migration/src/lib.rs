@@ -26,6 +26,20 @@ mod m20231230_231220_update_table_character_change_unique;
 mod m20240117_125532_fix_foreign_key_custom_character_field;
 mod m20240628_235106_dawntrail_jobs;
 mod m20240629_094035_character_world_name_unique_fix;
+mod m20240719_211717_remove_email_two_factor;
+mod m20240719_224810_assign_groves_to_users_not_users_to_groves;
+mod m20240723_200654_add_grove_invite_secret;
+mod m20240723_201052_grove_name_none_unique;
+mod m20240724_222658_grove_user_add_ban_column;
+mod m20240731_233956_user_add_forgot_password_token_column;
+mod m20241130_031734_split_crafter_and_gatherer;
+mod m20241220_015134_set_gatherer_crafter_seq;
+mod m20241229_011028_add_character_column_datacenter;
+mod m20250623_205832_mailer_queue;
+mod m20250707_203805_times_for_calendar;
+mod m20250712_014852_free_company_housing;
+mod m20260529_025141_add_event_notifications;
+mod m20260531_031336_add_firebase_token;
 
 pub struct Migrator;
 
@@ -59,6 +73,20 @@ impl MigratorTrait for Migrator {
             Box::new(m20240117_125532_fix_foreign_key_custom_character_field::Migration),
             Box::new(m20240628_235106_dawntrail_jobs::Migration),
             Box::new(m20240629_094035_character_world_name_unique_fix::Migration),
+            Box::new(m20240719_211717_remove_email_two_factor::Migration),
+            Box::new(m20240719_224810_assign_groves_to_users_not_users_to_groves::Migration),
+            Box::new(m20240723_200654_add_grove_invite_secret::Migration),
+            Box::new(m20240723_201052_grove_name_none_unique::Migration),
+            Box::new(m20240724_222658_grove_user_add_ban_column::Migration),
+            Box::new(m20240731_233956_user_add_forgot_password_token_column::Migration),
+            Box::new(m20241130_031734_split_crafter_and_gatherer::Migration),
+            Box::new(m20241220_015134_set_gatherer_crafter_seq::Migration),
+            Box::new(m20241229_011028_add_character_column_datacenter::Migration),
+            Box::new(m20250623_205832_mailer_queue::Migration),
+            Box::new(m20250707_203805_times_for_calendar::Migration),
+            Box::new(m20250712_014852_free_company_housing::Migration),
+            Box::new(m20260529_025141_add_event_notifications::Migration),
+            Box::new(m20260531_031336_add_firebase_token::Migration),
         ]
     }
 }

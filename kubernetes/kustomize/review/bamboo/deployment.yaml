@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bamboo
+spec:
+  selector:
+    matchLabels:
+      bambushain.app/app: bamboo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        bambushain.app/app: bamboo
+    spec:
+      containers:
+        - name: authentication
+          image: registry.ulbricht.casa/bambushain/server/authentication:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          env:
+            - name: LEPTOS_SITE_ADDR
+              value: 0.0.0.0:4090
+          ports:
+            - containerPort: 4090
+        - name: pandas
+          image: registry.ulbricht.casa/bambushain/server/pandas:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          env:
+            - name: LEPTOS_SITE_ADDR
+              value: 0.0.0.0:4080
+          ports:
+            - containerPort: 4080
+        - name: public
+          image: registry.ulbricht.casa/bambushain/server/public:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          env:
+            - name: STATIC_DIR
+              value: /public/assets
+          ports:
+            - containerPort: 4070
+        - name: events
+          image: registry.ulbricht.casa/bambushain/server/events:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4020
+        - name: api
+          image: registry.ulbricht.casa/bambushain/server/api:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords
+          ports:
+            - containerPort: 4010
+        - name: mailer
+          image: registry.ulbricht.casa/bambushain/server/mailer:$TAG
+          envFrom:
+            - secretRef:
+                name: bamboo
+            - secretRef:
+                name: passwords

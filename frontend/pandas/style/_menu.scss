@@ -1,0 +1,49 @@
+.cosmo-menu.is--bamboo {
+  grid-template-columns:
+          [profilepicture] calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height))
+          [spacing1] calc(var(--page-side-spacing) - (var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height)))
+          [menu] 1fr
+          [logout] calc(var(--top-menu-height) + var(--main-menu-height)) !important;
+  grid-template-areas: "profilepicture spacing1 menu spacing2 logout" "profilepicture spacing1 menu spacing2 logout";
+}
+
+.cosmo-menu__collection.is--bamboo {
+  grid-area: menu;
+}
+
+.pandas-profilepicture {
+  display: block;
+  background: radial-gradient(at top left, var(--primary-color), var(--primary-color-darker));
+  height: calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height));
+  width: calc(var(--top-menu-height) + var(--main-menu-height) + var(--menu-gap) + var(--sub-menu-height));
+  margin-top: calc(-1 * var(--top-menu-height));
+  border-bottom-right-radius: var(--border-radius);
+  grid-area: profilepicture;
+}
+
+.pandas-logout {
+  display: block;
+  background: radial-gradient(at top right, var(--primary-color), var(--primary-color-darker));
+  color: var(--white);
+  padding: 0.5rem;
+  height: calc(var(--top-menu-height) + var(--main-menu-height));
+  width: calc(var(--top-menu-height) + var(--main-menu-height));
+  margin-top: calc(-1 * var(--top-menu-height));
+  border-bottom-left-radius: var(--border-radius);
+  grid-area: logout;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s all;
+
+  &:hover {
+    background-color: var(--primary-color-darker);
+  }
+}
+
+.cosmo-menu:not(.is--top)::before {
+  display: none;
+}
+
+.cosmo-menu__item {
+  cursor: pointer;
+}

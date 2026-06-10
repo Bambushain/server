@@ -1,19 +1,12 @@
 #[cfg(feature = "backend")]
+use bamboo_common_backend_macros::*;
+#[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha512_224};
+use uuid::Uuid;
 
-#[cfg(feature = "backend")]
-use bamboo_common_backend_macros::*;
-
-fn set_false() -> bool {
-    false
-}
-
-fn set_true() -> bool {
-    true
-}
-
-#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
@@ -25,25 +18,22 @@ pub struct Model {
     #[serde(default)]
     pub id: i32,
     pub name: String,
-    #[serde(default = "set_false")]
-    pub is_suspended: bool,
-    #[serde(default = "set_true")]
-    pub is_enabled: bool,
+    pub invite_secret: Option<String>,
 }
 
 #[cfg(feature = "backend")]
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::user::Entity")]
-    User,
+    #[sea_orm(has_many = "super::grove_user::Entity")]
+    GroveUser,
     #[sea_orm(has_many = "super::event::Entity")]
     Event,
 }
 
 #[cfg(feature = "backend")]
-impl Related<super::user::Entity> for Entity {
+impl Related<super::grove_user::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::User.def()
+        Relation::GroveUser.def()
     }
 }
 
@@ -58,30 +48,38 @@ impl Related<super::event::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn new(name: String, is_suspended: bool, is_enabled: bool) -> Self {
+    pub fn new(name: String, invite_on: bool) -> Self {
+        let mut hasher = Sha512_224::new();
+        hasher.update(Uuid::new_v4());
+        let res = hasher.finalize();
+
         Self {
             id: i32::default(),
             name,
-            is_suspended,
-            is_enabled,
+            invite_secret: if invite_on {
+                Some(hex::encode(&res[..10]))
+            } else {
+                None
+            },
         }
+    }
+
+    pub fn get_invite_link(&self) -> Option<String> {
+        self.invite_secret.clone().map(|invite_secret| {
+            format!("/pandas/groves/{}/{}/{}", self.id, self.name, invite_secret)
+        })
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateGroveRequest {
-    pub grove_name: String,
-    pub mod_name: String,
-    pub mod_email: String,
+pub struct CreateGrove {
+    pub name: String,
+    pub invite_on: bool,
 }
 
-impl CreateGroveRequest {
-    pub fn new(grove_name: String, mod_name: String, mod_email: String) -> Self {
-        Self {
-            grove_name,
-            mod_name,
-            mod_email,
-        }
-    }
+#[derive(Serialize, Deserialize, Debug, Eq, Ord, PartialOrd, PartialEq, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinGrove {
+    pub invite_secret: String,
 }

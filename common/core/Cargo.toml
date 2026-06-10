@@ -8,7 +8,8 @@ license.workspace = true
 [dependencies]
 bamboo-common-core-entities = { path = "entities", default-features = false }
 bamboo-common-core-error = { path = "error" }
+bamboo-common-core-queueing = { path = "queueing" }
 
 [features]
-backend = ["bamboo-common-core-entities/backend"]
+backend = ["bamboo-common-core-entities/backend", "bamboo-common-core-queueing/backend"]
 frontend = ["bamboo-common-core-entities/frontend"]

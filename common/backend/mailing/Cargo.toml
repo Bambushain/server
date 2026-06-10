@@ -4,11 +4,12 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-bamboo-common-backend-services = { path = "../services" }
+bamboo-common-backend-dbal = { path = "../dbal" }
 bamboo-common-core = { path = "../../core" }
 
-lettre = { workspace = true }
+base64 = { workspace = true }
+chrono = { workspace = true }
 log = { workspace = true }
+maud = { workspace = true }
+sea-orm = { workspace = true }

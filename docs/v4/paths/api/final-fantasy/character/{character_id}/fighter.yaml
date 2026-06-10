@@ -1,0 +1,74 @@
+get:
+  summary: Get all fighters for a character
+  operationId: getFighters
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: List of fighters
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../../../../components/schemas/fighter.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - fighters
+post:
+  summary: Create a new fighter for a character
+  operationId: createFighter
+  security:
+    - bearerAuth: [ ]
+  parameters:
+    - name: character_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../../components/schemas/fighter.yaml"
+  responses:
+    "201":
+      description: Fighter created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/fighter.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+    "404":
+      description: Character not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../components/schemas/error.yaml"
+  tags:
+    - fighters

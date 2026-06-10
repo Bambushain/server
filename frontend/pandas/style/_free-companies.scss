@@ -1,0 +1,17 @@
+.pandas-free-companies {
+  height: var(--page-height);
+  display: grid;
+  grid-template-rows: [content] 1fr;
+  grid-template-columns: [content] 1fr;
+
+  .pandas-card-list {
+    grid-column: content;
+    grid-row: content;
+  }
+
+  .cosmo-button.is--circle {
+    grid-column: content;
+    grid-row: content;
+    place-self: end;
+  }
+}

@@ -1,0 +1,64 @@
+put:
+  summary: Enable grove invites (requires moderator permissions)
+  operationId: enableInvite
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+  responses:
+    "204":
+      description: Invites enabled successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves
+delete:
+  summary: Disable grove invites (requires moderator permissions)
+  operationId: disableInvite
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+  responses:
+    "204":
+      description: Invites disabled successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves

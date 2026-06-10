@@ -1,0 +1,13 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  job:
+    $ref: ./fighter-job.yaml
+  level:
+    type: string
+  gearScore:
+    type: string
+required:
+  - job

@@ -1,0 +1,23 @@
+.pandas-grove {
+  &__content {
+    .pandas-calendar {
+      &__container {
+        height: calc(var(--page-height) - var(--title-font-size) - var(--tab-links-height) - var(--tab-gap) - 4.5rem);
+      }
+    }
+
+    .pandas-card-list {
+      height: calc(var(--page-height) - var(--title-font-size) - var(--tab-links-height) - var(--tab-gap) - 4.5rem);
+    }
+  }
+
+  &__management {
+    height: calc(var(--page-height) - var(--title-font-size) - var(--tab-links-height) - var(--tab-gap) - 4.5rem);
+    width: 50%;
+  }
+
+  &__new {
+    height: calc(var(--page-height) - var(--title-font-size) - var(--tab-links-height) - var(--tab-gap) - 2rem);
+    width: min(50rem, 50%);
+  }
+}

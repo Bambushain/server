@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+use crate::user::BambooUser;
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
-
-use crate::user::WebUser;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
 #[serde(rename_all = "camelCase")]
@@ -34,7 +33,7 @@ pub struct RequestTwoFactor {
 #[derive(Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
 #[cfg_attr(feature = "backend", derive(Responder))]
 pub struct LoginResult {
-    pub user: WebUser,
+    pub user: BambooUser,
     pub token: String,
 }
 
@@ -42,8 +41,8 @@ pub struct LoginResult {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "backend", derive(Responder))]
 pub struct TwoFactorResult {
-    pub user: WebUser,
-    pub two_factor_code: Option<String>,
+    pub user: BambooUser,
+    pub requires_two_factor_code: bool,
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
@@ -57,4 +56,22 @@ pub struct ChangeMyPassword {
 #[serde(rename_all = "camelCase")]
 pub struct ForgotPassword {
     pub email: String,
+}
+
+#[derive(Serialize, Deserialize, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ResetPassword {
+    pub email: String,
+    pub token: String,
+    pub password: String,
+}
+
+impl ResetPassword {
+    pub fn new(email: String, token: String, password: String) -> Self {
+        Self {
+            email,
+            token,
+            password,
+        }
+    }
 }

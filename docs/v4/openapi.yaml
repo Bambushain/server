@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Bambushain API
+  description: API for Bambushain application
+  version: 4.0.0
+  contact:
+    name: Panda Helferlein
+    url: https://bambushain.app
+    email: panda.helferlein@bambushain.app
+  x-logo:
+    url: >-
+      /assets/bamboo.webp
+    backgroundColor: '#FFFFFF'
+    altText: Bambushain logo
+servers:
+  - url: https://bambushain.app/
+    description: Production Server
+  - url: https://testing.bambushain.app/
+    description: Beta Server
+  - url: https://v4-review.bambushain.app/
+    description: V4 Alpha Server
+x-tagGroups:
+  - name: my-bamboo
+    description: My Bamboo and authentication
+    x-displayName: My Bamboo
+    tags:
+      - authentication
+      - my-profile
+  - name: bamboo
+    x-displayName: Bamboo
+    description: All about Bambushain
+    tags:
+      - groves
+      - calendar
+      - pandas
+      - legal
+      - support
+  - name: final-fantasy
+    description: All things Final Fantasy XIV
+    x-displayName: Final Fantasy
+    tags:
+      - characters
+      - fighters
+      - gatherers
+      - crafters
+      - housing
+      - free-companies
+      - custom-fields
+tags:
+  - name: authentication
+    description: User authentication
+    x-displayName: User authentication
+  - name: my-profile
+    description: My profile
+    x-displayName: My profile
+  - name: groves
+    description: Groves and their management
+    x-displayName: Groves
+  - name: calendar
+    description: Calendar and its management
+    x-displayName: Calendar
+  - name: pandas
+    description: Pandas and their management
+    x-displayName: Pandas
+  - name: legal
+    description: Licenses and other legal stuff
+    x-displayName: Legal
+  - name: support
+    description: Bamboo support
+    x-displayName: Support
+  - name: characters
+    description: Final Fantasy Characters
+    x-displayName: Characters
+  - name: fighters
+    description: Final Fantasy Fighters
+    x-displayName: Fighters
+  - name: gatherers
+    description: Final Fantasy Gatherers
+    x-displayName: Gatherers
+  - name: crafters
+    description: Final Fantasy Crafters
+    x-displayName: Crafters
+  - name: housing
+    description: Final Fantasy Housing
+    x-displayName: Housing
+  - name: free-companies
+    description: Final Fantasy Free Companies
+    x-displayName: Free Companies
+  - name: custom-fields
+    description: Final Fantasy Custom Character Fields
+    x-displayName: Custom Fields
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+paths:
+  /api/login:
+    $ref: "paths/api/login.yaml"
+  /api/forgot-password:
+    $ref: "paths/api/forgot-password.yaml"
+  /api/reset-password:
+    $ref: "paths/api/reset-password.yaml"
+  /api/my/profile:
+    $ref: "paths/api/my/profile.yaml"
+  /api/my/password:
+    $ref: "paths/api/my/password.yaml"
+  /api/my/totp:
+    $ref: "paths/api/my/totp.yaml"
+  /api/my/totp/validate:
+    $ref: "paths/api/my/totp/validate.yaml"
+  /api/grove:
+    $ref: "paths/api/grove.yaml"
+  /api/grove/{grove_id}:
+    $ref: "paths/api/grove/{grove_id}.yaml"
+  /api/grove/{grove_id}/user:
+    $ref: "paths/api/grove/{grove_id}/user.yaml"
+  /api/grove/{grove_id}/invite:
+    $ref: "paths/api/grove/{grove_id}/invite.yaml"
+  /api/grove/{grove_id}/join:
+    $ref: "paths/api/grove/{grove_id}/join.yaml"
+  /api/grove/{grove_id}/mods:
+    $ref: "paths/api/grove/{grove_id}/mods.yaml"
+  /api/grove/{grove_id}/user/{user_id}/ban:
+    $ref: "paths/api/grove/{grove_id}/user/{user_id}/ban.yaml"
+  /api/bamboo-grove/event:
+    $ref: "paths/api/bamboo-grove/event.yaml"
+  /api/bamboo-grove/event/{event_id}:
+    $ref: "paths/api/bamboo-grove/event/{event_id}.yaml"
+  /api/bamboo-grove/event/{event_id}/reminder:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/reminder.yaml"
+  /api/bamboo-grove/event/{event_id}/reminder/{reminder_id}:
+    $ref: "paths/api/bamboo-grove/event/{event_id}/reminder/{reminder_id}.yaml"
+  /api/user:
+    $ref: "paths/api/user.yaml"
+  /api/user/{user_id}/picture:
+    $ref: "paths/api/user/{user_id}/picture.yaml"
+  /api/support:
+    $ref: "paths/api/support.yaml"
+  /api/licenses:
+    $ref: "paths/api/licenses.yaml"
+  /api/final-fantasy/character:
+    $ref: "paths/api/final-fantasy/character.yaml"
+  /api/final-fantasy/character/{character_id}:
+    $ref: "paths/api/final-fantasy/character/{character_id}.yaml"
+  /api/final-fantasy/character/{character_id}/housing:
+    $ref: "paths/api/final-fantasy/character/{character_id}/housing.yaml"
+  /api/final-fantasy/character/{character_id}/housing/{character_housing_id}:
+    $ref: "paths/api/final-fantasy/character/{character_id}/housing/{character_housing_id}.yaml"
+  /api/final-fantasy/character/{character_id}/crafter:
+    $ref: "paths/api/final-fantasy/character/{character_id}/crafter.yaml"
+  /api/final-fantasy/character/{character_id}/crafter/{crafter_id}:
+    $ref: "paths/api/final-fantasy/character/{character_id}/crafter/{crafter_id}.yaml"
+  /api/final-fantasy/character/{character_id}/fighter:
+    $ref: "paths/api/final-fantasy/character/{character_id}/fighter.yaml"
+  /api/final-fantasy/character/{character_id}/fighter/{fighter_id}:
+    $ref: "paths/api/final-fantasy/character/{character_id}/fighter/{fighter_id}.yaml"
+  /api/final-fantasy/character/{character_id}/gatherer:
+    $ref: "paths/api/final-fantasy/character/{character_id}/gatherer.yaml"
+  /api/final-fantasy/character/{character_id}/gatherer/{gatherer_id}:
+    $ref: "paths/api/final-fantasy/character/{character_id}/gatherer/{gatherer_id}.yaml"
+  /api/final-fantasy/free-company:
+    $ref: "paths/api/final-fantasy/free-company.yaml"
+  /api/final-fantasy/free-company/{free_company_id}:
+    $ref: "paths/api/final-fantasy/free-company/{free_company_id}.yaml"
+  /api/final-fantasy/free-company/{free_company_id}/housing:
+    $ref: "paths/api/final-fantasy/free-company/{free_company_id}/housing.yaml"
+  /api/final-fantasy/character/custom-field:
+    $ref: "paths/api/final-fantasy/character/custom-field.yaml"
+  /api/final-fantasy/character/custom-field/{field_id}:
+    $ref: "paths/api/final-fantasy/character/custom-field/{field_id}.yaml"
+  /api/final-fantasy/character/custom-field/{field_id}/option:
+    $ref: "paths/api/final-fantasy/character/custom-field/{field_id}/option.yaml"
+  /api/final-fantasy/character/custom-field/{field_id}/option/{option_id}:
+    $ref: "paths/api/final-fantasy/character/custom-field/{field_id}/option/{option_id}.yaml"
+  /api/final-fantasy/character/custom-field/{field_id}/{position}:
+    $ref: "paths/api/final-fantasy/character/custom-field/{field_id}/{position}.yaml"

@@ -1,0 +1,55 @@
+:root {
+  --button-padding-top: 0.25rem;
+  --button-padding-bottom: 0.25rem;
+  --button-padding-left: 1rem;
+  --button-padding-right: 1rem;
+  --button-border-width: 0.0625rem;
+  --button-disabled-filter: contrast(50%);
+  --button-border-color: var(--control-border-color);
+  --button-background: var(--white);
+  --button-color: #fff;
+}
+
+.auth-button {
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  padding: var(--button-padding-top) var(--button-padding-right) var(--button-padding-bottom) var(--button-padding-left);
+  box-sizing: border-box;
+  border: var(--button-border-width) solid var(--button-border-color);
+  background: var(--button-background);
+  color: var(--button-color);
+  line-height: var(--line-height);
+  height: var(--control-height);
+  text-decoration: none;
+  font-weight: var(--font-weight-normal);
+  border-radius: var(--border-radius);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  transition: background-color var(--transition-duration),
+  color var(--transition-duration),
+  border-color var(--transition-duration);
+
+  --button-border-color: #fff;
+  --button-background: transparent;
+  --button-color: #fff;
+
+  &[type=submit] {
+    --button-border-color: var(--primary-color);
+    --button-background: var(--primary-color);
+    --button-color: #fff;
+  }
+
+  &:not(:disabled):hover,
+  &:not(:disabled):focus {
+    --button-border-color: var(--primary-color-light);
+    --button-background: var(--primary-color-light);
+  }
+
+  &:not(:disabled):active {
+    --button-border-color: var(--primary-color-lighter);
+    --button-background: var(--primary-color-lighter);
+  }
+}

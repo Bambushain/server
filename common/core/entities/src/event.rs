@@ -1,11 +1,14 @@
 use std::str::FromStr;
 
 use chrono::NaiveDate;
+use chrono::NaiveTime as Time;
 use color_art::{color, Color};
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::user::WebUser;
+use crate::{Event, Grove};
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 
@@ -28,14 +31,15 @@ pub struct Model {
     pub description: String,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
+    pub start_time: Option<Time>,
+    pub end_time: Option<Time>,
     pub color: String,
     #[serde(default = "set_false")]
     pub is_private: bool,
     #[serde(skip)]
     pub user_id: Option<i32>,
-    #[cfg(feature = "backend")]
     #[serde(skip)]
-    pub grove_id: i32,
+    pub grove_id: Option<i32>,
 }
 
 #[cfg(feature = "backend")]
@@ -57,6 +61,8 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Grove,
+    #[sea_orm(has_many = "super::event_reminder::Entity")]
+    Reminder,
 }
 
 #[cfg(feature = "backend")]
@@ -74,35 +80,72 @@ impl Related<super::grove::Entity> for Entity {
 }
 
 #[cfg(feature = "backend")]
+impl Related<super::event_reminder::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Reminder.def()
+    }
+}
+
+#[cfg(feature = "backend")]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    #[cfg(feature = "frontend")]
-    pub fn new(
-        title: String,
-        description: String,
-        start_date: NaiveDate,
-        end_date: NaiveDate,
-        color: Color,
-        is_private: bool,
-    ) -> Self {
-        Self {
-            id: i32::default(),
-            title,
-            description,
-            start_date,
-            end_date,
-            color: color.hex(),
-            is_private,
-            user_id: None,
-        }
-    }
-
     pub fn set_color(&mut self, color: Color) {
         self.color = color.hex();
     }
 
     pub fn color(&self) -> Color {
         Color::from_str(self.color.as_str()).unwrap_or(color!(#9f2637))
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
+#[cfg_attr(feature = "backend", derive(Responder))]
+#[serde(rename_all = "camelCase")]
+pub struct GroveEventReminder {
+    #[serde(default)]
+    pub id: i32,
+    pub when: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
+#[cfg_attr(feature = "backend", derive(Responder))]
+#[serde(rename_all = "camelCase")]
+pub struct GroveEvent {
+    #[serde(default)]
+    pub id: i32,
+    pub title: String,
+    pub description: String,
+    pub start_date: NaiveDate,
+    pub end_date: NaiveDate,
+    #[serde(default)]
+    pub start_time: Option<Time>,
+    #[serde(default)]
+    pub end_time: Option<Time>,
+    pub color: String,
+    pub is_private: bool,
+    #[serde(default)]
+    pub user: Option<WebUser>,
+    #[serde(default)]
+    pub grove: Option<Grove>,
+    #[serde(default)]
+    pub reminder: Vec<GroveEventReminder>,
+}
+
+impl GroveEvent {
+    pub fn to_event(&self) -> Event {
+        Event {
+            id: self.id,
+            title: self.title.clone(),
+            description: self.description.clone(),
+            start_date: self.start_date,
+            end_date: self.end_date,
+            start_time: self.start_time,
+            end_time: self.end_time,
+            color: self.color.clone(),
+            is_private: self.is_private,
+            user_id: self.user.clone().map(|user| user.id),
+            grove_id: self.grove.clone().map(|grove| grove.id),
+        }
     }
 }

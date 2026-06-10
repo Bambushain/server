@@ -1,48 +1,47 @@
-use std::cmp::Ordering;
-
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.crafter_job"
+        enum_name = "final_fantasy\".\"crafter_job"
     )
 )]
 pub enum CrafterJob {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "carpenter"))]
+    #[serde(rename = "carpenter")]
     Carpenter,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "blacksmith"))]
+    #[serde(rename = "blacksmith")]
     Blacksmith,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "armorer"))]
+    #[serde(rename = "armorer")]
     Armorer,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "goldsmith"))]
+    #[serde(rename = "goldsmith")]
     Goldsmith,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "leatherworker"))]
+    #[serde(rename = "leatherworker")]
     Leatherworker,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "weaver"))]
+    #[serde(rename = "weaver")]
     Weaver,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "alchemist"))]
+    #[serde(rename = "alchemist")]
     Alchemist,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "culinarian"))]
-    Culinarian,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "miner"))]
-    Miner,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "botanist"))]
-    Botanist,
-    #[cfg_attr(feature = "backend", sea_orm(string_value = "fisher"))]
-    Fisher,
 }
 
 impl CrafterJob {
@@ -55,29 +54,21 @@ impl CrafterJob {
             CrafterJob::Leatherworker => "leatherworker.webp",
             CrafterJob::Weaver => "weaver.webp",
             CrafterJob::Alchemist => "alchemist.webp",
-            CrafterJob::Culinarian => "culinarian.webp",
-            CrafterJob::Miner => "miner.webp",
-            CrafterJob::Botanist => "botanist.webp",
-            CrafterJob::Fisher => "fisher.webp",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_job_name(self) -> String {
         match self {
-            CrafterJob::Carpenter => "carpenter",
-            CrafterJob::Blacksmith => "blacksmith",
-            CrafterJob::Armorer => "armorer",
-            CrafterJob::Goldsmith => "goldsmith",
-            CrafterJob::Leatherworker => "leatherworker",
-            CrafterJob::Weaver => "weaver",
-            CrafterJob::Alchemist => "alchemist",
-            CrafterJob::Culinarian => "culinarian",
-            CrafterJob::Miner => "miner",
-            CrafterJob::Botanist => "botanist",
-            CrafterJob::Fisher => "fisher",
+            CrafterJob::Carpenter => "Carpenter",
+            CrafterJob::Blacksmith => "Blacksmith",
+            CrafterJob::Armorer => "Armorer",
+            CrafterJob::Goldsmith => "Goldsmith",
+            CrafterJob::Leatherworker => "Leatherworker",
+            CrafterJob::Weaver => "Weaver",
+            CrafterJob::Alchemist => "Alchemist",
         }
-        .to_string()
+            .to_string()
     }
 }
 
@@ -93,9 +84,9 @@ impl Ord for CrafterJob {
     }
 }
 
-impl ToString for CrafterJob {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for CrafterJob {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
             CrafterJob::Carpenter => "Zimmerer",
             CrafterJob::Blacksmith => "Grobschmied",
             CrafterJob::Armorer => "Plattner",
@@ -103,18 +94,13 @@ impl ToString for CrafterJob {
             CrafterJob::Leatherworker => "Gerber",
             CrafterJob::Weaver => "Weber",
             CrafterJob::Alchemist => "Alchemist",
-            CrafterJob::Culinarian => "Gourmet",
-            CrafterJob::Miner => "Minenarbeiter",
-            CrafterJob::Botanist => "Gärtner",
-            CrafterJob::Fisher => "Fischer",
-        }
-        .to_string()
+        })
     }
 }
 
 impl From<String> for CrafterJob {
     fn from(value: String) -> Self {
-        match value.as_str() {
+        match value.to_lowercase().as_str() {
             "carpenter" => CrafterJob::Carpenter,
             "blacksmith" => CrafterJob::Blacksmith,
             "armorer" => CrafterJob::Armorer,
@@ -122,16 +108,12 @@ impl From<String> for CrafterJob {
             "leatherworker" => CrafterJob::Leatherworker,
             "weaver" => CrafterJob::Weaver,
             "alchemist" => CrafterJob::Alchemist,
-            "culinarian" => CrafterJob::Culinarian,
-            "miner" => CrafterJob::Miner,
-            "botanist" => CrafterJob::Botanist,
-            "fisher" => CrafterJob::Fisher,
             _ => unreachable!(),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
@@ -145,6 +127,7 @@ pub struct Model {
     pub job: CrafterJob,
     #[serde(default)]
     pub level: Option<String>,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

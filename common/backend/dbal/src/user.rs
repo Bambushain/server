@@ -1,149 +1,355 @@
-use sea_orm::prelude::*;
-use sea_orm::sea_query::Expr;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
-    JoinType, NotSet, QueryFilter, QueryOrder, QuerySelect, RelationTrait, Set,
-};
-
+use crate::error_tag;
+use bamboo_common_backend_notification::notify;
+use bamboo_common_core::entities::user::{BambooUser, WebUser};
 use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
+use bamboo_common_core::queueing::Notification;
+use chrono::{Days, Local, NaiveDate};
+use sea_orm::prelude::*;
+use sea_orm::sea_query::extension::postgres::PgExpr;
+use sea_orm::sea_query::{Alias, ColumnRef, Expr, IntoCondition, IntoIden};
+use sea_orm::ActiveValue::Set;
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, FromQueryResult,
+    IntoActiveModel, JoinType, NotSet, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+};
 
-use crate as dbal;
-
-pub async fn get_user_by_id_only(id: i32, db: &DatabaseConnection) -> BambooResult<User> {
+pub async fn get_user(id: i32, db: &DatabaseConnection) -> BambooResult<BambooUser> {
     user::Entity::find_by_id(id)
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .into_model::<BambooUser>()
         .one(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to execute database query")
-        })
-        .map(|data| {
-            if let Some(data) = data {
-                Ok(data)
-            } else {
-                Err(BambooError::not_found("user", "The user was not found"))
-            }
-        })?
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
+        .ok_or(BambooError::not_found(
+            error_tag!(),
+            "The user was not found",
+        ))
 }
 
-pub async fn get_user(grove_id: i32, id: i32, db: &DatabaseConnection) -> BambooResult<User> {
-    user::Entity::find_by_id(id)
-        .filter(user::Column::GroveId.eq(grove_id))
-        .one(db)
-        .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to execute database query")
-        })
-        .map(|data| {
-            if let Some(data) = data {
-                Ok(data)
-            } else {
-                Err(BambooError::not_found("user", "The user was not found"))
-            }
-        })?
-}
-
-pub async fn get_user_by_token(token: String, db: &DatabaseConnection) -> BambooResult<User> {
+pub async fn get_user_by_token(token: &str, db: &DatabaseConnection) -> BambooResult<BambooUser> {
     user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(ColumnRef::TableColumn(
+                    Alias::new("user").into_iden(),
+                    user::Column::Id.into_iden(),
+                )))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
         .filter(token::Column::Token.eq(token))
         .join(JoinType::InnerJoin, user::Relation::Token.def())
+        .into_model::<BambooUser>()
         .one(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::unauthorized("authentication", "Token or user not found")
-        })
-        .map(|data| {
-            if let Some(data) = data {
-                Ok(data)
-            } else {
-                Err(BambooError::unauthorized(
-                    "authentication",
-                    "Token or user not found",
-                ))
-            }
-        })?
+        .map_err(|_| BambooError::unauthorized(error_tag!(), "Token or user not found"))?
+        .ok_or(BambooError::unauthorized(
+            error_tag!(),
+            "Token or user not found",
+        ))
+}
+
+pub async fn get_user_by_firebase_token(token: &str, db: &DatabaseConnection) -> BambooResult<BambooUser> {
+    user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(ColumnRef::TableColumn(
+                    Alias::new("user").into_iden(),
+                    user::Column::Id.into_iden(),
+                )))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .filter(firebase_token::Column::Token.eq(token))
+        .join(JoinType::InnerJoin, user::Relation::FirebaseToken.def())
+        .into_model::<BambooUser>()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::unauthorized(error_tag!(), "Firebase token or user not found"))?
+        .ok_or(BambooError::unauthorized(
+            error_tag!(),
+            "Firebase token or user not found",
+        ))
 }
 
 pub async fn get_user_by_email_or_username(
-    username: String,
+    username: &str,
     db: &DatabaseConnection,
-) -> BambooResult<User> {
+) -> BambooResult<BambooUser> {
     user::Entity::find()
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .filter(
+            Condition::any()
+                .add(user::Column::Email.eq(username))
+                .add(user::Column::DisplayName.eq(username)),
+        )
+        .into_model::<BambooUser>()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to execute database query"))?
+        .ok_or(BambooError::not_found(
+            error_tag!(),
+            "The user was not found",
+        ))
+}
+
+pub enum BannedStatus {
+    Banned,
+    Unbanned,
+    All,
+}
+
+async fn get_users_from_db<U>(
+    user_id: i32,
+    additional_filter: Option<Condition>,
+    banned_status: BannedStatus,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<U>>
+where
+    U: FromQueryResult,
+{
+    let sub_query = &mut grove_user::Entity::find()
+        .select_only()
+        .column(grove_user::Column::GroveId)
+        .filter(grove_user::Column::UserId.eq(user_id));
+
+    let mut filter = Condition::all()
+        .add(grove_user::Column::GroveId.in_subquery(QuerySelect::query(sub_query).to_owned()));
+
+    if let Some(additional_filter) = additional_filter {
+        filter = filter.add(additional_filter);
+    }
+    filter = match banned_status {
+        BannedStatus::Banned => filter.add(grove_user::Column::IsBanned.eq(true)),
+        BannedStatus::Unbanned => filter.add(grove_user::Column::IsBanned.eq(false)),
+        BannedStatus::All => filter,
+    };
+
+    user::Entity::find()
+        .select_only()
+        .distinct_on(vec![Alias::new("display_name")])
+        .column_as(user::Column::Id, "id")
+        .column_as(user::Column::Email, "email")
+        .column_as(user::Column::DiscordName, "discord_name")
+        .column_as(user::Column::DisplayName, "display_name")
+        .column_as(grove_user::Column::IsMod, "is_mod")
+        .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            grove_user::Entity::belongs_to(user::Entity)
+                .from(grove_user::Column::UserId)
+                .to(user::Column::Id)
+                .into(),
+        )
+        .filter(filter)
+        .order_by_asc(user::Column::DisplayName)
+        .into_model::<U>()
+        .all(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
+}
+
+pub async fn get_users(user_id: i32, db: &DatabaseConnection) -> BambooResult<Vec<WebUser>> {
+    get_users_from_db(user_id, None, BannedStatus::Unbanned, db).await
+}
+
+pub async fn get_users_by_grove(
+    user_id: i32,
+    grove_id: i32,
+    banned_status: BannedStatus,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<user::GroveUser>> {
+    get_users_from_db(
+        user_id,
+        Some(grove_user::Column::GroveId.eq(grove_id).into_condition()),
+        banned_status,
+        db,
+    )
+    .await
+}
+
+pub async fn get_user_by_grove(
+    user_id: i32,
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Option<user::GroveUser>> {
+    let filter = Condition::all()
+        .add(user::Column::Id.eq(user_id))
+        .add(grove_user::Column::GroveId.eq(grove_id))
+        .add(grove_user::Column::IsBanned.eq(false));
+
+    user::Entity::find()
+        .select_only()
+        .distinct_on(vec![Alias::new("display_name")])
+        .column_as(user::Column::Id, "id")
+        .column_as(user::Column::Email, "email")
+        .column_as(user::Column::DiscordName, "discord_name")
+        .column_as(user::Column::DisplayName, "display_name")
+        .column_as(grove_user::Column::IsMod, "is_mod")
+        .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            grove_user::Entity::belongs_to(user::Entity)
+                .from(grove_user::Column::UserId)
+                .to(user::Column::Id)
+                .into(),
+        )
+        .filter(filter)
+        .order_by_asc(user::Column::DisplayName)
+        .into_model()
+        .one(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load user"))
+}
+
+pub async fn get_all_users_by_grove(
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> BambooResult<Vec<user::GroveUser>> {
+    user::Entity::find()
+        .select_only()
+        .distinct_on(vec![Alias::new("display_name")])
+        .column_as(user::Column::Id, "id")
+        .column_as(user::Column::Email, "email")
+        .column_as(user::Column::DiscordName, "discord_name")
+        .column_as(user::Column::DisplayName, "display_name")
+        .column_as(grove_user::Column::IsMod, "is_mod")
+        .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            grove_user::Entity::belongs_to(user::Entity)
+                .from(grove_user::Column::UserId)
+                .to(user::Column::Id)
+                .into(),
+        )
         .filter(
             Condition::all()
                 .add(
-                    Condition::any()
-                        .add(user::Column::Email.eq(username.clone()))
-                        .add(user::Column::DisplayName.eq(username)),
-                )
-                .add(
-                    Condition::any()
-                        .add(
-                            Condition::all()
-                                .add(grove::Column::IsSuspended.eq(false))
-                                .add(grove::Column::IsEnabled.eq(true)),
+                    grove_user::Column::GroveId.in_subquery(
+                        QuerySelect::query(
+                            &mut grove_user::Entity::find()
+                                .select_only()
+                                .column(grove_user::Column::GroveId)
+                                .filter(grove_user::Column::GroveId.eq(grove_id)),
                         )
-                        .add(
-                            Condition::all()
-                                .add(grove::Column::IsSuspended.eq(false))
-                                .add(grove::Column::IsEnabled.eq(false))
-                                .add(user::Column::IsMod.eq(true)),
-                        ),
-                ),
+                        .to_owned(),
+                    ),
+                )
+                .add(grove_user::Column::IsBanned.eq(false)),
         )
-        .inner_join(grove::Entity)
-        .one(db)
-        .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to execute database query")
-        })
-        .map(|data| {
-            if let Some(data) = data {
-                Ok(data)
-            } else {
-                Err(BambooError::not_found("user", "The user was not found"))
-            }
-        })?
-}
-
-pub async fn get_users(grove_id: i32, db: &DatabaseConnection) -> BambooResult<Vec<User>> {
-    user::Entity::find()
-        .filter(user::Column::GroveId.eq(grove_id))
         .order_by_asc(user::Column::DisplayName)
+        .into_model()
         .all(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to load users")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
 }
 
-pub async fn get_users_with_mod_rights(
-    user_id: i32,
+pub async fn get_grove_mods(
+    grove_id: i32,
     db: &DatabaseConnection,
-) -> BambooResult<Vec<User>> {
-    let grove = dbal::get_grove_by_user_id(user_id, db).await?;
-
+) -> BambooResult<Vec<user::GroveUser>> {
     user::Entity::find()
-        .filter(user::Column::IsMod.eq(true))
-        .filter(user::Column::GroveId.eq(grove.id))
+        .select_only()
+        .distinct_on(vec![Alias::new("display_name")])
+        .column_as(user::Column::Id, "id")
+        .column_as(user::Column::Email, "email")
+        .column_as(user::Column::DiscordName, "discord_name")
+        .column_as(user::Column::DisplayName, "display_name")
+        .column_as(grove_user::Column::IsMod, "is_mod")
+        .column_as(grove_user::Column::IsBanned, "is_banned")
+        .column_as(
+            Expr::val("/api/user/")
+                .concatenate(Expr::col(user::Column::Id))
+                .concatenate("/picture?time=")
+                .concatenate(Expr::current_timestamp()),
+            "profile_picture",
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            grove_user::Entity::belongs_to(user::Entity)
+                .from(grove_user::Column::UserId)
+                .to(user::Column::Id)
+                .into(),
+        )
+        .filter(
+            Condition::all()
+                .add(
+                    grove_user::Column::GroveId.in_subquery(
+                        QuerySelect::query(
+                            &mut grove_user::Entity::find()
+                                .select_only()
+                                .column(grove_user::Column::GroveId)
+                                .filter(grove_user::Column::GroveId.eq(grove_id)),
+                        )
+                        .to_owned(),
+                    ),
+                )
+                .add(grove_user::Column::IsBanned.eq(false))
+                .add(grove_user::Column::IsMod.eq(true)),
+        )
         .order_by_asc(user::Column::DisplayName)
+        .into_model()
         .all(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to load users")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
+}
+
+pub async fn user_is_banned_from_grove(
+    user_id: i32,
+    grove_id: i32,
+    db: &DatabaseConnection,
+) -> bool {
+    grove_user::Entity::find()
+        .filter(grove_user::Column::UserId.eq(user_id))
+        .filter(grove_user::Column::GroveId.eq(grove_id))
+        .filter(grove_user::Column::IsBanned.eq(true))
+        .all(db)
+        .await
+        .map(|x| !x.is_empty())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
+        .unwrap_or(true)
 }
 
 pub(crate) async fn user_exists_by_id(
     id: i32,
-    email: String,
-    name: String,
+    email: &str,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     user::Entity::find()
@@ -156,15 +362,12 @@ pub(crate) async fn user_exists_by_id(
         .count(db)
         .await
         .map(|count| count > 0)
-        .map_err(|err| {
-            log::error!("Failed to load users {err}");
-            BambooError::database("user", "Failed to load users")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
 }
 
 async fn user_exists_by_email_and_name(
-    email: String,
-    name: String,
+    email: &str,
+    name: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<bool> {
     user::Entity::find()
@@ -176,89 +379,57 @@ async fn user_exists_by_email_and_name(
         .count(db)
         .await
         .map(|count| count > 0)
-        .map_err(|err| {
-            log::error!("Failed to load users {err}");
-            BambooError::database("user", "Failed to load users")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to load users"))
 }
 
 pub async fn create_user(
-    grove_id: i32,
     user: User,
-    password: String,
+    password: &str,
     db: &DatabaseConnection,
 ) -> BambooResult<User> {
-    if user_exists_by_email_and_name(user.email.clone(), user.display_name.clone(), db).await? {
+    if user_exists_by_email_and_name(&user.email, &user.display_name, db).await? {
         return Err(BambooError::exists_already(
-            "user",
+            error_tag!(),
             "A user with that email or name exists already",
         ));
     }
 
     let mut model = user.into_active_model();
     model.id = NotSet;
-    model.grove_id = Set(grove_id);
-    model.set_password(&password).map_err(|err| {
-        log::error!("{err}");
-        BambooError::database("user", "Failed to hash password user")
-    })?;
+    model
+        .set_password(password)
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to hash password user"))?;
 
-    model.insert(db).await.map_err(|err| {
-        log::error!("{err}");
-        BambooError::database("user", "Failed to create user")
-    })
+    model
+        .insert(db)
+        .await
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to create user"))
 }
 
-pub async fn delete_user(grove_id: i32, id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+pub async fn delete_user(id: i32, db: &DatabaseConnection) -> BambooErrorResult {
+    let user = get_user(id, db).await;
+
     user::Entity::delete_by_id(id)
-        .filter(user::Column::GroveId.eq(grove_id))
         .exec(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to delete user")
-        })
-        .map(|_| ())
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to delete user"))?;
+
+    if let Ok(user) = user {
+        notify(Notification::UserAccountDelete(user)).await
+    }
+
+    Ok(())
 }
 
-pub async fn change_mod_status(
-    grove_id: i32,
-    id: i32,
-    is_mod: bool,
-    db: &DatabaseConnection,
-) -> BambooErrorResult {
-    user::Entity::update_many()
-        .filter(user::Column::GroveId.eq(grove_id))
-        .filter(user::Column::Id.eq(id))
-        .col_expr(user::Column::IsMod, Expr::value(is_mod))
-        .exec(db)
-        .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to update user")
-        })
-        .map(|_| ())
-}
-
-pub async fn change_password(
-    grove_id: i32,
-    id: i32,
-    password: String,
-    db: &DatabaseConnection,
-) -> BambooErrorResult {
-    let hashed_password = bcrypt::hash(password, 12).map_err(|err| {
-        log::error!("{err}");
-        BambooError::unknown("user", "Failed to hash the password")
-    })?;
+pub async fn set_password(id: i32, password: &str, db: &DatabaseConnection) -> BambooErrorResult {
+    let hashed_password = bcrypt::hash(password, 12)
+        .map_err(|_| BambooError::unknown(error_tag!(), "Failed to hash the password"))?;
 
     token::Entity::delete_many()
         .filter(token::Column::UserId.eq(id))
         .exec(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to update user")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update user"))
         .map(|_| ())?;
 
     user::Entity::update_many()
@@ -269,74 +440,105 @@ pub async fn change_password(
         )
         .col_expr(user::Column::TotpSecretEncrypted, Expr::value(false))
         .col_expr(user::Column::TotpValidated, Expr::value(false))
-        .filter(user::Column::GroveId.eq(grove_id))
         .filter(user::Column::Id.eq(id))
         .exec(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to update user")
-        })
-        .map(|_| ())
-}
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update user"))?;
 
-pub async fn update_profile(
-    grove_id: i32,
-    id: i32,
-    email: String,
-    display_name: String,
-    discord_name: String,
-    db: &DatabaseConnection,
-) -> BambooErrorResult {
-    if user_exists_by_id(id, email.clone(), display_name.clone(), db).await? {
-        return Err(BambooError::exists_already(
-            "user",
-            "A user with that email or name exists already",
-        ));
+    if let Ok(user) = get_user(id, db).await {
+        notify(Notification::UserPasswordChange(user)).await
     }
 
-    user::Entity::update_many()
-        .col_expr(user::Column::Email, Expr::value(email))
-        .col_expr(user::Column::DisplayName, Expr::value(display_name))
-        .col_expr(user::Column::DiscordName, Expr::value(discord_name))
-        .filter(user::Column::GroveId.eq(grove_id))
-        .filter(user::Column::Id.eq(id))
-        .exec(db)
-        .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to update user")
-        })
-        .map(|_| ())
+    Ok(())
 }
 
-pub async fn disable_totp(grove_id: i32, id: i32, db: &DatabaseConnection) -> BambooErrorResult {
-    user::Entity::update_many()
-        .col_expr(
-            user::Column::TotpSecret,
-            Expr::value::<Option<Vec<u8>>>(None),
-        )
-        .col_expr(user::Column::TotpValidated, Expr::value(false))
-        .col_expr(user::Column::TotpSecretEncrypted, Expr::value(false))
-        .filter(user::Column::Id.eq(id))
-        .filter(user::Column::GroveId.eq(grove_id))
-        .exec(db)
-        .await
-        .map_err(|_| BambooError::database("user", "Failed to disable totp"))
-        .map(|_| ())
-}
-
-pub async fn get_users_filtered_for_management(
-    grove_id: i32,
+pub async fn set_forgot_password_token(
+    id: i32,
     db: &DatabaseConnection,
-) -> BambooResult<Vec<User>> {
-    user::Entity::find()
-        .filter(user::Column::GroveId.eq(grove_id))
-        .order_by_asc(user::Column::Id)
-        .all(db)
+) -> BambooResult<(String, NaiveDate)> {
+    let user = get_user(id, db).await?;
+    let valid_until =
+        Local::now()
+            .checked_add_days(Days::new(7))
+            .ok_or(BambooError::invalid_data(
+                error_tag!(),
+                "Failed to add a week to the date",
+            ))?;
+    let mut token = [0u8; 32];
+    getrandom::fill(&mut token)
+        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
+
+    let token = hex::encode(token);
+    let hashed_token = bcrypt::hash(token.clone(), 12)
+        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to generate secure random code"))?;
+
+    let mut active_user = user.into_user_active_model();
+    active_user.forgot_password_valid_until = Set(Some(valid_until.date_naive()));
+    active_user.forgot_password_code = Set(Some(hashed_token));
+    active_user
+        .update(db)
         .await
-        .map_err(|err| {
-            log::error!("{err}");
-            BambooError::database("user", "Failed to load users")
-        })
+        .map_err(|_| BambooError::database(error_tag!(), "Failed to update user"))?;
+
+    Ok((token, valid_until.date_naive()))
+}
+
+pub async fn reset_password_by_token(
+    email: &str,
+    token: &str,
+    password: &str,
+    db: &DatabaseConnection,
+) -> BambooErrorResult {
+    let user = get_user_by_email_or_username(email, db).await?;
+    if let (Some(code), Some(until)) = (
+        user.forgot_password_code.clone(),
+        user.forgot_password_valid_until,
+    ) {
+        if until >= Local::now().date_naive()
+            && bcrypt::verify(token, code.as_str()).unwrap_or(false)
+        {
+            let mut active_user = user.clone().into_user_active_model();
+            active_user
+                .set_password(password)
+                .map_err(|_| BambooError::crypto(error_tag!(), "Failed to hash password"))?;
+            active_user.forgot_password_code = Set(None);
+            active_user.forgot_password_valid_until = Set(None);
+            active_user.totp_secret = Set(None);
+            active_user.totp_validated = Set(Some(false));
+            active_user.totp_secret_encrypted = Set(false);
+
+            active_user
+                .update(db)
+                .await
+                .map_err(|_| BambooError::database(error_tag!(), "Failed to save the user"))
+                .map(|_| ())?;
+
+            token::Entity::delete_many()
+                .filter(token::Column::UserId.eq(user.id))
+                .exec(db)
+                .await
+                .map_err(|_| BambooError::database(error_tag!(), "Failed to delete auth tokens"))
+                .map(|_| ())
+        } else {
+            Err(BambooError::insufficient_rights(
+                error_tag!(),
+                "The token is either invalid or expired",
+            ))
+        }
+    } else {
+        Err(BambooError::insufficient_rights(
+            error_tag!(),
+            "No data set for forgot password",
+        ))
+    }
+}
+
+pub async fn user_exists(email: &str, db: &DatabaseConnection) -> bool {
+    user::Entity::find()
+        .filter(user::Column::Email.eq(email))
+        .select_only()
+        .column(user::Column::Id)
+        .count(db)
+        .await
+        .is_ok_and(|c| c > 0)
 }

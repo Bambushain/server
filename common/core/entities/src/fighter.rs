@@ -1,69 +1,91 @@
-use std::cmp::Ordering;
-
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
-#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy)]
+#[derive(Serialize, Deserialize, EnumIter, Debug, Eq, PartialEq, Clone, Default, Copy, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveActiveEnum),
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.fighter_job"
+        enum_name = "final_fantasy\".\"fighter_job"
     )
 )]
 pub enum FighterJob {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "paladin"))]
+    #[serde(rename = "paladin")]
     Paladin,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "warrior"))]
+    #[serde(rename = "warrior")]
     Warrior,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dark_knight"))]
+    #[serde(rename = "dark-knight")]
     DarkKnight,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "gunbreaker"))]
+    #[serde(rename = "gunbreaker")]
     Gunbreaker,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "white_mage"))]
+    #[serde(rename = "white-mage")]
     WhiteMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "scholar"))]
+    #[serde(rename = "scholar")]
     Scholar,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "astrologian"))]
+    #[serde(rename = "astrologian")]
     Astrologian,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "sage"))]
+    #[serde(rename = "sage")]
     Sage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "monk"))]
+    #[serde(rename = "monk")]
     Monk,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dragoon"))]
+    #[serde(rename = "dragoon")]
     Dragoon,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "ninja"))]
+    #[serde(rename = "ninja")]
     Ninja,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "samurai"))]
+    #[serde(rename = "samurai")]
     Samurai,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "reaper"))]
+    #[serde(rename = "reaper")]
     Reaper,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "bard"))]
+    #[serde(rename = "bard")]
     Bard,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "machinist"))]
+    #[serde(rename = "machinist")]
     Machinist,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "dancer"))]
+    #[serde(rename = "dancer")]
     Dancer,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "black_mage"))]
+    #[serde(rename = "black-mage")]
     BlackMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "summoner"))]
+    #[serde(rename = "summoner")]
     Summoner,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "red_mage"))]
+    #[serde(rename = "red-mage")]
     RedMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "blue_mage"))]
+    #[serde(rename = "blue-mage")]
     BlueMage,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "viper"))]
+    #[serde(rename = "viper")]
     Viper,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "pictomancer"))]
+    #[serde(rename = "pictomancer")]
     Pictomancer,
 }
 
@@ -93,7 +115,7 @@ impl FighterJob {
             FighterJob::Viper => "viper.webp",
             FighterJob::Pictomancer => "pictomancer.webp",
         }
-        .to_string()
+            .to_string()
     }
 
     pub fn get_job_name(self) -> String {
@@ -121,7 +143,7 @@ impl FighterJob {
             FighterJob::Viper => "Viper",
             FighterJob::Pictomancer => "Pictomancer",
         }
-        .to_string()
+            .to_string()
     }
 }
 
@@ -137,9 +159,9 @@ impl Ord for FighterJob {
     }
 }
 
-impl ToString for FighterJob {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for FighterJob {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
             FighterJob::Paladin => "Paladin",
             FighterJob::Warrior => "Krieger",
             FighterJob::DarkKnight => "Dunkelritter",
@@ -162,8 +184,7 @@ impl ToString for FighterJob {
             FighterJob::BlueMage => "Blaumagier",
             FighterJob::Viper => "Viper",
             FighterJob::Pictomancer => "Piktomant",
-        }
-        .to_string()
+        })
     }
 }
 
@@ -197,7 +218,7 @@ impl From<String> for FighterJob {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Default, Hash)]
 #[cfg_attr(
     feature = "backend",
     derive(DeriveEntityModel, Responder),
@@ -213,6 +234,7 @@ pub struct Model {
     pub level: Option<String>,
     #[serde(default)]
     pub gear_score: Option<String>,
+    #[serde(skip)]
     pub character_id: i32,
 }
 

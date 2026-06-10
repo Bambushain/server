@@ -1,0 +1,14 @@
+post:
+  summary: Send a support request
+  operationId: sendSupportRequest
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas/support-request.yaml"
+  responses:
+    "204":
+      description: Support request sent successfully
+  tags:
+    - support

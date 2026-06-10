@@ -1,9 +1,10 @@
-use std::fmt::{Display, Formatter};
-
+use chrono::NaiveDate;
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 #[cfg(feature = "backend")]
 use sea_orm::ActiveValue::Set;
+#[cfg(feature = "backend")]
+use sea_orm::{FromQueryResult, IntoActiveModel};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "backend")]
@@ -26,19 +27,72 @@ pub struct Model {
     #[serde(skip)]
     pub password: String,
     pub display_name: String,
-    pub is_mod: bool,
     pub discord_name: String,
     #[cfg(feature = "backend")]
-    pub two_factor_code: Option<String>,
-    #[cfg(feature = "backend")]
+    #[serde(skip)]
     pub totp_secret: Option<Vec<u8>>,
     #[cfg(feature = "backend")]
     #[serde(default)]
+    #[serde(skip)]
     pub totp_secret_encrypted: bool,
+    #[serde(rename = "appTotpEnabled")]
     pub totp_validated: Option<bool>,
+    #[serde(skip)]
+    pub forgot_password_code: Option<String>,
+    #[serde(skip)]
+    pub forgot_password_valid_until: Option<NaiveDate>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
+pub struct BambooUser {
+    #[serde(default)]
+    pub id: i32,
+    pub email: String,
     #[cfg(feature = "backend")]
     #[serde(skip)]
-    pub grove_id: i32,
+    pub password: String,
+    pub display_name: String,
+    pub discord_name: String,
+    #[cfg(feature = "backend")]
+    #[serde(skip)]
+    pub totp_secret: Option<Vec<u8>>,
+    #[cfg(feature = "backend")]
+    #[serde(default)]
+    #[serde(skip)]
+    pub totp_secret_encrypted: bool,
+    #[serde(rename = "appTotpEnabled")]
+    pub totp_validated: Option<bool>,
+    #[serde(skip)]
+    pub forgot_password_code: Option<String>,
+    #[serde(skip)]
+    pub forgot_password_valid_until: Option<NaiveDate>,
+    pub profile_picture: String,
+}
+
+#[cfg(feature = "backend")]
+impl BambooUser {
+    pub fn into_user_active_model(self) -> ActiveModel {
+        Model {
+            id: self.id,
+            email: self.email,
+            password: self.password,
+            display_name: self.display_name,
+            discord_name: self.discord_name,
+            totp_secret: self.totp_secret,
+            totp_secret_encrypted: self.totp_secret_encrypted,
+            totp_validated: self.totp_validated,
+            forgot_password_code: self.forgot_password_code,
+            forgot_password_valid_until: self.forgot_password_valid_until,
+        }
+            .into_active_model()
+    }
+
+    pub fn validate_password(&self, password: &str) -> bool {
+        let result = bcrypt::verify(password, self.password.as_str());
+        result.unwrap_or(false)
+    }
 }
 
 #[cfg(feature = "backend")]
@@ -48,22 +102,25 @@ pub enum Relation {
     Character,
     #[sea_orm(has_many = "super::token::Entity")]
     Token,
+    #[sea_orm(has_many = "super::firebase_token::Entity")]
+    FirebaseToken,
     #[sea_orm(has_many = "super::event::Entity")]
     Event,
-    #[sea_orm(
-        belongs_to = "super::grove::Entity",
-        from = "Column::GroveId",
-        to = "super::grove::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    Grove,
+    #[sea_orm(has_many = "super::grove_user::Entity")]
+    GroveUser,
 }
 
 #[cfg(feature = "backend")]
 impl Related<super::character::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Character.def()
+    }
+}
+
+#[cfg(feature = "backend")]
+impl Related<super::firebase_token::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Token.def()
     }
 }
 
@@ -82,9 +139,9 @@ impl Related<super::event::Entity> for Entity {
 }
 
 #[cfg(feature = "backend")]
-impl Related<super::grove::Entity> for Entity {
+impl Related<super::grove_user::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Grove.def()
+        Relation::GroveUser.def()
     }
 }
 
@@ -93,87 +150,36 @@ impl ActiveModelBehavior for ActiveModel {}
 
 #[cfg(feature = "backend")]
 impl ActiveModel {
-    pub fn set_password(&mut self, plain_password: &String) -> Result<(), bcrypt::BcryptError> {
-        let hashed = bcrypt::hash(plain_password.as_bytes(), 12);
-        match hashed {
-            Ok(hashed_password) => {
-                self.password = Set(hashed_password);
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
+    pub fn set_password(&mut self, plain_password: &str) -> Result<(), bcrypt::BcryptError> {
+        bcrypt::hash(plain_password.as_bytes(), 12).map(|hashed_password| {
+            self.password = Set(hashed_password);
+        })
     }
 }
 
 impl Model {
-    pub fn new(email: String, display_name: String, discord_name: String, is_mod: bool) -> Self {
+    pub fn new(email: String, display_name: String, discord_name: String) -> Self {
         Self {
             id: i32::default(),
             email,
             #[cfg(feature = "backend")]
             password: String::default(),
-            is_mod,
             display_name,
             discord_name,
-            #[cfg(feature = "backend")]
-            two_factor_code: None,
             #[cfg(feature = "backend")]
             totp_secret: None,
             #[cfg(feature = "backend")]
             totp_secret_encrypted: false,
             totp_validated: None,
-            #[cfg(feature = "backend")]
-            grove_id: -1,
+            forgot_password_code: None,
+            forgot_password_valid_until: None,
         }
     }
 
     #[cfg(feature = "backend")]
-    pub fn validate_password(&self, password: String) -> bool {
+    pub fn validate_password(&self, password: &str) -> bool {
         let result = bcrypt::verify(password, self.password.as_str());
-        match result {
-            Ok(res) => res,
-            Err(err) => {
-                log::error!("Failed to validate password {err}");
-                false
-            }
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
-#[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "backend", derive(Responder))]
-pub struct WebUser {
-    #[serde(default)]
-    pub id: i32,
-    pub display_name: String,
-    pub email: String,
-    pub is_mod: bool,
-    pub discord_name: String,
-    #[serde(default)]
-    pub app_totp_enabled: bool,
-}
-
-impl From<Model> for WebUser {
-    fn from(value: Model) -> Self {
-        Self {
-            id: value.id,
-            is_mod: value.is_mod,
-            display_name: value.display_name.to_string(),
-            email: value.email.to_string(),
-            discord_name: value.discord_name.clone(),
-            app_totp_enabled: value.totp_validated.unwrap_or(false),
-        }
-    }
-}
-
-impl Display for WebUser {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(
-            serde_json::to_string(self)
-                .unwrap_or(self.email.clone())
-                .as_str(),
-        )
+        result.unwrap_or(false)
     }
 }
 
@@ -210,24 +216,38 @@ pub struct TotpQrCode {
     pub secret: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "backend", derive(Responder))]
+#[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
 pub struct GroveUser {
     #[serde(default)]
     pub id: i32,
-    pub display_name: String,
     pub email: String,
+    pub display_name: String,
+    pub discord_name: String,
     pub is_mod: bool,
+    #[serde(skip_serializing_if = "std::ops::Not::not", default = "bool::default")]
+    pub is_banned: bool,
 }
 
-impl From<Model> for crate::GroveUser {
-    fn from(value: Model) -> Self {
-        Self {
-            id: value.id,
-            is_mod: value.is_mod,
-            display_name: value.display_name.to_string(),
-            email: value.email.to_string(),
-        }
-    }
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Default, Hash)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "backend", derive(Responder, FromQueryResult))]
+pub struct WebUser {
+    #[serde(default)]
+    pub id: i32,
+    pub email: String,
+    pub display_name: String,
+    pub discord_name: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[cfg_attr(feature = "backend", derive(Responder))]
+pub enum JoinStatus {
+    #[serde(rename = "joined")]
+    Joined,
+    #[serde(rename = "not-joined")]
+    NotJoined,
+    #[serde(rename = "banned")]
+    Banned,
 }

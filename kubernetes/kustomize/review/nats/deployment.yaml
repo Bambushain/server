@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+spec:
+  selector:
+    matchLabels:
+      bambushain.app/app: nats
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        bambushain.app/app: nats
+    spec:
+      containers:
+        - name: nats
+          image: library/nats:2
+          command:
+            - /nats-server
+            - -js
+          ports:
+            - containerPort: 4222

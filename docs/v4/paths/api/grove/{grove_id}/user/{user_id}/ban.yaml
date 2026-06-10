@@ -1,0 +1,74 @@
+put:
+  summary: Ban user from grove (requires moderator permissions)
+  operationId: banUser
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+    - name: user_id
+      required: true
+      schema:
+        type: string
+      in: path
+  responses:
+    "204":
+      description: User banned successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove or user not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - groves
+delete:
+  summary: Unban user from grove (requires moderator permissions)
+  operationId: unbanUser
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+    - name: user_id
+      required: true
+      schema:
+        type: string
+      in: path
+  responses:
+    "204":
+      description: User unbanned successfully
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "403":
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove or user not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/error.yaml"
+  tags:
+    - groves

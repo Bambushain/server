@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+spec:
+  storageClassName: cephfs
+  resources:
+    requests:
+      storage: {{ .Values.postgres.persistence.size }}
+  accessModes:
+    - ReadWriteOnce

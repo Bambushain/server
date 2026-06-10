@@ -1,13 +1,13 @@
-use std::cmp::Ordering;
-
 #[cfg(feature = "backend")]
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "backend")]
 use bamboo_common_backend_macros::*;
 #[cfg(feature = "frontend")]
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
 use crate::{CustomField, FreeCompany};
 
@@ -18,26 +18,34 @@ use crate::{CustomField, FreeCompany};
     sea_orm(
         rs_type = "String",
         db_type = "Enum",
-        enum_name = "final_fantasy.character_race"
+        enum_name = "final_fantasy\".\"character_race",
     )
 )]
 pub enum CharacterRace {
     #[default]
     #[cfg_attr(feature = "backend", sea_orm(string_value = "hyur"))]
+    #[serde(rename = "hyur")]
     Hyur,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "elezen"))]
+    #[serde(rename = "elezen")]
     Elezen,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "lalafell"))]
+    #[serde(rename = "lalafell")]
     Lalafell,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "miqote"))]
+    #[serde(rename = "miqote")]
     Miqote,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "roegadyn"))]
+    #[serde(rename = "roegadyn")]
     Roegadyn,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "au_ra"))]
+    #[serde(rename = "au-ra")]
     AuRa,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "hrothgar"))]
+    #[serde(rename = "hrothgar")]
     Hrothgar,
     #[cfg_attr(feature = "backend", sea_orm(string_value = "viera"))]
+    #[serde(rename = "viera")]
     Viera,
 }
 
@@ -53,7 +61,7 @@ impl CharacterRace {
             Self::Hrothgar => "hrothgar",
             Self::Viera => "viera",
         }
-        .to_string()
+            .to_string()
     }
 }
 
@@ -69,9 +77,9 @@ impl Ord for CharacterRace {
     }
 }
 
-impl ToString for CharacterRace {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for CharacterRace {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
             Self::Hyur => "Hyuran",
             Self::Elezen => "Elezen",
             Self::Lalafell => "Lalafell",
@@ -80,8 +88,7 @@ impl ToString for CharacterRace {
             Self::AuRa => "Au Ra",
             Self::Hrothgar => "Hrothgar",
             Self::Viera => "Viera",
-        }
-        .to_string()
+        })
     }
 }
 
@@ -115,6 +122,7 @@ pub struct Model {
     pub race: CharacterRace,
     pub name: String,
     pub world: String,
+    pub datacenter: Option<String>,
     #[cfg(feature = "backend")]
     #[serde(skip)]
     pub user_id: i32,
@@ -180,6 +188,7 @@ impl Model {
         race: CharacterRace,
         name: String,
         world: String,
+        datacenter: String,
         custom_fields: Vec<CustomField>,
         free_company: Option<FreeCompany>,
     ) -> Self {
@@ -188,6 +197,7 @@ impl Model {
             race,
             name,
             world,
+            datacenter: Some(datacenter),
             #[cfg(feature = "backend")]
             user_id: i32::default(),
             #[cfg(feature = "backend")]

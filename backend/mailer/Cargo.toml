@@ -1,0 +1,15 @@
+[package]
+name = "bamboo-backend-mailer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bamboo-common = { path = "../../common", features = ["backend"] }
+
+html2text = { workspace = true }
+lettre = { workspace = true }
+log = { workspace = true }
+maud = { workspace = true }
+mrml = { workspace = true }
+tokio = { workspace = true }

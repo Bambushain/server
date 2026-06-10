@@ -1,0 +1,47 @@
+{{- if .Values.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-database
+  namespace: {{ include "bambushain.namespace" . }}
+  labels:
+    {{- include "bambushain.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        {{- include "bambushain.labels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: set-search-path
+          image: library/postgres:18
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGDATABASE
+              value: bamboo
+            - name: PGPASSWORD
+              value: bamboo
+            - name: PGUSER
+              value: bamboo
+          command:
+            - sh
+            - -ec
+            - |
+              psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE bamboo SET search_path TO public;"
+              psql -v ON_ERROR_STOP=1 -c "ALTER ROLE bamboo IN DATABASE bamboo SET search_path TO public;"
+              psql -v ON_ERROR_STOP=1 -c "SHOW search_path;"
+      containers:
+        - name: migrate-database
+          image: "{{ .Values.image.registry }}/{{ .Values.migrate.image }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: bamboo
+      restartPolicy: Never
+{{- end }}

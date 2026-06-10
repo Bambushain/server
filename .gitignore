@@ -95,3 +95,8 @@ fabric.properties
 
 data
 dist-*/
+MAILER_PASSWORD
+S3_ACCESS_KEY
+S3_SECRET_KEY
+.env
+/fcm-account.json

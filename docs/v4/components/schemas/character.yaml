@@ -1,0 +1,23 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  race:
+    $ref: ./character-race.yaml
+  name:
+    type: string
+  world:
+    type: string
+  datacenter:
+    type: string
+  customFields:
+    type: array
+    items:
+      $ref: ./character-custom-field.yaml
+  freeCompany:
+    $ref: ./free-company.yaml
+required:
+  - race
+  - name
+  - world

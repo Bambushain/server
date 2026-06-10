@@ -1,0 +1,14 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int32
+  label:
+    type: string
+  position:
+    type: integer
+    format: int32
+  options:
+    type: array
+    items:
+      $ref: ./custom-field-option.yaml

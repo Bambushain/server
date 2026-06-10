@@ -1,0 +1,23 @@
+{{- range $key, $value := .Values.bamboo.services }}
+{{- if and $value.ports (gt (len $value.ports) 0) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bamboo-{{ $key | lower }}
+  namespace: {{ include "bambushain.namespace" $ }}
+  labels:
+    {{- include "bambushain.labels" $ | nindent 4 }}
+spec:
+  selector:
+    bambushain.app/app: bamboo
+    bambushain.app/service: bamboo-{{ $key | lower }}   # ← targets exactly one deployment
+  ports:
+    {{- range $port := $value.ports }}
+    - protocol: TCP
+      port: {{ $port }}
+      targetPort: {{ $port }}
+      name: {{ $key | lower }}
+    {{- end }}
+{{- end }}
+{{- end }}

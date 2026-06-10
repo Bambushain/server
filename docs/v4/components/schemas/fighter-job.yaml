@@ -1,0 +1,24 @@
+type: string
+enum:
+  - paladin
+  - warrior
+  - dark-knight
+  - gunbreaker
+  - white-mage
+  - scholar
+  - astrologian
+  - sage
+  - monk
+  - dragoon
+  - ninja
+  - samurai
+  - reaper
+  - bard
+  - machinist
+  - dancer
+  - black_mage
+  - summoner
+  - red-mage
+  - blue-mage
+  - viper
+  - pictomancer

@@ -1,0 +1,8 @@
+[package]
+name = "bamboo-frontend"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bamboo-frontend-public = { path = "public" }

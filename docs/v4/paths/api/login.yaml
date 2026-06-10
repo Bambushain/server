@@ -1,0 +1,58 @@
+post:
+  summary: Login to the application
+  operationId: login
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas/login.yaml"
+  responses:
+    '200':
+      description: Successful login
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/login-result.yaml"
+    '204':
+      description: Two-factor authentication required
+    '401':
+      description: Invalid login credentials
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - authentication
+delete:
+  summary: Logout from the application
+  operationId: logout
+  security:
+    - bearerAuth: [ ]
+  responses:
+    '204':
+      description: Successfully logged out
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - authentication
+head:
+  summary: Check if token is valid
+  operationId: checkToken
+  security:
+    - bearerAuth: [ ]
+  responses:
+    '204':
+      description: Token is valid
+    '401':
+      description: Token is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/error.yaml"
+  tags:
+    - authentication

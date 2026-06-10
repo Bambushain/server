@@ -1,0 +1,74 @@
+post:
+  summary: Join a grove
+  operationId: joinGrove
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../../components/schemas/join-grove.yaml"
+  responses:
+    "204":
+      description: Successfully joined grove
+    "400":
+      description: Invalid request body or invite secret
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "403":
+      description: Not allowed to join (banned or invites disabled)
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves
+get:
+  summary: Check join status for a grove
+  operationId: checkJoinStatus
+  parameters:
+    - name: grove_id
+      required: true
+      schema:
+        type: string
+      in: path
+  responses:
+    "200":
+      description: Join status information
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/join-grove-status.yaml"
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+    "404":
+      description: Grove not found
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/error.yaml"
+  tags:
+    - groves

@@ -75,19 +75,15 @@ img {
         <div class={card_style}>
             <div class={card_content_classes}>
                 if let Some(prepend) = prepend {
-                    <div class={card_content_prepend}>
-                        {prepend.clone()}
-                    </div>
+                    <div class={card_content_prepend}>{ prepend.clone() }</div>
                 }
                 <div class={card_content_text_style}>
                     <CosmoHeader level={CosmoHeaderLevel::H5} header={title} />
-                    {for children.iter()}
+                    { for children.iter() }
                 </div>
             </div>
             if let Some(buttons) = buttons {
-                <CosmoToolbarGroup>
-                    {buttons.clone()}
-                </CosmoToolbarGroup>
+                <CosmoToolbarGroup>{ buttons.clone() }</CosmoToolbarGroup>
             }
         </div>
     )
@@ -106,9 +102,5 @@ justify-content: flex-start;
 "#
     );
 
-    html!(
-        <div class={class_list_style}>
-            {for children.iter()}
-        </div>
-    )
+    html!(<div class={class_list_style}>{ for children.iter() }</div>)
 }

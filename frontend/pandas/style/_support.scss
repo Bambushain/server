@@ -1,0 +1,10 @@
+.pandas-support {
+  max-width: calc(var(--input-width-large) + 10rem + var(--input-group-gap));
+  padding-top: 2rem;
+  display: flex;
+  flex-flow: column;
+
+  @media screen and (max-width: 1600px) {
+    max-width: 100%;
+  }
+}

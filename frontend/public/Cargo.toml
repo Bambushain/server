@@ -1,0 +1,20 @@
+[package]
+name = "bamboo-frontend-public"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+
+[dependencies]
+bamboo-common = { path = "../../common" }
+
+actix-files = { workspace = true }
+actix-web = { workspace = true, features = ["macros"] }
+base64 = { workspace = true }
+chrono = { workspace = true }
+dotenvy = { workspace = true }
+email_address = { workspace = true }
+log = { workspace = true }
+maud = { workspace = true, features = ["actix-web"] }
+serde = { workspace = true, features = ["derive"] }
