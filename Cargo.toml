@@ -116,7 +116,7 @@ gloo-utils = "0.3"
 hex = "0.4"
 html2text = "0.17"
 icondata_lu = "0.1"
-itertools = "0.14"
+itertools = "0.15"
 leptos = "0.8"
 #leptos-cosmo = { path = "../jinya/leptos-cosmo" }
 leptos-cosmo = "2.0"
