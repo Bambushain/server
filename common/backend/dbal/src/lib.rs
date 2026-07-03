@@ -1,5 +1,5 @@
-use chacha20poly1305::aead::{Aead, OsRng};
-use chacha20poly1305::{AeadCore, ChaCha20Poly1305, Key, KeyInit, Nonce};
+use chacha20poly1305::aead::Aead;
+use chacha20poly1305::{ChaCha20Poly1305, Key, KeyInit, Nonce};
 use sha2::Sha512;
 
 use bamboo_common_core::error::*;
@@ -58,16 +58,20 @@ fn get_passphrase(passphrase: &[u8]) -> BambooResult<Key> {
 
 pub(crate) fn decrypt_string(encrypted: Vec<u8>, passphrase: &str) -> BambooResult<Vec<u8>> {
     let cipher = ChaCha20Poly1305::new(&get_passphrase(passphrase.as_bytes())?);
-    let nonce = Nonce::from_slice(&encrypted[..12]);
+    let nonce = Nonce::try_from(&encrypted[..12])
+        .map_err(|err| BambooError::crypto("encryption", err.to_string()))?;
 
     cipher
-        .decrypt(nonce, encrypted[12..].as_ref())
+        .decrypt(&nonce, encrypted[12..].as_ref())
         .map_err(|_| BambooError::crypto("encryption", "Failed to decrypt"))
 }
 
 pub(crate) fn encrypt_string(plain: &[u8], passphrase: &str) -> BambooResult<Vec<u8>> {
     let cipher = ChaCha20Poly1305::new(&get_passphrase(passphrase.as_bytes())?);
-    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let mut nonce_bytes = [0_u8; 12];
+    getrandom::fill(&mut nonce_bytes)
+        .map_err(|err| BambooError::crypto("encryption", err.to_string()))?;
+    let nonce = Nonce::from(nonce_bytes);
 
     let encrypted = cipher
         .encrypt(&nonce, plain)
