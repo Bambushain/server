@@ -10,6 +10,7 @@ use date_range::DateRange;
 use itertools::Itertools;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::IntoCondition;
+use sea_orm::sea_query::ExprTrait;
 use sea_orm::{
     Condition, FromQueryResult, IntoActiveModel, JoinType, NotSet, QueryOrder, QuerySelect,
     SelectModel, Selector, Set, TransactionTrait,

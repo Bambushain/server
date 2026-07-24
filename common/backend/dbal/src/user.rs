@@ -5,10 +5,10 @@ use bamboo_common_core::entities::*;
 use bamboo_common_core::error::*;
 use bamboo_common_core::queueing::Notification;
 use chrono::{Days, Local, NaiveDate};
+use sea_orm::ActiveValue::Set;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::extension::postgres::PgExpr;
-use sea_orm::sea_query::{Alias, ColumnRef, Expr, IntoCondition, IntoIden};
-use sea_orm::ActiveValue::Set;
+use sea_orm::sea_query::{Alias, Expr, IntoCondition};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, FromQueryResult,
     IntoActiveModel, JoinType, NotSet, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
@@ -37,10 +37,7 @@ pub async fn get_user_by_token(token: &str, db: &DatabaseConnection) -> BambooRe
     user::Entity::find()
         .column_as(
             Expr::val("/api/user/")
-                .concatenate(Expr::col(ColumnRef::TableColumn(
-                    Alias::new("user").into_iden(),
-                    user::Column::Id.into_iden(),
-                )))
+                .concatenate(Expr::col((Alias::new("user"), user::Column::Id)))
                 .concatenate("/picture?time=")
                 .concatenate(Expr::current_timestamp()),
             "profile_picture",
@@ -57,14 +54,14 @@ pub async fn get_user_by_token(token: &str, db: &DatabaseConnection) -> BambooRe
         ))
 }
 
-pub async fn get_user_by_firebase_token(token: &str, db: &DatabaseConnection) -> BambooResult<BambooUser> {
+pub async fn get_user_by_firebase_token(
+    token: &str,
+    db: &DatabaseConnection,
+) -> BambooResult<BambooUser> {
     user::Entity::find()
         .column_as(
             Expr::val("/api/user/")
-                .concatenate(Expr::col(ColumnRef::TableColumn(
-                    Alias::new("user").into_iden(),
-                    user::Column::Id.into_iden(),
-                )))
+                .concatenate(Expr::col((Alias::new("user"), user::Column::Id)))
                 .concatenate("/picture?time=")
                 .concatenate(Expr::current_timestamp()),
             "profile_picture",

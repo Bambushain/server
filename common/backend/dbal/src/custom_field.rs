@@ -6,10 +6,7 @@ use itertools::Itertools;
 use sea_orm::prelude::*;
 use sea_orm::sea_query::Expr;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{
-    IntoActiveModel, IntoSimpleExpr, JoinType, NotSet, QueryOrder, QuerySelect, TransactionError,
-    TransactionTrait,
-};
+use sea_orm::{ExprTrait, IntoActiveModel, IntoSimpleExpr, JoinType, NotSet, QueryOrder, QuerySelect, TransactionError, TransactionTrait};
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
 

@@ -1,5 +1,4 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::sea_orm::Statement;
 
 use crate::m20220101_000001_create_schemas::Schemas;
 
@@ -10,9 +9,7 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        let grove_stmt =
-            Statement::from_string(manager.get_database_backend(), "CREATE SCHEMA grove");
-        db.execute(grove_stmt).await?;
+        db.execute_unprepared("CREATE SCHEMA grove").await?;
 
         manager
             .create_table(
@@ -46,9 +43,7 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        let grove_stmt =
-            Statement::from_string(manager.get_database_backend(), "DROP SCHEMA grove");
-        db.execute(grove_stmt).await?;
+        db.execute_unprepared("DROP SCHEMA grove").await?;
 
         manager
             .drop_table(

@@ -1,4 +1,3 @@
-use sea_orm_migration::sea_orm::Statement;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -8,9 +7,7 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        let mailing_stmt =
-            Statement::from_string(manager.get_database_backend(), "CREATE SCHEMA mailing");
-        db.execute(mailing_stmt).await?;
+        db.execute_unprepared("CREATE SCHEMA mailing").await?;
 
         manager
             .create_table(
@@ -33,9 +30,7 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        let mailing_stmt =
-            Statement::from_string(manager.get_database_backend(), "DROP SCHEMA mailing");
-        db.execute(mailing_stmt).await.map(|_| ())
+        db.execute_unprepared("DROP SCHEMA mailing").await.map(|_| ())
     }
 }
 

@@ -6,12 +6,12 @@ use bamboo_common_core::entities::{
 use bamboo_common_core::error::*;
 use character::CharacterRaceEnum;
 use itertools::Itertools;
-use sea_orm::prelude::*;
-use sea_orm::sea_query::{Expr, IntoCondition};
 use sea_orm::ActiveValue::Set;
+use sea_orm::prelude::*;
+use sea_orm::sea_query::{Expr, IntoCondition, ExprTrait};
 use sea_orm::{
     Condition, FromQueryResult, IntoActiveModel, JoinType, NotSet, QueryOrder, QuerySelect,
-    SelectColumns, TransactionError, TransactionTrait,
+    TransactionError, TransactionTrait,
 };
 use std::collections::BTreeSet;
 
@@ -326,7 +326,7 @@ async fn create_custom_field_values(
 
             let fields = custom_character_field::Entity::find()
                 .select_only()
-                .select_column_as(Expr::value(0), custom_character_field_value::Column::Id)
+                .column_as(Expr::value(0), custom_character_field_value::Column::Id)
                 .column_as(
                     custom_character_field::Column::Id,
                     custom_character_field_value::Column::CustomCharacterFieldId,
@@ -335,7 +335,7 @@ async fn create_custom_field_values(
                     custom_character_field_option::Column::Id,
                     custom_character_field_value::Column::CustomCharacterFieldOptionId,
                 )
-                .select_column_as(
+                .column_as(
                     Expr::value(character_id),
                     custom_character_field_value::Column::CharacterId,
                 )

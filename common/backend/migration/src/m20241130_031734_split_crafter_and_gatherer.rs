@@ -1,7 +1,7 @@
 use crate::extension::postgres::Type;
 use crate::m20220101_000001_create_schemas::Schemas;
 use crate::m20230724_121111_create_table_character::Character;
-use crate::sea_orm::{EnumIter, Iterable, Statement, TransactionTrait};
+use crate::sea_orm::{EnumIter, Iterable, TransactionTrait};
 use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
@@ -59,16 +59,13 @@ impl MigrationTrait for Migration {
             )
             .await?;
         txn
-            .execute(Statement::from_string(manager.get_database_backend(), "INSERT INTO final_fantasy.gatherer SELECT id, job::text::final_fantasy.gatherer_job, level, character_id FROM final_fantasy.crafter WHERE job IN ('culinarian', 'miner', 'botanist', 'fisher')"))
+            .execute_unprepared("INSERT INTO final_fantasy.gatherer SELECT id, job::text::final_fantasy.gatherer_job, level, character_id FROM final_fantasy.crafter WHERE job IN ('culinarian', 'miner', 'botanist', 'fisher')")
             .await?;
         txn
-            .execute(Statement::from_string(manager.get_database_backend(), "delete from final_fantasy.crafter where job in ('culinarian', 'miner', 'botanist', 'fisher')"))
+            .execute_unprepared("delete from final_fantasy.crafter where job in ('culinarian', 'miner', 'botanist', 'fisher')")
             .await?;
 
-        txn.execute(Statement::from_string(
-            manager.get_database_backend(),
-            "ALTER TYPE final_fantasy.crafter_job RENAME TO crafter_job_old",
-        ))
+        txn.execute_unprepared("ALTER TYPE final_fantasy.crafter_job RENAME TO crafter_job_old")
             .await?;
 
         manager
@@ -81,8 +78,8 @@ impl MigrationTrait for Migration {
             .await?;
 
         txn
-            .execute(Statement::from_string(manager.get_database_backend(), "ALTER TABLE final_fantasy.crafter ALTER COLUMN job TYPE final_fantasy.crafter_job USING job::text::final_fantasy.crafter_job"))
-            .await?;
+            .execute_unprepared("ALTER TABLE final_fantasy.crafter ALTER COLUMN job TYPE final_fantasy.crafter_job USING job::text::final_fantasy.crafter_job")
+        .await?;
 
         manager
             .drop_type(

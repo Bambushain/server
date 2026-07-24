@@ -1,6 +1,5 @@
 use crate::m20220101_000001_create_schemas::Schemas;
 use crate::m20231229_235511_create_table_grove::Grove;
-use crate::sea_orm::Statement;
 use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
@@ -50,7 +49,7 @@ impl MigrationTrait for Migration {
 
         manager
             .get_connection()
-            .execute(Statement::from_string(manager.get_database_backend(), "insert into grove.grove_user select grove_id, id as user_id, is_mod from authentication.\"user\""))
+            .execute_unprepared( "insert into grove.grove_user select grove_id, id as user_id, is_mod from authentication.\"user\"")
             .await?;
 
         manager
