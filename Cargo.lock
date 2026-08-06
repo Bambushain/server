@@ -865,7 +865,7 @@ version = "4.0.0"
 dependencies = [
  "actix-web",
  "bamboo-common",
- "base64 0.23.0",
+ "base64 0.23.1",
  "bytes",
  "chrono",
  "date-range",
@@ -1038,7 +1038,7 @@ version = "4.0.0"
 dependencies = [
  "bamboo-common-backend-dbal",
  "bamboo-common-core",
- "base64 0.23.0",
+ "base64 0.23.1",
  "chrono",
  "log",
  "maud",
@@ -1081,7 +1081,7 @@ dependencies = [
  "actix-web",
  "bamboo-common-backend-dbal",
  "bamboo-common-core",
- "base64 0.23.0",
+ "base64 0.23.1",
  "bytes",
  "fast_qr",
  "log",
@@ -1239,7 +1239,7 @@ dependencies = [
  "actix-files",
  "actix-web",
  "bamboo-common",
- "base64 0.23.0",
+ "base64 0.23.1",
  "chrono",
  "dotenvy",
  "email_address",
@@ -1268,9 +1268,9 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "base64"
-version = "0.23.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
 
 [[package]]
 name = "base64ct"
@@ -1284,7 +1284,7 @@ version = "0.19.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a0cd0bd35a28836d528d2b58ad499bc3c5641d59379421b1be9eeb0c2f2b912a"
 dependencies = [
- "base64 0.23.0",
+ "base64 0.23.1",
  "blowfish",
  "getrandom 0.4.3",
  "subtle",
@@ -2316,7 +2316,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "420b9da095f052ea597503e39073b5b3c522f7db933fbac202d91d24492693fd"
 dependencies = [
- "base64 0.23.0",
+ "base64 0.23.1",
  "memchr",
 ]
 
@@ -4195,7 +4195,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2c646bd5cc763b1087b15493e29a64be6147ba8f19342004fa52048ee596eae"
 dependencies = [
  "async-trait",
- "base64 0.23.0",
+ "base64 0.23.1",
  "email-encoding",
  "email_address",
  "fastrand",
