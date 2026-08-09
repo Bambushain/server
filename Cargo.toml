@@ -145,7 +145,7 @@ syn = "3"
 tokio = "1"
 tokio-stream = "0.1"
 tokio-util = "0.7"
-totp-rs = { version = "5", features = ["qr", "gen_secret"] }
+totp-rs = { version = "6", features = ["qr", "gen_secret"] }
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 wasm-bindgen = "0.2"
