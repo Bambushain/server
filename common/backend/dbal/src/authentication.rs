@@ -1,5 +1,5 @@
-use sea_orm::prelude::Expr;
 use sea_orm::ActiveValue::Set;
+use sea_orm::prelude::Expr;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, JoinType, NotSet, QueryFilter,
     QuerySelect,
@@ -124,21 +124,18 @@ async fn validate_totp_token(
         decrypted_secret
     };
 
-    totp_rs::TOTP::from_rfc6238(
-        totp_rs::Rfc6238::new(
-            6,
-            totp_secret.clone(),
-            Some("Bambushain".to_string()),
-            user.display_name.clone(),
-        )
-        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))?,
-    )
-    .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-    .map(|totp| {
-        totp.check_current(code)
-            .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
-            .map(|_| ())
-    })?
+    totp_rs::Builder::new()
+        .with_digits(6)
+        .with_secret(totp_secret.clone())
+        .with_issuer(Some("Bambushain"))
+        .with_account_name(user.display_name)
+        .build()
+        .map_err(|_| BambooError::crypto(error_tag!(), "Failed to validate"))
+        .map(|totp| {
+            totp.check_current(code)
+                .ok_or(BambooError::crypto(error_tag!(), "Failed to validate"))
+                .map(|_| ())
+        })?
 }
 
 pub async fn create_firebase_token(
