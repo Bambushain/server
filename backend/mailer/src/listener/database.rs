@@ -14,7 +14,7 @@ pub async fn start_listening() -> Result<(), NotificationError> {
         tokio::select! {
             Ok(mails) = mailing::get_pending_mails(&db) => {
                 for mail in mails {
-                    log::info!("Received message: {}", &mail.id);
+                    log::info!("Received message: {}", mail.id);
                     mailing::mark_sending(&mail, &db).await;
                     if let Err(err) = mailer::send_mail(&mail, EnvironmentService::new()).await {
                         log::error!("Failed to send email: {err}");
