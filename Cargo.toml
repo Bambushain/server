@@ -89,7 +89,7 @@ license = "MIT"
 actix = "0.13"
 actix-files = "0.7"
 actix-web = "4"
-actix-web-lab = { version = "0.26", features = ["spa"] }
+actix-web-lab = { version = "0.27", features = ["spa"] }
 async-nats = "0.50"
 base64 = "0.23"
 bcrypt = "0.19"
