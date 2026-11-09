@@ -90,7 +90,7 @@ actix = "0.13"
 actix-files = "0.7"
 actix-web = "4"
 actix-web-lab = { version = "0.29", features = ["spa"] }
-async-nats = "0.51"
+async-nats = "0.52"
 base64 = "0.23"
 bcrypt = "0.19"
 bytes = "1"
