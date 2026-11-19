@@ -121,7 +121,7 @@ dependencies = [
  "mime",
  "percent-encoding",
  "pin-project-lite",
- "rand 0.10.3",
+ "rand 0.10.4",
  "sha1",
  "smallvec",
  "tokio",
@@ -686,7 +686,7 @@ dependencies = [
  "nuid",
  "pin-project",
  "portable-atomic",
- "rand 0.10.3",
+ "rand 0.10.4",
  "regex",
  "ring",
  "rustls-native-certs",
@@ -1227,7 +1227,7 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "log",
- "rand 0.10.3",
+ "rand 0.10.4",
  "serde",
  "uuid",
  "wasm-bindgen",
@@ -1248,7 +1248,7 @@ dependencies = [
  "futures-util",
  "getrandom 0.4.3",
  "gloo-file",
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "icondata_lu",
  "leptos",
  "leptos-cosmo",
@@ -1257,7 +1257,7 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "log",
- "rand 0.10.3",
+ "rand 0.10.4",
  "serde",
  "serde_json",
  "server_fn",
@@ -2726,7 +2726,7 @@ dependencies = [
  "gloo-render",
  "gloo-storage",
  "gloo-timers 0.4.0",
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "gloo-worker",
 ]
 
@@ -2736,7 +2736,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8b39f7a21b04d982b709667625a20c7669890270ad77a40b74c0ad02bd61822"
 dependencies = [
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "js-sys",
  "serde",
  "wasm-bindgen",
@@ -2775,9 +2775,9 @@ dependencies = [
 
 [[package]]
 name = "gloo-file"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "544a15ff6a3d5976bebc97380c8471ae14283bc71f4bb198d6c8cae64f411ab7"
+checksum = "959eb0fd8614faead200f1abcacced6bdf89795a4e13f17eb9dc53a801c8150f"
 dependencies = [
  "futures-channel",
  "gloo-events 0.3.0",
@@ -2811,7 +2811,7 @@ checksum = "53d1124057b65f69c3e71e319a69f0499d21fdea3ae7c7eb55363580704298a3"
 dependencies = [
  "getrandom 0.4.3",
  "gloo-events 0.3.0",
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "js-sys",
  "serde",
  "serde-wasm-bindgen",
@@ -2851,7 +2851,7 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "http 1.5.0",
  "js-sys",
  "pin-project",
@@ -2879,7 +2879,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e82ce7d41c6d821640a43726f6ff33c924795cc151b62e5a84d0c988c151c980"
 dependencies = [
- "gloo-utils 0.3.0",
+ "gloo-utils 0.3.1",
  "js-sys",
  "serde",
  "serde_json",
@@ -2927,9 +2927,9 @@ dependencies = [
 
 [[package]]
 name = "gloo-utils"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4202275d95a142fa209a1e35e91c250a710c5600731372cd3464a39ed01573d6"
+checksum = "b49e445aecd7ad851e4a3704f370f53ae7b267ace62d17be3ec4fac5024eec0e"
 dependencies = [
  "js-sys",
  "serde",
@@ -6525,7 +6525,7 @@ dependencies = [
  "bytes",
  "getrandom 0.4.3",
  "lru-slab",
- "rand 0.10.3",
+ "rand 0.10.4",
  "rand_pcg",
  "ring",
  "rustc-hash",
@@ -6624,9 +6624,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
+checksum = "8f6fa277c67e6ea590466f04c3fe82cb509f0864fe470643e5570de9514a9b11"
 dependencies = [
  "chacha20",
  "getrandom 0.4.3",
@@ -7876,7 +7876,7 @@ dependencies = [
  "log",
  "md-5",
  "memchr",
- "rand 0.10.3",
+ "rand 0.10.4",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -8331,7 +8331,7 @@ dependencies = [
  "futures-sink",
  "http 1.5.0",
  "httparse",
- "rand 0.10.3",
+ "rand 0.10.4",
  "rustls-pki-types",
  "sha1_smol",
  "simdutf8",
@@ -8407,7 +8407,7 @@ dependencies = [
  "hmac 0.13.0",
  "percent-encoding",
  "qrcodegen-image",
- "rand 0.10.3",
+ "rand 0.10.4",
  "serde",
  "sha1",
  "sha2 0.11.1",
