@@ -69,9 +69,9 @@ dependencies = [
 
 [[package]]
 name = "actix-files"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6f3a6769c3bc1c7d8e04b5c15f0c87489924c93455d9820296c219475a9051a"
+checksum = "35587505432a51eb52536fbf86c89d57a3ebe792f3eb1d94e01da0b917aa07bc"
 dependencies = [
  "actix-http",
  "actix-service",
@@ -264,7 +264,7 @@ version = "0.29.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d634f96d3f94f293999b6acb4bd3c98b00e6f598be7a9b5649a35aecb90de1a"
 dependencies = [
- "actix-files 0.7.4",
+ "actix-files 0.7.5",
  "actix-http",
  "actix-router",
  "actix-service",
@@ -1214,7 +1214,7 @@ dependencies = [
 name = "bamboo-frontend-authentication"
 version = "4.0.1"
 dependencies = [
- "actix-files 0.7.4",
+ "actix-files 0.7.5",
  "actix-web",
  "bamboo-common",
  "console_error_panic_hook",
@@ -1237,7 +1237,7 @@ dependencies = [
 name = "bamboo-frontend-pandas"
 version = "4.0.1"
 dependencies = [
- "actix-files 0.7.4",
+ "actix-files 0.7.5",
  "actix-web",
  "bamboo-common",
  "chrono",
@@ -1270,7 +1270,7 @@ dependencies = [
 name = "bamboo-frontend-public"
 version = "4.0.1"
 dependencies = [
- "actix-files 0.7.4",
+ "actix-files 0.7.5",
  "actix-web",
  "bamboo-common",
  "base64 0.23.1",
@@ -2427,7 +2427,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6549,7 +6549,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7004,7 +7004,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7063,7 +7063,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -8114,10 +8114,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -8931,7 +8931,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
